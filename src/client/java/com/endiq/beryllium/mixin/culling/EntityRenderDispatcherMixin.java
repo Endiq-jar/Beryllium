@@ -51,6 +51,9 @@ public abstract class EntityRenderDispatcherMixin {
 		if (!Beryllium.config().enabled || !Beryllium.config().cullBehindCameraEntities) {
 			return;
 		}
+		if (Beryllium.isCullingDeferredToOtherMod()) {
+			return;
+		}
 		if (camera == null) {
 			return;
 		}

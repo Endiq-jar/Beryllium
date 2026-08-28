@@ -1,5 +1,8 @@
 package com.endiq.beryllium;
 
+import com.endiq.beryllium.capability.GraphicsCapabilityClassifier;
+import com.endiq.beryllium.capability.GraphicsCapabilityTier;
+import com.endiq.beryllium.device.DeviceDetector;
 import com.endiq.beryllium.device.GpuDetector;
 import com.endiq.beryllium.device.GpuInfo;
 import com.endiq.beryllium.profiler.DebugOverlay;
@@ -32,8 +35,18 @@ public class BerylliumClient implements ClientModInitializer {
 			BerylliumLog.gpu("Graphics API: " + gpu.graphicsApi());
 			BerylliumLog.gpu("OpenGL Version: " + gpu.glVersion());
 			BerylliumLog.gpu("Shading Language Version: " + gpu.shadingLanguageVersion());
+			BerylliumLog.gpu("Max Texture Size: " + (gpu.maxTextureSize() > 0 ? gpu.maxTextureSize() : "unknown"));
 			BerylliumLog.gpu("Display Refresh Rate: "
 				+ (gpu.displayRefreshRateHz() > 0 ? gpu.displayRefreshRateHz() + " Hz" : "unknown"));
+
+			GraphicsCapabilityTier tier = GraphicsCapabilityClassifier.classify(
+				gpu.maxTextureSize(),
+				gpu.renderer() == null ? null : gpu.renderer().toLowerCase(),
+				Runtime.getRuntime().availableProcessors(),
+				DeviceDetector.detect().totalRamGigabytes()
+			);
+			BerylliumLog.gpu("Capability Tier: " + tier);
 		});
 	}
 }
+

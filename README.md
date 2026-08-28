@@ -34,91 +34,119 @@ rendering — see the full design doc for the complete roadmap.
 
 ## Status
 
-**Not "all phases."** The full design doc spans chunk-rebuild rewrites, buffer pooling,
-a shader cache, thermal/battery management, an auto-optimizer, a compatibility layer,
-and an optional Vulkan backend — each of those needs its own real implementation, and
-several genuinely can't be verified without running the game (chunk rebuild timing,
-GPU capability tiers, thermal behavior under load, etc.). Writing all of it blind in one
-pass would mean handing over hundreds of untested lines with no way to know which parts
-actually work — the opposite of the doc's own "every milestone must compile, launch, and
-be testable" rule. So this delivery is a large, real increment, not the whole roadmap:
+**Not the full 28-section spec.** Thermal/battery management, an auto-optimizer, and a
+benchmarking harness were explicitly dropped from scope on request. Deep chunk-mesh
+rendering and a Vulkan backend remain out for the reasons below. Everything else that
+can responsibly be built without live-testing in the actual game is now in.
 
 **Implemented and included:**
 
 - **Phase 1** — init, config, device detection, structured logging
 - **Phase 2** — frame profiler: FPS, frame time, 1% low, 0.1% low, debug overlay
-- **Phase 3** — frame budget scheduler (priority-queued background work). As of this
-  update it's no longer inert: `ChunkRebuildPriority.toWorkPriority` (Phase 4) maps a
-  chunk request onto one of its priority buckets, closing the loop between the two.
-- **Behind-camera entity culling ("Superb Player culling"), now more aggressive** —
-  safe radius dropped 8→4 blocks, and the cull angle is now distance-graduated instead
-  of one fixed threshold: conservative right at the safe radius (must be ~127° off-center
-  before culling), relaxing to aggressive by 48 blocks out (~93° off-center is enough).
-  Close things still get a wide margin; far-away things — where most of the actual
-  overdraw savings are, and where popping is imperceptible — get culled a lot more
-  readily. Still never culls anything within the safe radius, and never culls anything
-  actually in front of you or directly to the side, at any distance.
+- **Phase 3** — frame budget scheduler (priority-queued background work), now fed by
+  Phase 4's `ChunkRebuildPriority.toWorkPriority`
+- **Behind-camera entity culling ("Superb Player culling"), tuned aggressive** — safe
+  radius 4 blocks, distance-graduated cull angle (conservative near the safe radius,
+  aggressive by 48 blocks out). Never culls anything ahead or to the side, at any
+  distance. Automatically defers to EntityCulling if it's loaded (see Compatibility below).
 - **Phase 4 (started): chunk rebuild prioritization** — `ChunkRebuildRequest` /
-  `ChunkRebuildPriority` / `ChunkRebuildQueue` implement spec section 10's ordering
-  (proximity, view-alignment, urgency, distance) as a real, tested, dedup'd priority
-  queue. Not yet wired to Minecraft's actual chunk renderer — see below for why.
+  `ChunkRebuildPriority` / `ChunkRebuildQueue`, a real dedup'd priority queue following
+  spec section 10's ordering (proximity, view-alignment, urgency, distance). Not yet
+  wired to Minecraft's actual chunk renderer — see below for why.
+- **Buffer management infrastructure (section 13)** — `BufferPool<T>` (generic
+  acquire/release pooling with a capacity cap and a discard hook for anything that
+  doesn't fit) and `DeferredReleaseQueue<T>` (delays disposal by N frames, so an
+  in-flight GPU resource isn't torn down immediately). Generic, not GL-specific yet —
+  see below.
+- **GPU capability tiers (section 15)** — `GraphicsCapabilityTier` +
+  `GraphicsCapabilityClassifier`, scoring real queried values (GL_MAX_TEXTURE_SIZE,
+  CPU cores, RAM) rather than a marketing-name lookup table, per the spec's own
+  instruction. `GpuDetector` now also queries `GL_MAX_TEXTURE_SIZE`; the tier is
+  classified and logged once the client starts.
+- **Shader cache infrastructure (section 16)** — `VersionedFileCache`: a corruption-safe,
+  versioned on-disk byte cache (bump the version, every old entry is automatically
+  orphaned and swept). Generic, not wired to actual shader compilation yet — see below.
+- **Compatibility layer (section 21)** — `CompatibilityChecker` detects known
+  optimization mods via `FabricLoader.isModLoaded` (sodium, lithium, ferritecore,
+  immediatelyfast, entityculling, indium, iris) and, right now, does one concrete thing
+  with that: if EntityCulling is loaded, Beryllium's own behind-camera culling disables
+  itself for the session rather than risk two mods independently culling the same
+  entity in ways neither was tested against.
 
-**Not implemented:** the rest of Phase 4 (actual mesh generation / buffer changes),
-mobile GPU capability tiers, shader cache, thermal/battery management, auto optimizer,
-compatibility layer, benchmarking harness, Vulkan backend.
+**Explicitly out of scope (dropped on request):** thermal management, battery mode,
+auto-optimizer.
 
-### Why Phase 4 stops at prioritization for now
+**Not implemented, and why:**
 
-Wiring `ChunkRebuildQueue` into the real game means mixing into
-`net.minecraft.client.renderer.chunk.SectionRenderDispatcher` (confirmed as the correct
-1.21.4 class/package via Fabric's own migration notes) — but *which* method actually
-enqueues a rebuild, and its exact signature, wasn't something I could confirm without
-the real deobfuscated jar (no Mojang/Fabric maven access in this sandbox). That class is
-also one of the more version-fragile parts of the renderer. Guessing there risks a
-mixin that fails to apply, or worse, one that applies against the wrong method and
-silently breaks chunk rendering — a much bigger blast radius than the entity culling
-mixin. If you run `./gradlew genSources` (or just check the decompiled
-`SectionRenderDispatcher` in your IDE) and share the method that currently handles
-"rebuild this section," I can wire this precisely instead of guessing at it.
+- **The rest of Phase 4** (actual mesh generation / rebuild-queue wiring) — see below.
+- **Actually hooking the shader cache to shader compilation** — same category of problem
+  as chunk rendering: needs Minecraft's real shader pipeline internals, not guessable
+  safely from here.
+- **Vulkan backend** — not just unimplemented, *not applicable*: Minecraft 1.21.4 (this
+  mod's target version) doesn't have a Vulkan backend to hook into. That's landing in
+  later "26.x" snapshots, after this codebase's target version. Nothing to build yet.
+
+### Why chunk rendering and shader compilation stop at infrastructure
+
+Both of these need to hook deep, version-fragile internals —
+`net.minecraft.client.renderer.chunk.SectionRenderDispatcher` for chunk rebuilds, and
+Minecraft's shader/program compilation path for the cache. I confirmed
+`SectionRenderDispatcher` is the right 1.21.4 class via Fabric's own migration notes, but
+not the exact method signature that enqueues a rebuild — and I have no equivalent
+confirmation at all for the shader pipeline. Guessing at either risks a mixin that either
+fails to apply, or worse, applies against the wrong method and silently breaks rendering —
+a much bigger blast radius than the entity culling mixin, where being wrong just means
+"culling doesn't do anything, vanilla behavior unaffected." If you run
+`./gradlew genSources` (or check either class in your IDE) and share the relevant method
+signatures, I can wire both precisely instead of guessing.
 
 ## What's actually been tested vs. what hasn't
 
 This was built in a sandbox with **no network access to Mojang's or Fabric's servers**,
-so the Minecraft-dependent code (anything touching `net.minecraft.*`, LWJGL, or Fabric
-API) could not be compiled here — same limitation as the Phase 1 delivery.
+so nothing touching `net.minecraft.*`, LWJGL, or Fabric API could be compiled here. What
+*could* be compiled — everything with zero Minecraft dependency — was actually compiled
+and unit-tested with a JDK installed in the sandbox for this purpose, not just written
+and hoped about:
 
-What *could* be verified, and was:
+- `FrameBudgetScheduler` / `FrameBudget` — priority ordering, CRITICAL always running
+  even at zero budget, lower priorities correctly deferred.
+- `FrameTimeRingBuffer` — wraparound behavior, 1%/0.1% low math against hand-computed
+  expected values.
+- `BehindCameraCulling` — the graduated-threshold behavior specifically (same off-center
+  angle culled far away but not just past the safe radius; ahead/to-the-side never
+  culled at any distance; safe-radius boundary inclusive).
+- `ChunkRebuildPriority` / `ChunkRebuildQueue` — ahead-vs-behind and closer-vs-farther
+  ordering, urgent always outranking normal regardless of distance, dedup-by-key,
+  `drain()` returning exactly the requested count in priority order.
+- `BufferPool` — reuse vs. new-instance creation, capacity cap enforcement, discard
+  callback firing only on overflow, reset firing on every release.
+- `DeferredReleaseQueue` — nothing disposed before the delay elapses, correct disposal
+  exactly on the tick it's due, zero-delay disposing on the very next `advance()`.
+- `GraphicsCapabilityClassifier` — failed-detection fallback, flagship/low-end/mid-range
+  scoring, the mobile-GPU-string nudge applying only when expected (never affects a
+  desktop GPU string with identical specs).
+- `VersionedFileCache` — put/get roundtrip, sanitized keys with unusual characters, a
+  corrupted entry (a directory where a file's expected) failing safe as a miss instead
+  of throwing, and a version bump correctly orphaning + sweeping old entries while
+  leaving its own alone.
+- `CompatibilityChecker`'s actual decision logic (defer-to-EntityCulling) — the
+  `FabricLoader.isModLoaded` half is a one-line call to bedrock-stable Fabric Loader API
+  and wasn't separately tested, but carries essentially no risk.
 
-- `FrameBudgetScheduler` / `FrameBudget` — pure Java, zero Minecraft dependency.
-  Compiled and unit-tested locally (priority ordering, CRITICAL always running even at
-  zero budget, lower priorities correctly deferred). All tests pass.
-- `FrameTimeRingBuffer` — pure Java. Compiled and unit-tested locally (wraparound
-  behavior, 1%/0.1% low math against hand-computed expected values). All tests pass.
-- `BehindCameraCulling` — pure Java geometry, zero Minecraft dependency. Compiled and
-  unit-tested locally, including the graduated-threshold behavior specifically (same
-  off-center angle culled far away but NOT culled just past the safe radius; directly
-  ahead/to-the-side never culled at any distance; safe-radius boundary inclusive). All
-  tests pass.
-- `ChunkRebuildPriority` / `ChunkRebuildQueue` — pure Java, zero Minecraft dependency.
-  Compiled and unit-tested locally: ahead-vs-behind ordering, closer-vs-farther
-  ordering, urgent requests always outranking normal ones regardless of distance,
-  dedup-by-key on resubmission, and `drain()` correctly removing and returning only the
-  requested count in priority order. All tests pass.
+All of the above: every test passes.
 
 What's real code but **not compile-checked** (needs `./gradlew build` on your end):
 
 - `FrameProfiler` / `DebugOverlay` — Fabric API (`WorldRenderEvents`, `HudRenderCallback`)
-  + `Minecraft.getInstance().font` / `GuiGraphics.drawString(...)`. These are
-  long-standing, low-churn APIs, but weren't checked against the actual 1.21.4 jar.
-- `EntityRenderDispatcherMixin` — **the highest-risk file.** It injects into
-  `EntityRenderDispatcher#shouldRender` (the same hook mods like EntityCulling use — it's
-  the one choke point every entity passes through before rendering), and calls
-  `Camera#getPosition()` / `Camera#getLookVector()` plus shadows `EntityRenderDispatcher`'s
-  `camera` field. These names were cross-checked against published Mojang-mapped
-  decompiles from a similar version rather than the actual 1.21.4 jar, so treat them as
-  "probably right, not verified." If the build fails here, it's almost certainly a
-  one-line accessor rename, not a design problem — the actual culling math
-  (`BehindCameraCulling`) is solid and already tested.
+  + `Minecraft.getInstance().font` / `GuiGraphics.drawString(...)`. Long-standing,
+  low-churn APIs, but not checked against the actual 1.21.4 jar.
+- `GpuDetector`'s new `GL_MAX_TEXTURE_SIZE` query — `GL11.glGetInteger(int)` is a
+  standard LWJGL3 convenience method, low risk.
+- `EntityRenderDispatcherMixin` — **the highest-risk file, unchanged from before.**
+  `Camera#getPosition()` / `Camera#getLookVector()` and the `camera` field on
+  `EntityRenderDispatcher` were cross-checked against published Mojang-mapped decompiles
+  from a similar version, not the actual 1.21.4 jar. If the build fails here, it's almost
+  certainly a one-line accessor rename — the actual culling math is solid and tested.
 
 ## Building
 
@@ -144,11 +172,11 @@ mappings, Java 21.
 | `cullAggressiveDistance` | `48.0` | Distance at which the cull angle reaches its most aggressive setting |
 | `cullDotThresholdNear` | `-0.6` | Cull angle right at the safe radius (conservative, ~127° off-center) |
 | `cullDotThresholdFar` | `-0.05` | Cull angle at/beyond the aggressive distance (aggressive, ~93° off-center) |
+| `compatibilityModeEnabled` | `true` | Detect known optimization mods and defer to them where they overlap |
 
 ## Sodium licensing
 
 No Sodium source is vendored or referenced anywhere in this delivery. The entity culling
-feature above is an original, independently-derived heuristic (dot product + safe
-radius), not a port of anything from Sodium/EntityCulling — only the *choke point it
-hooks into* is the same one those mods use, which is just how Minecraft's own render
-loop works.
+feature is an original, independently-derived heuristic (dot product + safe radius), not
+a port of anything from Sodium/EntityCulling — only the *choke point it hooks into* is
+the same one those mods use, which is just how Minecraft's own render loop works.

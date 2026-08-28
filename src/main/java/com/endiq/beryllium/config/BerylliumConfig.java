@@ -57,6 +57,13 @@ public class BerylliumConfig {
 	 *  (crowded servers, farms, lots of entities at range). */
 	public double cullDotThresholdFar = -0.05;
 
+	// --- Compatibility ---
+
+	/** When true, Beryllium checks for known optimization mods at startup and defers
+	 *  its own overlapping features to them rather than assuming safe coexistence
+	 *  (currently: disables behind-camera entity culling if EntityCulling is loaded). */
+	public boolean compatibilityModeEnabled = true;
+
 	public static BerylliumConfig load() {
 		if (Files.exists(CONFIG_PATH)) {
 			try {

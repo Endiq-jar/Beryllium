@@ -1,5 +1,6 @@
 package com.endiq.beryllium;
 
+import com.endiq.beryllium.compat.CompatibilityChecker;
 import com.endiq.beryllium.config.BerylliumConfig;
 import com.endiq.beryllium.device.DeviceDetector;
 import com.endiq.beryllium.device.DeviceInfo;
@@ -9,6 +10,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -22,6 +24,7 @@ public class Beryllium implements ModInitializer {
 	public static final String MOD_ID = "beryllium";
 
 	private static BerylliumConfig config;
+	private static volatile boolean deferCullingToOtherMod = false;
 
 	@Override
 	public void onInitialize() {
@@ -33,11 +36,39 @@ public class Beryllium implements ModInitializer {
 			return;
 		}
 
+		checkCompatibility();
 		logStartupBanner();
 	}
 
 	public static BerylliumConfig config() {
 		return config;
+	}
+
+	/** True if a compatible/overlapping mod is loaded that Beryllium's own behind-camera
+	 *  culling should defer to. Checked by {@code EntityRenderDispatcherMixin} in
+	 *  addition to the config toggle. */
+	public static boolean isCullingDeferredToOtherMod() {
+		return deferCullingToOtherMod;
+	}
+
+	private void checkCompatibility() {
+		if (!config.compatibilityModeEnabled) {
+			return;
+		}
+
+		List<String> loaded = CompatibilityChecker.detectLoadedOptimizationMods();
+		if (loaded.isEmpty()) {
+			return;
+		}
+
+		BerylliumLog.compat("Detected optimization mods: " + String.join(", ", loaded));
+
+		if (CompatibilityChecker.shouldDeferBehindCameraCullingTo(loaded)) {
+			deferCullingToOtherMod = true;
+			BerylliumLog.compat("EntityCulling is loaded — deferring to it for entity culling; "
+				+ "Beryllium's own behind-camera culling is disabled for this session to avoid "
+				+ "two mods independently deciding whether to skip rendering the same entity.");
+		}
 	}
 
 	private void logStartupBanner() {
