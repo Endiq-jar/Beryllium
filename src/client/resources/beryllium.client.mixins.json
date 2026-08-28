@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "com.endiq.beryllium.mixin",
+	"compatibilityLevel": "JAVA_17",
+	"client": [
+		"culling.EntityRenderDispatcherMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

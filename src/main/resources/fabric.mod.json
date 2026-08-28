@@ -1,0 +1,35 @@
+{
+	"schemaVersion": 1,
+	"id": "beryllium",
+	"version": "${version}",
+	"name": "Beryllium",
+	"description": "A Fabric performance mod focused on making Minecraft Java Edition run smoother on Android and other mobile Java launchers, with frame-time consistency as the primary goal.",
+	"authors": [
+		"Endiq"
+	],
+	"contact": {
+		"sources": "https://github.com/Endiq-jar/Beryllium"
+	},
+	"license": "MIT",
+	"environment": "*",
+	"mixins": [
+		{
+			"config": "beryllium.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"entrypoints": {
+		"main": [
+			"com.endiq.beryllium.Beryllium"
+		],
+		"client": [
+			"com.endiq.beryllium.BerylliumClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~1.21.4",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

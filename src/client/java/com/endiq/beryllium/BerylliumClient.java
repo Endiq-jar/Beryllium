@@ -1,0 +1,39 @@
+package com.endiq.beryllium;
+
+import com.endiq.beryllium.device.GpuDetector;
+import com.endiq.beryllium.device.GpuInfo;
+import com.endiq.beryllium.profiler.DebugOverlay;
+import com.endiq.beryllium.profiler.FrameProfiler;
+import com.endiq.beryllium.util.BerylliumLog;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+
+public class BerylliumClient implements ClientModInitializer {
+	@Override
+	public void onInitializeClient() {
+		if (!Beryllium.config().enabled) {
+			return;
+		}
+
+		// Profiler + overlay only need Fabric API's event bus, which is available
+		// immediately — no need to wait for CLIENT_STARTED.
+		FrameProfiler profiler = new FrameProfiler();
+		profiler.register();
+		new DebugOverlay(profiler).register();
+
+		// onInitializeClient() runs before the window/GL context exists, so GPU queries
+		// can't happen here yet. CLIENT_STARTED fires once the client has fully started
+		// (window created, GL context current), which is the earliest safe point.
+		ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
+			GpuInfo gpu = GpuDetector.detect();
+
+			BerylliumLog.gpu("Vendor: " + gpu.vendor());
+			BerylliumLog.gpu("Renderer: " + gpu.renderer());
+			BerylliumLog.gpu("Graphics API: " + gpu.graphicsApi());
+			BerylliumLog.gpu("OpenGL Version: " + gpu.glVersion());
+			BerylliumLog.gpu("Shading Language Version: " + gpu.shadingLanguageVersion());
+			BerylliumLog.gpu("Display Refresh Rate: "
+				+ (gpu.displayRefreshRateHz() > 0 ? gpu.displayRefreshRateHz() + " Hz" : "unknown"));
+		});
+	}
+}
