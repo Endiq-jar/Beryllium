@@ -63,7 +63,9 @@ public abstract class EntityRenderDispatcherMixin {
 			forward.x(), forward.y(), forward.z(),
 			x, y, z,
 			Beryllium.config().cullSafeRadius,
-			Beryllium.config().cullDotThreshold
+			Beryllium.config().cullAggressiveDistance,
+			Beryllium.config().cullDotThresholdNear,
+			Beryllium.config().cullDotThresholdFar
 		);
 
 		if (behind) {

@@ -36,15 +36,26 @@ public class BerylliumConfig {
 
 	/** Entities within this many blocks of the camera are never culled by
 	 *  {@code cullBehindCameraEntities}, regardless of facing — avoids pop-in for
-	 *  anything close enough to matter (mounts, passengers, melee range, etc.). */
-	public double cullSafeRadius = 8.0;
+	 *  anything close enough to matter (mounts, passengers, melee range, etc.).
+	 *  Lowered from 8.0 -> 4.0 for more aggressive culling. */
+	public double cullSafeRadius = 4.0;
 
-	/** Dot product threshold (camera forward · direction-to-entity) below which an
-	 *  entity outside the safe radius is considered "behind" and gets culled. -1.0 =
-	 *  directly behind, 0.0 = directly to the side, 1.0 = directly ahead. Default -0.35
-	 *  only culls entities solidly in the rear ~140 degree cone, well past the edge of
-	 *  any normal FOV, so it should never remove something actually visible. */
-	public double cullDotThreshold = -0.35;
+	/** Distance at which the cull angle reaches its most aggressive value (see
+	 *  {@code cullDotThresholdFar}). Beyond this distance the threshold doesn't relax
+	 *  any further. */
+	public double cullAggressiveDistance = 48.0;
+
+	/** Dot product cull threshold used right at {@code cullSafeRadius} — conservative,
+	 *  since a close entity that's only slightly off-center is still a big, obvious
+	 *  object on screen. -1.0 = directly behind, 0.0 = directly to the side, 1.0 =
+	 *  directly ahead. */
+	public double cullDotThresholdNear = -0.6;
+
+	/** Dot product cull threshold used at {@code cullAggressiveDistance} and beyond —
+	 *  aggressive, since a distant entity that's a bit off from directly-behind is only
+	 *  a couple of pixels, and this is where most of the actual savings come from
+	 *  (crowded servers, farms, lots of entities at range). */
+	public double cullDotThresholdFar = -0.05;
 
 	public static BerylliumConfig load() {
 		if (Files.exists(CONFIG_PATH)) {

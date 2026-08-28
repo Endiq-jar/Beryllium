@@ -45,18 +45,41 @@ be testable" rule. So this delivery is a large, real increment, not the whole ro
 
 **Implemented and included:**
 
-- **Phase 1** — init, config, device detection, structured logging (unchanged from before)
+- **Phase 1** — init, config, device detection, structured logging
 - **Phase 2** — frame profiler: FPS, frame time, 1% low, 0.1% low, debug overlay
-- **Phase 3** — frame budget scheduler (priority-queued background work), *not yet wired
-  to anything* — there's no chunk/background work to schedule until Phase 4 exists
-- **New feature (your ask): behind-camera entity culling** — skips rendering entities
-  that are solidly behind the camera and far enough away to not pop, layered on top of
-  (not replacing) vanilla's own frustum/distance check
+- **Phase 3** — frame budget scheduler (priority-queued background work). As of this
+  update it's no longer inert: `ChunkRebuildPriority.toWorkPriority` (Phase 4) maps a
+  chunk request onto one of its priority buckets, closing the loop between the two.
+- **Behind-camera entity culling ("Superb Player culling"), now more aggressive** —
+  safe radius dropped 8→4 blocks, and the cull angle is now distance-graduated instead
+  of one fixed threshold: conservative right at the safe radius (must be ~127° off-center
+  before culling), relaxing to aggressive by 48 blocks out (~93° off-center is enough).
+  Close things still get a wide margin; far-away things — where most of the actual
+  overdraw savings are, and where popping is imperceptible — get culled a lot more
+  readily. Still never culls anything within the safe radius, and never culls anything
+  actually in front of you or directly to the side, at any distance.
+- **Phase 4 (started): chunk rebuild prioritization** — `ChunkRebuildRequest` /
+  `ChunkRebuildPriority` / `ChunkRebuildQueue` implement spec section 10's ordering
+  (proximity, view-alignment, urgency, distance) as a real, tested, dedup'd priority
+  queue. Not yet wired to Minecraft's actual chunk renderer — see below for why.
 
-**Not implemented:** Phase 4 (chunk optimization), buffer management, mobile GPU
-capability tiers, shader cache, thermal/battery management, auto optimizer, compatibility
-layer, benchmarking harness, Vulkan backend. These are the right next milestones, in
-roughly that order, once everything below is confirmed working in-game.
+**Not implemented:** the rest of Phase 4 (actual mesh generation / buffer changes),
+mobile GPU capability tiers, shader cache, thermal/battery management, auto optimizer,
+compatibility layer, benchmarking harness, Vulkan backend.
+
+### Why Phase 4 stops at prioritization for now
+
+Wiring `ChunkRebuildQueue` into the real game means mixing into
+`net.minecraft.client.renderer.chunk.SectionRenderDispatcher` (confirmed as the correct
+1.21.4 class/package via Fabric's own migration notes) — but *which* method actually
+enqueues a rebuild, and its exact signature, wasn't something I could confirm without
+the real deobfuscated jar (no Mojang/Fabric maven access in this sandbox). That class is
+also one of the more version-fragile parts of the renderer. Guessing there risks a
+mixin that fails to apply, or worse, one that applies against the wrong method and
+silently breaks chunk rendering — a much bigger blast radius than the entity culling
+mixin. If you run `./gradlew genSources` (or just check the decompiled
+`SectionRenderDispatcher` in your IDE) and share the method that currently handles
+"rebuild this section," I can wire this precisely instead of guessing at it.
 
 ## What's actually been tested vs. what hasn't
 
@@ -72,8 +95,15 @@ What *could* be verified, and was:
 - `FrameTimeRingBuffer` — pure Java. Compiled and unit-tested locally (wraparound
   behavior, 1%/0.1% low math against hand-computed expected values). All tests pass.
 - `BehindCameraCulling` — pure Java geometry, zero Minecraft dependency. Compiled and
-  unit-tested locally against 9 cases (ahead/behind/to-the-side, safe-radius boundary
-  inclusive/exclusive, degenerate zero-vector, non-normalized input). All tests pass.
+  unit-tested locally, including the graduated-threshold behavior specifically (same
+  off-center angle culled far away but NOT culled just past the safe radius; directly
+  ahead/to-the-side never culled at any distance; safe-radius boundary inclusive). All
+  tests pass.
+- `ChunkRebuildPriority` / `ChunkRebuildQueue` — pure Java, zero Minecraft dependency.
+  Compiled and unit-tested locally: ahead-vs-behind ordering, closer-vs-farther
+  ordering, urgent requests always outranking normal ones regardless of distance,
+  dedup-by-key on resubmission, and `drain()` correctly removing and returning only the
+  requested count in priority order. All tests pass.
 
 What's real code but **not compile-checked** (needs `./gradlew build` on your end):
 
@@ -109,9 +139,11 @@ mappings, Java 21.
 |---|---|---|
 | `enabled` | `true` | Master switch |
 | `debugMode` | `false` | Verbose logging + the FPS/1%/0.1% overlay |
-| `cullBehindCameraEntities` | `true` | Enable the new behind-camera culling |
-| `cullSafeRadius` | `8.0` | Never cull anything within this many blocks, regardless of facing |
-| `cullDotThreshold` | `-0.35` | How far behind (~140° rear cone) something must be before it's culled |
+| `cullBehindCameraEntities` | `true` | Enable behind-camera entity culling |
+| `cullSafeRadius` | `4.0` | Never cull anything within this many blocks, regardless of facing |
+| `cullAggressiveDistance` | `48.0` | Distance at which the cull angle reaches its most aggressive setting |
+| `cullDotThresholdNear` | `-0.6` | Cull angle right at the safe radius (conservative, ~127° off-center) |
+| `cullDotThresholdFar` | `-0.05` | Cull angle at/beyond the aggressive distance (aggressive, ~93° off-center) |
 
 ## Sodium licensing
 
