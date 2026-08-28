@@ -13,13 +13,6 @@ import net.fabricmc.loader.api.ModContainer;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Common entrypoint. Phase 1 scope only: initialization, config, device detection and
- * startup logging. GPU/display info is intentionally NOT queried here — this runs before
- * (or without) a render context existing, so GL calls would either fail or, on a dedicated
- * server, be meaningless. That half of the picture is logged from {@link BerylliumClient}
- * once the client has actually started.
- */
 public class Beryllium implements ModInitializer {
 	public static final String MOD_ID = "beryllium";
 
