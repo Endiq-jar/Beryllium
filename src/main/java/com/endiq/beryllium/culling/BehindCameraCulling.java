@@ -1,18 +1,5 @@
 package com.endiq.beryllium.culling;
 
-/**
- * Pure geometry for "is this point behind the camera and far enough away to safely
- * cull". Deliberately has zero Minecraft/LWJGL dependency so it can be unit-tested on
- * its own — the mixin that calls this is where all the Minecraft-API risk lives.
- *
- * <p>The cull angle is distance-graduated rather than a single fixed threshold: right at
- * the safe radius, something must be almost exactly behind you before it's culled
- * (a close entity that's slightly off-center is still a big, obvious object on screen).
- * Far away, the threshold relaxes a lot further — a distant entity a bit off from
- * directly-behind is a couple of pixels, so it's safe to be aggressive there, and that's
- * also where most of the actual overdraw savings come from (lots of far-away entities
- * in crowded servers/farms).
- */
 public final class BehindCameraCulling {
 	private BehindCameraCulling() {
 	}
