@@ -1,27 +1,9 @@
 package com.endiq.beryllium.capability;
 
-/**
- * Classifies already-detected device values into a {@link GraphicsCapabilityTier}. Pure
- * function, zero Minecraft/LWJGL dependency — the actual GL queries (GL_MAX_TEXTURE_SIZE
- * etc.) that feed this live in the client-only {@code GpuDetector}; this class only ever
- * sees plain numbers and strings, so it's fully unit-testable on its own.
- *
- * <p>Per spec section 15's explicit instruction ("do not classify devices purely by
- * marketing name"), the renderer string is only ever used as a small conservative
- * nudge, never as the primary signal — the primary signal is the actual queried limits
- * (texture size) plus CPU/RAM, which is real, checkable capacity rather than a name
- * lookup table.
- */
 public final class GraphicsCapabilityClassifier {
 	private GraphicsCapabilityClassifier() {
 	}
 
-	/**
-	 * @param maxTextureSize GL_MAX_TEXTURE_SIZE, or &lt;=0 if detection failed/hasn't run yet
-	 * @param rendererLowercase the GL_RENDERER string, lowercased (may be null)
-	 * @param cpuCores logical CPU core count
-	 * @param totalRamGigabytes total system RAM in GB, or a negative value if unknown
-	 */
 	public static GraphicsCapabilityTier classify(
 		int maxTextureSize, String rendererLowercase, int cpuCores, double totalRamGigabytes
 	) {
