@@ -29,6 +29,12 @@ public final class CompatibilityChecker {
 		return loadedOptimizationMods.contains("entityculling");
 	}
 
+	/** EntityCulling also culls block entities; letting both mods decide independently
+	 *  can double-cull or (worse) fight over the same render calls. */
+	public static boolean shouldDeferBlockEntityCullingTo(List<String> loadedOptimizationMods) {
+		return loadedOptimizationMods.contains("entityculling");
+	}
+
 	public static boolean isChunkRendererReplaced(List<String> loadedOptimizationMods) {
 		return loadedOptimizationMods.contains("sodium");
 	}

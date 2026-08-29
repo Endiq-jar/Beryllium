@@ -13,6 +13,7 @@
 	"license": "MIT",
 	"environment": "*",
 	"mixins": [
+		"beryllium.mixins.json",
 		{
 			"config": "beryllium.client.mixins.json",
 			"environment": "client"
