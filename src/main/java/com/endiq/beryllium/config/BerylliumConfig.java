@@ -82,6 +82,47 @@ public class BerylliumConfig {
 	 *  while looking at it. */
 	public double blockEntityCullSafeRadius = 6.0;
 
+	// --- Text / name tag culling ---
+
+	/** Skips rendering an entity's floating name tag (nameplate) when it's beyond
+	 *  {@code nameTagCullRange} of the camera. Independent from entity-model culling —
+	 *  a distant entity's model can already be behind-camera-culled while its name tag
+	 *  (a screen-space-ish billboard) would otherwise still get drawn every frame it's
+	 *  in view. See {@code TextCulling} for the distance check, {@code NameTagCullMixin}
+	 *  for the hook. Covers the "Name Tag Culling" / "Text Culling" settings together —
+	 *  in-world block-entity text (signs, hanging signs) is already covered by the
+	 *  existing {@code cullBlockEntities} frustum culler, since sign text renders through
+	 *  the normal block-entity renderer dispatch; it doesn't need a second, separate
+	 *  culling mechanism. */
+	public boolean cullNameTags = true;
+
+	/** Name tags beyond this many blocks from the camera are skipped entirely. Deliberately
+	 *  more generous than {@code cullSafeRadius}/entity-model ranges — legible text at
+	 *  range is one of the things players most often want to keep (finding teammates,
+	 *  reading shop signs on player heads, etc.), so this only trims genuinely far tags. */
+	public double nameTagCullRange = 48.0;
+
+	/** Disables the drop-shadow behind rendered text where wired up, trading a small amount
+	 *  of legibility for less overdraw in text-heavy scenes. Independently configurable
+	 *  from {@code cullNameTags} — one hides text entirely at range, the other makes text
+	 *  that IS drawn cheaper.
+	 *
+	 *  <p><b>Not yet wired to a render hook.</b> The field and default exist so the setting
+	 *  is stable in beryllium.json once implemented, but no mixin reads it yet — the exact
+	 *  {@code Font.drawInBatch} overload to intercept needs to be confirmed against
+	 *  decompiled 1.21.4 source first (there are multiple overloads; guessing one and being
+	 *  wrong is a fatal Mixin-apply crash at launch, not a silent no-op, unlike the
+	 *  reflection-based lookups used elsewhere in this mod). See phase 9 in README.md. */
+	public boolean textShadowsEnabled = true;
+
+	// --- Leaves culling ---
+
+	/** Skips rendering the shared face between two adjacent leaves blocks (both sides are
+	 *  covered by leaves geometry either way, so the hidden face contributes overdraw with
+	 *  no visible difference — no holes, since each leaf block still renders its own
+	 *  remaining outward faces normally). See {@code LeavesCullMixin}. */
+	public boolean cullLeavesInternalFaces = true;
+
 	// --- Mobile auto-tuning ---
 
 	/** On weak devices (capability tier COMPATIBILITY or STANDARD — the mobile/low-end

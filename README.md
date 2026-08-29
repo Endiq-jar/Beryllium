@@ -29,6 +29,18 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
 
 ### Rendering (client)
 
+- **Name tag / text distance culling** — hooks the same `shouldShowName` decision
+  vanilla itself uses, and drops name tags beyond `nameTagCullRange` (default 48
+  blocks). Independent from entity-model culling — a name tag is a billboard that
+  keeps costing a draw call even once its owning entity is small/behind-camera-culled.
+  In-world block-entity text (signs, hanging signs) doesn't get a separate mechanism;
+  it's already covered by the block-entity frustum culler below, since sign text
+  renders through the normal block-entity render dispatch.
+- **Leaves internal-face culling** — skips the shared face between two adjacent
+  leaves blocks (any combination of leaves types) during meshing. Both sides of that
+  face are already covered by leaves geometry either way, so it's pure overdraw with
+  zero visual difference — no holes, since each leaf block still renders every face
+  that actually borders air or a non-leaves block normally.
 - **Block entity frustum culling** — vanilla renders every block entity within a
   fixed radius of the camera regardless of facing. Beryllium skips the render call
   entirely when the block entity's bounding box is outside the camera frustum and
@@ -76,6 +88,9 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
 | 6 — block entity frustum culling | ✅ done |
 | 7 — mobile auto-tune preset | ✅ done |
 | 8 — shader precompile cache / GPU buffer recycling | 🚧 infrastructure only |
+| 9 — name tag / text distance culling | ✅ done |
+| 10 — leaves internal-face culling | ✅ done |
+| 11 — text shadows toggle | 🚧 config field only, not wired — needs the exact `Font.drawInBatch` overload confirmed against decompiled source first |
 
 > **Honest note on "Sodium replacement":** Sodium's headline FPS gain comes from
 > replacing the entire chunk-meshing and lighting pipeline (per-quad culling, vertex
@@ -111,6 +126,10 @@ mappings, Java 21.
 | `cullDotThresholdFar` | `-0.05` | Entity cull angle at/beyond the aggressive distance (aggressive, ~93° off-center) |
 | `cullBlockEntities` | `true` | Frustum-cull block entity render calls |
 | `blockEntityCullSafeRadius` | `6.0` | Block entities within this distance are never frustum-culled |
+| `cullNameTags` | `true` | Distance-cull entity name tags independently of model culling |
+| `nameTagCullRange` | `48.0` | Name tags beyond this many blocks from the camera are skipped |
+| `textShadowsEnabled` | `true` | **Not yet wired to a render hook** — reserved for a future text-shadow toggle |
+| `cullLeavesInternalFaces` | `true` | Skip the shared face between two adjacent leaves blocks during meshing |
 | `autoTuneWeakDevices` | `true` | One-shot low-end video preset on COMPATIBILITY/STANDARD-tier devices |
 | `autoTuneApplied` | `false` | Internal: set automatically once the preset has run (set `false` to re-apply) |
 | `compatibilityModeEnabled` | `true` | Detect known optimization mods and defer overlapping features (Sodium → chunk work, EntityCulling → entity & block entity culling) |

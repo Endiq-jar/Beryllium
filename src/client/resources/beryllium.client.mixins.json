@@ -5,7 +5,9 @@
 	"compatibilityLevel": "JAVA_17",
 	"client": [
 		"culling.EntityRenderDispatcherMixin",
-		"render.BlockEntityCullMixin"
+		"render.BlockEntityCullMixin",
+		"text.NameTagCullMixin",
+		"render.LeavesCullMixin"
 	],
 	"injectors": {
 		"defaultRequire": 0
