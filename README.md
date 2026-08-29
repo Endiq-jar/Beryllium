@@ -103,10 +103,10 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
   shader at client start (before the first world load) and records per-version state
   through `VersionedFileCache`, so repeat launches skip the scan. GL programs are never
   cached to disk (drivers invalidate them); only scan/preload state is versioned.
-- **Buffer pooling** (`BufferPool`/`DeferredReleaseQueue`) + `ChunkBufferBuilderPool`
-  telemetry mixin (debug mode) — pooling infrastructure ready for a verified
-  GPU-buffer recycling phase; the vanilla chunk-buffer pool's acquire/release/miss
-  behavior is now observable under `debugMode: true`.
+- **Buffer pooling** (`BufferPool`/`DeferredReleaseQueue`) — pooling infrastructure
+  ready for a verified GPU-buffer recycling phase. Note: the 1.21.x renderer replaced
+  the per-section `BufferBuilder` pool with a different allocation model, so the
+  telemetry mixin that tracked pool misses was dropped rather than shipped unverified.
 
 ## Status
 
@@ -119,22 +119,20 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
 | 5 — voxel shape specialization & caching (Lithium-family) | ✅ done |
 | 6 — block entity frustum culling | ✅ done |
 | 7 — mobile auto-tune preset | ✅ done |
-| 8 — shader precompile cache / GPU buffer recycling | ✅ shader preload + versioned cache + buffer-pool telemetry live; GL buffer recycling infra remains for a verified phase |
+| 8 — shader precompile cache / GPU buffer recycling | ✅ shader preload + versioned shader-state cache live; GL buffer recycling infra remains for a verified phase |
 | 9 — name tag / text distance culling | ✅ done |
 | 10 — leaves internal-face culling | ✅ done |
 | 11 — text shadows toggle | ✅ done — `FontTextShadowMixin` suppresses the `dropShadow` argument of the `Font.drawInBatch` overloads |
 
 > **Verification note (phases 4, 8, 11):** the mixins and hooks added in these phases
 > target 1.21.4 internals (`SectionRenderDispatcher`/`LevelRenderer` dirty-marking,
-> `ChunkBufferBuilderPool`, `Font.drawInBatch` overloads). Following the repo's
-> established convention they use string-based descriptors with `require = 0` and
-> reflection where a live call is needed, so a signature mismatch degrades to vanilla
-> behavior instead of crashing — but it also means a wrong guess is silent. If any of
-> these features appears inert in-game, check the targeted method names/descriptors
-> against a decompile of the exact 1.21.4 build (the repo was developed without a
-> working Maven/Minecraft toolchain, so none of the mixins have been compile-verified).
-> The pure-Java engine pieces (`SectionPacking`, queue/scoring, scheduler) carry no such
-> caveat.
+> `Font.drawInBatch` overloads). Following the repo's established convention they use
+> string-based descriptors with `require = 0` and reflection where a live call is
+> needed, so a signature mismatch degrades to vanilla behavior instead of crashing —
+> but it also means a wrong guess is silent. If any of these features appears inert
+> in-game, check the targeted method names/descriptors against a decompile of the exact
+> 1.21.4 build. The pure-Java engine pieces (`SectionPacking`, queue/scoring,
+> scheduler) carry no such caveat.
 
 > **Honest note on "Sodium replacement":** Sodium's headline FPS gain comes from
 > replacing the entire chunk-meshing and lighting pipeline (per-quad culling, vertex

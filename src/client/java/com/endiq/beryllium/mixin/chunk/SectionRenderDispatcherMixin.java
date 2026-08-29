@@ -6,7 +6,7 @@ import com.endiq.beryllium.chunk.SectionPacking;
 import com.endiq.beryllium.config.BerylliumConfig;
 import com.endiq.beryllium.util.BerylliumLog;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.SectionRenderDispatcher;
+import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -47,13 +47,14 @@ public abstract class SectionRenderDispatcherMixin {
 	 * actual (asynchronous) rebuild is always scheduled by vanilla.
 	 *
 	 * <p>Reflection-based rather than a direct call so that a signature mismatch with the
-	 * running version can never break the mod's class loading. Three candidate entry
-	 * points are tried in order: the dispatcher's long overload, the dispatcher's 4-int
-	 * overload, and finally the stable public {@code LevelRenderer.setSectionDirty(int,
-	 * int, int, boolean)}. If all are missing it returns false and the caller drops the
-	 * request (the same mismatch would also have made the {@code @Inject} below a silent
-	 * no-op, so this path is only ever reached when at least one candidate genuinely
-	 * exists).
+	 * running version can never break the mod's class loading. Candidate entry points are
+	 * tried in order — the dispatcher's long overload, its unpacked-coordinates overload,
+	 * then the {@code LevelRenderer} overloads (long+boolean, int+int+int+boolean, and
+	 * the no-boolean int+int+int variant). {@code getDeclaredMethod} + {@code setAccessible}
+	 * are used so private vanilla variants are reachable too. If all are missing it returns
+	 * false and the caller drops the request (the same mismatch would also have made the
+	 * {@code @Inject} below a silent no-op, so this path is only ever reached when at
+	 * least one candidate genuinely exists).
 	 *
 	 * @return true if one of vanilla's {@code setSectionDirty} variants was invoked.
 	 */
@@ -63,24 +64,39 @@ public abstract class SectionRenderDispatcherMixin {
 			return false;
 		}
 		try {
+			int sx = SectionPacking.x(sectionPos);
+			int sy = SectionPacking.y(sectionPos);
+			int sz = SectionPacking.z(sectionPos);
+
 			// 1) Dispatcher-level: setSectionDirty(long, boolean) — what the mixin injects into.
-			Method m = findPublic(dispatcher.getClass(), "setSectionDirty", long.class, boolean.class);
+			Method m = findAny(dispatcher.getClass(), "setSectionDirty", long.class, boolean.class);
 			if (m != null) {
 				m.invoke(dispatcher, sectionPos, important);
 				return true;
 			}
 			// 2) Dispatcher-level with unpacked section coordinates.
-			m = findPublic(dispatcher.getClass(), "setSectionDirty", int.class, int.class, int.class, boolean.class);
+			m = findAny(dispatcher.getClass(), "setSectionDirty", int.class, int.class, int.class, boolean.class);
 			if (m != null) {
-				m.invoke(dispatcher, SectionPacking.x(sectionPos), SectionPacking.y(sectionPos), SectionPacking.z(sectionPos), important);
+				m.invoke(dispatcher, sx, sy, sz, important);
 				return true;
 			}
-			// 3) Public LevelRenderer entry point (stable across versions).
+			// 3) LevelRenderer entry points (the public face of dynamic dirtiness).
 			Minecraft minecraft = Minecraft.getInstance();
 			if (minecraft != null && minecraft.levelRenderer != null) {
-				m = findPublic(minecraft.levelRenderer.getClass(), "setSectionDirty", int.class, int.class, int.class, boolean.class);
+				Object levelRenderer = minecraft.levelRenderer;
+				m = findAny(levelRenderer.getClass(), "setSectionDirty", long.class, boolean.class);
 				if (m != null) {
-					m.invoke(minecraft.levelRenderer, SectionPacking.x(sectionPos), SectionPacking.y(sectionPos), SectionPacking.z(sectionPos), important);
+					m.invoke(levelRenderer, sectionPos, important);
+					return true;
+				}
+				m = findAny(levelRenderer.getClass(), "setSectionDirty", int.class, int.class, int.class, boolean.class);
+				if (m != null) {
+					m.invoke(levelRenderer, sx, sy, sz, important);
+					return true;
+				}
+				m = findAny(levelRenderer.getClass(), "setSectionDirty", int.class, int.class, int.class);
+				if (m != null) {
+					m.invoke(levelRenderer, sx, sy, sz);
 					return true;
 				}
 			}
@@ -94,9 +110,11 @@ public abstract class SectionRenderDispatcherMixin {
 	}
 
 	@Unique
-	private static Method findPublic(Class<?> clazz, String name, Class<?>... params) {
+	private static Method findAny(Class<?> clazz, String name, Class<?>... params) {
 		try {
-			return clazz.getMethod(name, params);
+			Method m = clazz.getDeclaredMethod(name, params);
+			m.setAccessible(true);
+			return m;
 		} catch (NoSuchMethodException e) {
 			return null;
 		}

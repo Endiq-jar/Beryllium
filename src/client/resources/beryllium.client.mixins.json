@@ -10,7 +10,6 @@
 		"render.LeavesCullMixin",
 		"chunk.SectionRenderDispatcherMixin",
 		"chunk.LevelRendererMixin",
-		"render.ChunkBufferBuilderPoolMixin",
 		"text.FontTextShadowMixin"
 	],
 	"injectors": {

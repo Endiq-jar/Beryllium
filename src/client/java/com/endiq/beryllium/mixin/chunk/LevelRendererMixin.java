@@ -14,9 +14,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /**
  * NOT COMPILE-VERIFIED — same sandbox caveat as the other mixins: targets
  * {@code LevelRenderer.setSectionDirty} by string descriptor with {@code require = 0}.
- * Both the 4-int and the long overload are targeted because the exact 1.21.4 surface is
- * not confirmed against a decompile; whichever exists applies, and if neither matches the
- * feature silently no-ops (vanilla behavior preserved).
+ * The three plausible 1.21.4 shapes are all targeted — the 3-int+boolean variant, the
+ * long+boolean variant (introduced with the 1.21.2 renderer refactor) and the legacy
+ * 3-int variant — so whichever exists applies, and if none match the feature silently
+ * no-ops (vanilla behavior preserved). Confirm against a decompile of
+ * {@code LevelRenderer} for the exact build.
  *
  * <p>Phase 4 — the *public entry-point* dirty-mark interception of the chunk rebuild
  * prioritization queue. {@code LevelRenderer.setSectionDirty} is where block changes and
@@ -33,7 +35,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(LevelRenderer.class)
 public abstract class LevelRendererMixin {
 
-	@Inject(method = "setSectionDirty(IIIIZ)V", at = @At("HEAD"), cancellable = true, require = 0)
+	@Inject(method = "setSectionDirty(IIIZ)V", at = @At("HEAD"), cancellable = true, require = 0)
 	private void beryllium$queuePrioritizedSectionDirtyInt(
 		int sectionX, int sectionY, int sectionZ, boolean important, CallbackInfo ci
 	) {
@@ -43,6 +45,15 @@ public abstract class LevelRendererMixin {
 	@Inject(method = "setSectionDirty(JZ)V", at = @At("HEAD"), cancellable = true, require = 0)
 	private void beryllium$queuePrioritizedSectionDirtyLong(long sectionPos, boolean important, CallbackInfo ci) {
 		beryllium$queue(sectionPos, important, ci);
+	}
+
+	// Legacy shape (public, no urgency flag) — kept for versions where it is the only
+	// variant; "important" is unknown there, so treat as non-urgent.
+	@Inject(method = "setSectionDirty(III)V", at = @At("HEAD"), cancellable = true, require = 0)
+	private void beryllium$queuePrioritizedSectionDirtyLegacy(
+		int sectionX, int sectionY, int sectionZ, CallbackInfo ci
+	) {
+		beryllium$queue(SectionPacking.pack(sectionX, sectionY, sectionZ), false, ci);
 	}
 
 	@Unique

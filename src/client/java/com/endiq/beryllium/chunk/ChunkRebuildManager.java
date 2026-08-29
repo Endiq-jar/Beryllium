@@ -4,7 +4,7 @@ import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
 import com.endiq.beryllium.mixin.chunk.SectionRenderDispatcherMixin;
 import com.endiq.beryllium.util.BerylliumLog;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
@@ -75,7 +75,9 @@ public final class ChunkRebuildManager {
 			Vector3f look = context.camera().getLookVector();
 			onFrameStart(camPos.x, camPos.y, camPos.z, look.x(), look.y(), look.z());
 		});
-		ClientLevelEvents.UNLOAD.register(level -> onWorldUnload());
+		// Fires whenever the client world instance changes (including leaving to the
+		// menu) — the point at which queued section keys for the old world go stale.
+		ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register((client, level) -> onWorldUnload());
 	}
 
 	/**
