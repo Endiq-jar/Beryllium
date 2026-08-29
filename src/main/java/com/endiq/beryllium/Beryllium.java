@@ -25,6 +25,7 @@ public class Beryllium implements ModInitializer {
 
 	private static BerylliumConfig config;
 	private static volatile boolean deferCullingToOtherMod = false;
+	private static volatile boolean deferChunkOptimizationsToOtherMod = false;
 
 	@Override
 	public void onInitialize() {
@@ -51,6 +52,16 @@ public class Beryllium implements ModInitializer {
 		return deferCullingToOtherMod;
 	}
 
+	/** True if Sodium (or another mod that replaces vanilla's chunk renderer wholesale)
+	 *  is loaded, in which case Beryllium's own {@code ChunkRebuildQueue}-based chunk
+	 *  optimizations must never engage — mirrors the Lithium model of composing safely
+	 *  with Sodium by simply not touching rendering when it's present, rather than
+	 *  Beryllium also trying to own chunk rendering. Any future code that feeds real
+	 *  game events into {@code ChunkRebuildQueue} must check this first. */
+	public static boolean isChunkOptimizationDeferredToOtherMod() {
+		return deferChunkOptimizationsToOtherMod;
+	}
+
 	private void checkCompatibility() {
 		if (!config.compatibilityModeEnabled) {
 			return;
@@ -68,6 +79,13 @@ public class Beryllium implements ModInitializer {
 			BerylliumLog.compat("EntityCulling is loaded — deferring to it for entity culling; "
 				+ "Beryllium's own behind-camera culling is disabled for this session to avoid "
 				+ "two mods independently deciding whether to skip rendering the same entity.");
+		}
+
+		if (CompatibilityChecker.isChunkRendererReplaced(loaded)) {
+			deferChunkOptimizationsToOtherMod = true;
+			BerylliumLog.compat("Sodium is loaded — it replaces vanilla's chunk renderer wholesale, "
+				+ "so Beryllium's own chunk rebuild prioritization is disabled for this session. "
+				+ "Sodium already does this, and better, on the platforms where it can run at all.");
 		}
 	}
 

@@ -10,6 +10,15 @@ import java.util.Map;
  * Holds pending chunk-section rebuilds, deduplicated by key, and orders them against the
  * camera's current position/facing on demand.
  *
+ * <p><b>Sodium-companion architecture:</b> this class has no idea whether Sodium is
+ * loaded, and shouldn't — that's a compatibility decision, not a scheduling one. Any
+ * future code that feeds real game events (block updates, chunk loads) into this queue
+ * must first check {@code Beryllium.isChunkOptimizationDeferredToOtherMod()} and simply
+ * not do so if it's true. When Sodium is present it already replaces vanilla's chunk
+ * renderer wholesale, so this queue has nothing correct to attach to and must stay
+ * inert, the same way Lithium avoids rendering entirely so it composes safely whether
+ * or not Sodium is present.
+ *
  * <p>Scores aren't cached at submission time, because the camera moves every frame and a
  * stale score would defeat the point of view-aware prioritization. Instead,
  * {@link #drain} recomputes scores against whatever camera state you pass in. For very

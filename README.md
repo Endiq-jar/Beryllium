@@ -33,8 +33,14 @@ lower RAM/GC pressure, and mobile-GPU-aware rendering.
 - **Phase 1** — init, config, device detection, structured logging
 - **Phase 2** — frame profiler: FPS, frame time, 1% low, 0.1% low, debug overlay
 - **Phase 3** — frame budget scheduler, fed by Phase 4's chunk rebuild priorities
-- **Phase 4 (started)** — chunk rebuild prioritization queue (proximity, view-alignment,
-  urgency, distance). Not yet wired to Minecraft's actual chunk renderer (see below).
+- **Phase 4 (Sodium-companion architecture, chosen direction)** — chunk rebuild
+  prioritization queue (proximity, view-alignment, urgency, distance), and it's now
+  Sodium-aware: `CompatibilityChecker.isChunkRendererReplaced` + a real gating flag
+  (`Beryllium.isChunkOptimizationDeferredToOtherMod()`) mean this queue is guaranteed to
+  stay inert whenever Sodium is loaded — the same "don't touch rendering, stay
+  compatible either way" model Lithium uses, rather than Beryllium trying to also own
+  chunk rendering. **Still not wired to a live rebuild trigger when Sodium *isn't*
+  loaded** — see below for why that's a separate, harder problem than the gating logic.
 - **Behind-camera entity culling ("Superb Player culling"), aggressive** — 4-block safe
   radius, distance-graduated cull angle (conservative up close, aggressive by 48 blocks
   out). Never culls anything ahead or to the side. Defers to EntityCulling automatically
@@ -52,14 +58,19 @@ lower RAM/GC pressure, and mobile-GPU-aware rendering.
 **Not in scope right now:** thermal/battery management, auto-optimizer, benchmarking
 harness (dropped on request).
 
-**Blocked on real Minecraft internals, not guessed at:** the rest of Phase 4 (actual
-chunk mesh/rebuild wiring) and hooking the shader cache to real shader compilation both
-need exact method signatures from Minecraft's `SectionRenderDispatcher` and shader
-pipeline that couldn't be confirmed without the real 1.21.4 jar (no Mojang/Fabric maven
-access in the build environment this was written in). Getting these wrong risks silently
-breaking rendering, so they're left as real, tested infrastructure waiting on precise
-integration rather than a guess. Send the relevant method signatures (e.g. via
-`./gradlew genSources`) and they can be wired in directly.
+**Blocked on real Minecraft internals, not guessed at — and choosing the Sodium-companion
+direction doesn't remove this, it only narrows when it matters:** when Sodium *is*
+loaded, Beryllium correctly does nothing (done, tested, real). When Sodium *isn't*
+loaded — the actual primary case, since mobile launchers running through GL4ES/ANGLE-style
+translation layers generally can't run Sodium at all (it requires real OpenGL 4.5, which
+translation layers don't reliably provide) — something still has to tell vanilla's
+renderer to actually rebuild sections in the order this queue produces, and that
+still means hooking `SectionRenderDispatcher`, with the same unconfirmed-signature risk
+as before. Sodium's architecture couldn't shortcut that: it doesn't expose an extension
+API for this, since it replaces the chunk renderer rather than augmenting it. Hooking
+the shader cache to real shader compilation has the identical problem, different class.
+Send the relevant method signatures (e.g. via `./gradlew genSources`) for either and
+they can be wired in directly instead of guessed at.
 
 **Not applicable:** a Vulkan backend — Minecraft 1.21.4 (this mod's target version)
 doesn't have one to hook into yet; that's landing in later versions.

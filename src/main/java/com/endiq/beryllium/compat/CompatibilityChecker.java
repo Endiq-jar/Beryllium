@@ -47,4 +47,19 @@ public final class CompatibilityChecker {
 	public static boolean shouldDeferBehindCameraCullingTo(List<String> loadedOptimizationMods) {
 		return loadedOptimizationMods.contains("entityculling");
 	}
+
+	/**
+	 * Sodium doesn't add optimizations on top of vanilla's chunk renderer — it replaces
+	 * it wholesale with its own systems. If Sodium is loaded, vanilla's
+	 * {@code SectionRenderDispatcher} may not even be the class actually driving chunk
+	 * rendering anymore, so any Beryllium chunk-rebuild-scheduling feature that expects
+	 * to sit next to vanilla's chunk pipeline has nothing correct to attach to. This
+	 * mirrors the Lithium model (Lithium doesn't touch rendering at all, specifically so
+	 * it composes safely whether or not Sodium is present) rather than Beryllium trying
+	 * to also own chunk rendering: when Sodium is present, Beryllium's own chunk
+	 * rebuild prioritization ({@code ChunkRebuildQueue}) simply never engages.
+	 */
+	public static boolean isChunkRendererReplaced(List<String> loadedOptimizationMods) {
+		return loadedOptimizationMods.contains("sodium");
+	}
 }
