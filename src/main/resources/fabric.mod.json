@@ -3,7 +3,7 @@
 	"id": "beryllium",
 	"version": "${version}",
 	"name": "Beryllium",
-	"description": "A Fabric performance mod focused on making Minecraft Java Edition run smoother on Android and other mobile Java launchers, with frame-time consistency as the primary goal.",
+	"description": "A Fabric performance mod focused on making Minecraft Java Edition run smoother on Android and other mobile Java launchers.",
 	"authors": [
 		"Endiq"
 	],
@@ -27,9 +27,9 @@
 		]
 	},
 	"depends": {
-		"fabricloader": ">=0.19.3",
-		"minecraft": "~1.21.4",
-		"java": ">=21",
+		"fabricloader": "*",
+		"minecraft": "*",
+		"java": "*",
 		"fabric-api": "*"
 	}
 }
