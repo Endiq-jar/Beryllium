@@ -1,0 +1,10 @@
+accessWidener v1 official
+
+# Voxel-shape suite (same wideners Lithium uses for this feature).
+# IndexMerger is package-private; VoxelShape.shape and Shapes.findBits are protected.
+accessible class net/minecraft/world/phys/shapes/IndexMerger
+accessible field net/minecraft/world/phys/shapes/VoxelShape shape Lnet/minecraft/world/phys/shapes/DiscreteVoxelShape;
+accessible method net/minecraft/world/phys/shapes/Shapes findBits (DD)I
+accessible method net/minecraft/world/phys/shapes/VoxelShape findIndex (Lnet/minecraft/core/Direction$Axis;D)I
+accessible method net/minecraft/world/phys/shapes/CubeVoxelShape findIndex (Lnet/minecraft/core/Direction$Axis;D)I
+accessible method net/minecraft/world/phys/shapes/VoxelShape get (Lnet/minecraft/core/Direction$Axis;I)D
