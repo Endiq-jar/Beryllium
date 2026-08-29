@@ -18,6 +18,7 @@ public class Beryllium implements ModInitializer {
 
 	private static BerylliumConfig config;
 	private static volatile boolean deferCullingToOtherMod = false;
+	private static volatile boolean deferBlockEntityCullingToOtherMod = false;
 	private static volatile boolean deferChunkOptimizationsToOtherMod = false;
 
 	@Override
@@ -42,6 +43,10 @@ public class Beryllium implements ModInitializer {
 		return deferCullingToOtherMod;
 	}
 
+	public static boolean isBlockEntityCullingDeferredToOtherMod() {
+		return deferBlockEntityCullingToOtherMod;
+	}
+
 	public static boolean isChunkOptimizationDeferredToOtherMod() {
 		return deferChunkOptimizationsToOtherMod;
 	}
@@ -63,6 +68,13 @@ public class Beryllium implements ModInitializer {
 			BerylliumLog.compat("EntityCulling is loaded — deferring to it for entity culling; "
 				+ "Beryllium's own behind-camera culling is disabled for this session to avoid "
 				+ "two mods independently deciding whether to skip rendering the same entity.");
+		}
+
+		if (CompatibilityChecker.shouldDeferBlockEntityCullingTo(loaded)) {
+			deferBlockEntityCullingToOtherMod = true;
+			BerylliumLog.compat("EntityCulling is loaded — deferring to it for block entity culling; "
+				+ "Beryllium's frustum culling of block entity render calls is disabled for this "
+				+ "session to avoid two mods independently skipping the same render.");
 		}
 
 		if (CompatibilityChecker.isChunkRendererReplaced(loaded)) {

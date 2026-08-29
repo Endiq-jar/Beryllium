@@ -4,9 +4,10 @@
 	"package": "com.endiq.beryllium.mixin",
 	"compatibilityLevel": "JAVA_17",
 	"client": [
-		"culling.EntityRenderDispatcherMixin"
+		"culling.EntityRenderDispatcherMixin",
+		"render.BlockEntityCullMixin"
 	],
 	"injectors": {
-		"defaultRequire": 1
+		"defaultRequire": 0
 	}
 }
