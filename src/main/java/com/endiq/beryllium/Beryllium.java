@@ -38,19 +38,10 @@ public class Beryllium implements ModInitializer {
 		return config;
 	}
 
-	/** True if a compatible/overlapping mod is loaded that Beryllium's own behind-camera
-	 *  culling should defer to. Checked by {@code EntityRenderDispatcherMixin} in
-	 *  addition to the config toggle. */
 	public static boolean isCullingDeferredToOtherMod() {
 		return deferCullingToOtherMod;
 	}
 
-	/** True if Sodium (or another mod that replaces vanilla's chunk renderer wholesale)
-	 *  is loaded, in which case Beryllium's own {@code ChunkRebuildQueue}-based chunk
-	 *  optimizations must never engage — mirrors the Lithium model of composing safely
-	 *  with Sodium by simply not touching rendering when it's present, rather than
-	 *  Beryllium also trying to own chunk rendering. Any future code that feeds real
-	 *  game events into {@code ChunkRebuildQueue} must check this first. */
 	public static boolean isChunkOptimizationDeferredToOtherMod() {
 		return deferChunkOptimizationsToOtherMod;
 	}
