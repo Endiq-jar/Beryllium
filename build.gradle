@@ -2,6 +2,28 @@ plugins {
 	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
 }
 
+// Surface the real Gradle failure as a GitHub Actions annotation so CI
+// errors are visible even when the Actions log store cannot be downloaded.
+gradle.addListener(new org.gradle.api.execution.TaskExecutionListener() {
+	void beforeExecute(org.gradle.api.Task task) {}
+	void afterExecute(org.gradle.api.Task task, org.gradle.api.tasks.TaskState state) {
+		if (state.failure == null) {
+			return
+		}
+		def thrown = state.failure
+		def parts = []
+		while (thrown != null && parts.size() < 8) {
+			parts << thrown.getClass().getSimpleName() + ": " + String.valueOf(thrown.getMessage())
+			thrown = thrown.getCause()
+		}
+		def msg = ("Task " + task.getPath() + " failed: " + parts.join(" | ")).replace('\n', ' ').replace('\r', '')
+		if (msg.length() > 3500) {
+			msg = msg.substring(0, 3500)
+		}
+		println("::error file=build.gradle,line=1::" + msg)
+	}
+})
+
 repositories {
 	// Loom already adds the Minecraft/Mojang/Fabric maven repositories it needs.
 	// Add anything else here only when depending on other mods.
