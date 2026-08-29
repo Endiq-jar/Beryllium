@@ -19,7 +19,7 @@ public abstract class ShapeMatchFastPathMixin {
             at = @At(
                     shift = At.Shift.BEFORE,
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/phys/shapes/VoxelShape;getCoords(Lnet/minecraft/core/Direction$Axis;)Lit/unimi/dsi/fastutil/doubles/DoubleList;)",
+                    target = "Lnet/minecraft/world/phys/shapes/VoxelShape;getCoords(Lnet/minecraft/core/Direction$Axis;)Lit/unimi/dsi/fastutil/doubles/DoubleList;",
                     ordinal = 0
             ),
             cancellable = true

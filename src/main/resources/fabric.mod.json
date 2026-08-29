@@ -12,6 +12,7 @@
 	},
 	"license": "MIT",
 	"environment": "*",
+	"accessWidener": "beryllium.accesswidener",
 	"mixins": [
 		"beryllium.mixins.json",
 		{

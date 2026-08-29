@@ -7,10 +7,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix4f;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Decides whether a block entity's render call can be skipped entirely because it is not
@@ -18,16 +18,16 @@ import java.lang.reflect.Method;
  *
  * <p>Vanilla renders every block entity within a fixed radius of the camera regardless of
  * facing — a sign farm or a row of banners facing away still costs full render calls. This
- * test reproduces the same geometry vanilla's own chunk-section culling uses (a {@link
- * Frustum} built from the camera's projection matrix and position) and skips the render
- * when the block's (slightly inflated) bounding box does not intersect the view frustum.
+ * test reuses the {@link Frustum} {@code LevelRenderer} already built for the frame (looked
+ * up reflectively so we do not depend on a private field name) and skips the render when
+ * the block's (slightly inflated) bounding box does not intersect the view frustum.
  *
  * <p>The safe-radius guard mirrors {@link BehindCameraCulling}: anything close to the
  * camera is never culled, so anything large enough to matter on screen can never pop out
  * of existence.
  *
  * <p>Everything here is deliberately defensive — any unexpected state (no camera, no
- * game renderer, a thrown error) results in "do not cull", because a culling bug that
+ * frustum, a thrown error) results in "do not cull", because a culling bug that
  * breaks rendering is far worse than a missed optimization.
  */
 public final class BlockEntityCulling {
@@ -39,12 +39,8 @@ public final class BlockEntityCulling {
 	 *  them from being culled while still culling the rest. */
 	private static final double BOX_INFLATION = 0.55;
 
-	// The camera's projection matrix is resolved reflectively (getter first, public field
-	// second) and cached, so this stays correct across point releases of the 1.21.x line
-	// regardless of whether the accessor is a method or a field in a given build.
-	private static volatile Method projectionGetter;
-	private static volatile Field projectionField;
-	private static volatile boolean projectionAccessorResolved = false;
+	private static volatile Field[] frustumFields;
+	private static volatile boolean frustumFieldsResolved = false;
 
 	/**
 	 * @param blockEntity the block entity about to be rendered
@@ -77,20 +73,17 @@ public final class BlockEntityCulling {
 				return false;
 			}
 
-			Matrix4f projection = projectionMatrixOf(camera);
-			if (projection == null) {
+			Frustum frustum = currentFrustum(minecraft);
+			if (frustum == null) {
 				return false;
 			}
-
-			Frustum frustum = new Frustum();
-			frustum.update(projection, camera.getPosition());
 
 			AABB box = new AABB(
 				pos.getX() - BOX_INFLATION, pos.getY() - BOX_INFLATION, pos.getZ() - BOX_INFLATION,
 				pos.getX() + 1.0 + BOX_INFLATION, pos.getY() + 1.0 + BOX_INFLATION, pos.getZ() + 1.0 + BOX_INFLATION
 			);
 
-			return !frustum.intersectsBox(box);
+			return !frustum.isVisible(box);
 		} catch (Throwable t) {
 			// Never let a culling decision take rendering down with it.
 			return false;
@@ -98,36 +91,46 @@ public final class BlockEntityCulling {
 	}
 
 	/**
-	 * Resolves the camera's projection matrix once (preferring a public getter, then the
-	 * public field) and caches the accessor for subsequent frames.
+	 * Picks the first non-null {@link Frustum} field off {@code Minecraft.levelRenderer}.
+	 * 1.21.4 stores the live culling frustum and an optional captured debug frustum;
+	 * walking by type (instead of a mapped field name) keeps this compiling and working
+	 * across minor mapping churn.
 	 */
-	private static Matrix4f projectionMatrixOf(Camera camera) {
-		if (!projectionAccessorResolved) {
+	private static Frustum currentFrustum(Minecraft minecraft) {
+		Object levelRenderer = minecraft.levelRenderer;
+		if (levelRenderer == null) {
+			return null;
+		}
+
+		if (!frustumFieldsResolved) {
 			synchronized (BlockEntityCulling.class) {
-				if (!projectionAccessorResolved) {
-					try {
-						projectionGetter = Camera.class.getMethod("getProjectionMatrix");
-					} catch (NoSuchMethodException e) {
-						try {
-							projectionField = Camera.class.getField("projectionMatrix");
-						} catch (Throwable t) {
-							// Neither accessor found — culling is simply disabled for BEs.
+				if (!frustumFieldsResolved) {
+					List<Field> found = new ArrayList<>();
+					for (Field field : levelRenderer.getClass().getDeclaredFields()) {
+						if (Frustum.class.isAssignableFrom(field.getType())) {
+							field.setAccessible(true);
+							found.add(field);
 						}
 					}
-					projectionAccessorResolved = true;
+					frustumFields = found.toArray(Field[]::new);
+					frustumFieldsResolved = true;
 				}
 			}
 		}
 
-		try {
-			if (projectionGetter != null) {
-				return (Matrix4f) projectionGetter.invoke(camera);
+		Field[] fields = frustumFields;
+		if (fields == null) {
+			return null;
+		}
+		for (Field field : fields) {
+			try {
+				Object value = field.get(levelRenderer);
+				if (value instanceof Frustum frustum) {
+					return frustum;
+				}
+			} catch (Throwable ignored) {
+				// try the next candidate
 			}
-			if (projectionField != null) {
-				return (Matrix4f) projectionField.get(camera);
-			}
-		} catch (Throwable t) {
-			// Fall through — treat as "cannot decide", i.e. do not cull.
 		}
 		return null;
 	}
