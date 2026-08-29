@@ -2,12 +2,6 @@ package com.endiq.beryllium.profiler;
 
 import java.util.Arrays;
 
-/**
- * Fixed-capacity ring buffer of frame times (nanoseconds), with percentile-based "low"
- * stats computed on demand. Recording a sample is O(1) and allocation-free; only
- * {@link #snapshot()} allocates (a sort scratch copy), so callers should throttle how
- * often they call it (e.g. a few times a second for a debug overlay), not every frame.
- */
 public final class FrameTimeRingBuffer {
 	private final long[] samples;
 	private int index = 0;
@@ -58,7 +52,6 @@ public final class FrameTimeRingBuffer {
 		);
 	}
 
-	/** Average frame time of the worst (slowest) {@code worstFraction} of samples. */
 	private static double worstAverage(long[] sortedAscending, double worstFraction) {
 		int count = Math.max(1, (int) Math.round(sortedAscending.length * worstFraction));
 		long sum = 0;

@@ -3,8 +3,7 @@ plugins {
 }
 
 repositories {
-	// Loom already adds the Minecraft/Mojang/Fabric maven repositories it needs.
-	// Add anything else here only when depending on other mods.
+
 }
 
 loom {
@@ -21,13 +20,11 @@ loom {
 }
 
 dependencies {
-	// To change versions, see gradle.properties.
+
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings loom.officialMojangMappings()
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-	// Fabric API — used for client lifecycle hooks (Phase 1) and rendering-related
-	// events in later phases.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 }
 

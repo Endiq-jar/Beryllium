@@ -1,6 +1,4 @@
-/*
- * Ported from Lithium (JellySquid et al., MIT License) — see THIRD_PARTY.md.
- */
+
 package com.endiq.beryllium.mixin.common.shapes;
 
 import it.unimi.dsi.fastutil.doubles.DoubleList;
@@ -14,9 +12,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
-/**
- * Implement faster methods for determining penetration during collision resolution.
- */
 @Mixin(VoxelShape.class)
 public abstract class VoxelShapeOptimizedMixin {
     private static final double POSITIVE_EPSILON = +1.0E-7D;
@@ -35,10 +30,6 @@ public abstract class VoxelShapeOptimizedMixin {
     @Shadow
     public abstract DoubleList getCoords(Direction.Axis axis);
 
-    /**
-     * @reason Use optimized implementation which delays searching for coordinates as long as possible
-     * @author JellySquid (upstream); ported for Beryllium
-     */
     @Overwrite
     public double collideX(AxisCycle cycleDirection, AABB box, double maxDist) {
         if (this.isEmpty()) {
@@ -121,13 +112,6 @@ public abstract class VoxelShapeOptimizedMixin {
         return maxDist;
     }
 
-    /**
-     * Inlines the lambda passed to MathHelper#binarySearch. Simplifies the implementation very slightly for additional
-     * speed.
-     *
-     * @reason Use faster implementation
-     * @author JellySquid (upstream); ported for Beryllium
-     */
     @Overwrite
     public int findIndex(Direction.Axis axis, double coord) {
         DoubleList list = this.getCoords(axis);

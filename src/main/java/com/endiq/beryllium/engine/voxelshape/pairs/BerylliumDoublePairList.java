@@ -1,17 +1,10 @@
-/*
- * Ported from Lithium (JellySquid et al., MIT License) — see THIRD_PARTY.md.
- */
+
 package com.endiq.beryllium.engine.voxelshape.pairs;
 
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import net.minecraft.world.phys.shapes.IndexMerger;
 
-/**
- * Optimized variant of {@link net.minecraft.world.phys.shapes.IndirectMerger}. This implementation works directly against
- * flat arrays and tries to organize code in a manner that hits the JIT's happy path. In testing with the upstream
- * project, this is about ~50% faster than the vanilla implementation.
- */
 public final class BerylliumDoublePairList implements IndexMerger {
     private final double[] merged;
     private final int[] indicesFirst;

@@ -5,16 +5,6 @@ import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
-/**
- * Queries the current OpenGL context for vendor/renderer/version strings, the primary
- * monitor for its refresh rate, and GL_MAX_TEXTURE_SIZE (input to
- * {@code GraphicsCapabilityClassifier}).
- *
- * <p><b>Must be called on the render thread, after a GL context exists</b> — in practice,
- * from a listener on {@code ClientLifecycleEvents.CLIENT_STARTED} or later. Calling this
- * before the window is created will not crash (every lookup is wrapped), but will just
- * return "unknown"/-1 placeholders, since there's nothing to query yet.
- */
 public final class GpuDetector {
 	private GpuDetector() {
 	}

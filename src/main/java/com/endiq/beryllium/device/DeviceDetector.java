@@ -4,11 +4,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.lang.management.ManagementFactory;
 
-/**
- * Detects non-GPU device information. Every lookup here is wrapped so a platform that
- * doesn't support a given API (e.g. no {@code /proc/cpuinfo}, no {@code com.sun.management})
- * degrades to an "unknown" placeholder instead of crashing mod initialization.
- */
 public final class DeviceDetector {
 	private DeviceDetector() {
 	}
@@ -26,11 +21,6 @@ public final class DeviceDetector {
 		);
 	}
 
-	/**
-	 * Reads the CPU model from {@code /proc/cpuinfo}, which is present on Linux and Android
-	 * (the two platforms Beryllium actually targets). On any other platform, or if the file
-	 * is missing/unreadable, falls back to the JVM's architecture string.
-	 */
 	private static String readCpuModel() {
 		try (BufferedReader reader = new BufferedReader(new FileReader("/proc/cpuinfo"))) {
 			String line;
@@ -47,15 +37,11 @@ public final class DeviceDetector {
 				}
 			}
 		} catch (Exception ignored) {
-			// /proc/cpuinfo is unavailable on this platform (e.g. Windows) — fall through.
+
 		}
 		return System.getProperty("os.arch", "unknown CPU");
 	}
 
-	/**
-	 * Total physical RAM, via {@code com.sun.management}. Returns -1 rather than throwing
-	 * if that interface isn't implemented by the running JVM.
-	 */
 	private static long readTotalRamBytes() {
 		try {
 			Object osBean = ManagementFactory.getOperatingSystemMXBean();
@@ -63,7 +49,7 @@ public final class DeviceDetector {
 				return sunBean.getTotalMemorySize();
 			}
 		} catch (Throwable ignored) {
-			// Not present on every JVM distribution — treat as unknown, not fatal.
+
 		}
 		return -1L;
 	}

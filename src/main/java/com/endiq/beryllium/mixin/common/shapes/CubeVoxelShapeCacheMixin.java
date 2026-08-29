@@ -1,6 +1,4 @@
-/*
- * Ported from Lithium (JellySquid et al., MIT License) — see THIRD_PARTY.md.
- */
+
 package com.endiq.beryllium.mixin.common.shapes;
 
 import it.unimi.dsi.fastutil.doubles.DoubleList;
@@ -29,10 +27,6 @@ public abstract class CubeVoxelShapeCacheMixin {
         }
     }
 
-    /**
-     * @author JellySquid (upstream); ported for Beryllium
-     * @reason Use the cached array
-     */
     @Overwrite
     public DoubleList getCoords(Direction.Axis axis) {
         return this.list[axis.ordinal()];

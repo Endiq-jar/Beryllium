@@ -23,7 +23,7 @@ public abstract class EntityRenderDispatcherMixin {
 	private <E extends Entity> void beryllium$cullEntitiesBehindCamera(
 		E entity, Frustum frustum, double x, double y, double z, CallbackInfoReturnable<Boolean> cir
 	) {
-		// Vanilla already said "don't render" — nothing for us to do.
+
 		if (!cir.getReturnValueZ()) {
 			return;
 		}

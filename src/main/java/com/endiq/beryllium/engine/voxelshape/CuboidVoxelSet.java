@@ -1,6 +1,4 @@
-/*
- * Ported from Lithium (JellySquid et al., MIT License) — see THIRD_PARTY.md.
- */
+
 package com.endiq.beryllium.engine.voxelshape;
 
 import net.minecraft.core.Direction;

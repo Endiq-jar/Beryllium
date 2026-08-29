@@ -19,15 +19,10 @@ public class BerylliumClient implements ClientModInitializer {
 			return;
 		}
 
-		// Profiler + overlay only need Fabric API's event bus, which is available
-		// immediately — no need to wait for CLIENT_STARTED.
 		FrameProfiler profiler = new FrameProfiler();
 		profiler.register();
 		new DebugOverlay(profiler).register();
 
-		// onInitializeClient() runs before the window/GL context exists, so GPU queries
-		// can't happen here yet. CLIENT_STARTED fires once the client has fully started
-		// (window created, GL context current), which is the earliest safe point.
 		ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
 			GpuInfo gpu = GpuDetector.detect();
 
@@ -48,12 +43,7 @@ public class BerylliumClient implements ClientModInitializer {
 			);
 			BerylliumLog.gpu("Capability Tier: " + tier);
 
-			// CLIENT_STARTED is the first point at which the client is fully up (options
-			// loaded, camera/game renderer exist), which is what the auto-tuner and the
-			// GPU-based tier decision both need. Running it here means the preset is in
-			// place before the first world is rendered.
 			MobileTuner.applyIfEligible(Beryllium.config(), tier);
 		});
 	}
 }
-

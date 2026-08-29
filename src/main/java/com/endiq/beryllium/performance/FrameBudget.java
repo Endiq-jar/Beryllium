@@ -1,6 +1,5 @@
 package com.endiq.beryllium.performance;
 
-/** Target-FPS-to-frame-time conversions, per spec section 9. */
 public final class FrameBudget {
 	private FrameBudget() {
 	}

@@ -5,10 +5,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 
-/**
- * Draws the "BERYLLIUM / FPS / 1% Low / 0.1% Low" block from spec section 8, top-left
- * corner. Only draws when {@code debugMode} is on in beryllium.json.
- */
 public final class DebugOverlay {
 	private final FrameProfiler profiler;
 

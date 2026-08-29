@@ -33,12 +33,10 @@ public final class VersionedFileCache {
 			Files.write(fileFor(key), data);
 			return true;
 		} catch (IOException e) {
-			return false; // best-effort; a failed cache write must never be fatal
+			return false;
 		}
 	}
 
-	/** Deletes every cache file NOT belonging to the current version. Call once at startup.
-	 *  @return how many stale entries were removed. */
 	public int invalidateStaleEntries() {
 		int removed = 0;
 		String currentPrefix = "v" + cacheVersion + "_";
@@ -54,8 +52,7 @@ public final class VersionedFileCache {
 							Files.deleteIfExists(file);
 							removed++;
 						} catch (IOException ignored) {
-							// Best-effort cleanup - leaving a stale file behind is harmless,
-							// it will never be read again (different version prefix).
+
 						}
 					}
 				}

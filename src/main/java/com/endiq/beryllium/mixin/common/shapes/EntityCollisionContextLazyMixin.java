@@ -1,6 +1,4 @@
-/*
- * Ported from Lithium (JellySquid et al., MIT License) — see THIRD_PARTY.md.
- */
+
 package com.endiq.beryllium.mixin.common.shapes;
 
 import net.minecraft.world.entity.Entity;
@@ -42,10 +40,6 @@ public abstract class EntityCollisionContextLazyMixin {
     @Nullable
     private Entity entity;
 
-    /**
-     * Mixin the instanceof to always return false to avoid the expensive inventory access.
-     * No need to use Opcodes.INSTANCEOF or similar.
-     */
     @ModifyConstant(
             method = "<init>(Lnet/minecraft/world/entity/Entity;Z)V",
             constant = @Constant(classValue = LivingEntity.class, ordinal = 0)

@@ -7,7 +7,7 @@ public final class GraphicsCapabilityClassifier {
 	public static GraphicsCapabilityTier classify(
 		int maxTextureSize, String rendererLowercase, int cpuCores, double totalRamGigabytes
 	) {
-		// Detection failed entirely — be conservative rather than guessing upward.
+
 		if (maxTextureSize <= 0) {
 			return GraphicsCapabilityTier.COMPATIBILITY;
 		}
@@ -33,9 +33,7 @@ public final class GraphicsCapabilityClassifier {
 		}
 
 		if (isKnownMobileGpu(rendererLowercase)) {
-			// A conservative nudge down: raw texture-size limits alone can overstate
-			// real-world fill rate/throughput on some mobile chips relative to desktop
-			// GPUs reporting the same limit.
+
 			score -= 1;
 		}
 

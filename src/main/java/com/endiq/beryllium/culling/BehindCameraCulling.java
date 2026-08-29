@@ -4,18 +4,6 @@ public final class BehindCameraCulling {
 	private BehindCameraCulling() {
 	}
 
-	/**
-	 * @param camX/camY/camZ camera position
-	 * @param forwardX/forwardY/forwardZ camera forward direction (need not be
-	 *        pre-normalized, but is assumed non-zero)
-	 * @param targetX/targetY/targetZ the point being tested (an entity's render position)
-	 * @param safeRadius points within this distance of the camera are never culled
-	 * @param aggressiveDistance distance at which the threshold reaches its most
-	 *        aggressive value; beyond this, the threshold no longer relaxes further
-	 * @param dotThresholdNear the (conservative) cull threshold right at safeRadius
-	 * @param dotThresholdFar the (aggressive) cull threshold at aggressiveDistance and beyond
-	 * @return true if this point should be culled (skipped) as "behind the camera"
-	 */
 	public static boolean isBehindCamera(
 		double camX, double camY, double camZ,
 		double forwardX, double forwardY, double forwardZ,
@@ -34,7 +22,7 @@ public final class BehindCameraCulling {
 
 		double forwardLenSq = forwardX * forwardX + forwardY * forwardY + forwardZ * forwardZ;
 		if (forwardLenSq == 0.0) {
-			// Degenerate/uninitialized forward vector — don't cull, just defer to vanilla.
+
 			return false;
 		}
 
@@ -46,7 +34,6 @@ public final class BehindCameraCulling {
 		return dot < threshold;
 	}
 
-	/** Linearly interpolates from dotThresholdNear (at safeRadius) to dotThresholdFar (at aggressiveDistance+), clamped. */
 	private static double gradedThreshold(
 		double distance, double safeRadius, double aggressiveDistance,
 		double dotThresholdNear, double dotThresholdFar

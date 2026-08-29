@@ -1,6 +1,4 @@
-/*
- * Ported from Lithium (JellySquid et al., MIT License) — see THIRD_PARTY.md.
- */
+
 package com.endiq.beryllium.mixin.common.shapes;
 
 import net.minecraft.world.phys.shapes.CubePointRange;
@@ -25,10 +23,6 @@ public abstract class CubePointRangeScaleMixin {
         this.scale = 1.0D / this.parts;
     }
 
-    /**
-     * @author JellySquid (upstream); ported for Beryllium
-     * @reason Replace division with multiplication
-     */
     @Overwrite
     public double getDouble(int position) {
         return position * this.scale;

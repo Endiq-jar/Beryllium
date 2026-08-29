@@ -1,20 +1,10 @@
-/*
- * Ported from Lithium (JellySquid et al., MIT License) — see THIRD_PARTY.md.
- */
+
 package com.endiq.beryllium.engine.voxelshape;
 
 import it.unimi.dsi.fastutil.HashCommon;
 import java.util.function.Predicate;
 import net.minecraft.util.Mth;
 
-/**
- * A lossy hashtable implementation that stores a mapping between an object and a boolean.
- * <p>
- * Any hash collisions will result in an overwrite: this is safe because the correct value can always be recomputed,
- * given that the given operator is deterministic.
- * <p>
- * This implementation is safe to use from multiple threads
- */
 public final class Object2BooleanCacheTable<T> {
     private final int mask;
 

@@ -8,37 +8,10 @@ import net.minecraft.client.Minecraft;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-/**
- * One-shot, opt-in application of a conservative video-settings preset on weak devices
- * (capability tier COMPATIBILITY or STANDARD — i.e. the mobile/low-end population this
- * mod targets).
- *
- * <p>On such devices the single biggest FPS levers are vanilla's own expensive render
- * paths: particles, per-entity shadow quads, clouds, biome blending and view bobbing.
- * Beryllium's structural optimizations help everywhere, but a device that renders at
- * 20 FPS because it is drawing 2,000 shadow quads and MAXIMUM particles will not be
- * rescued by shape caching alone — the preset fixes the big items automatically so the
- * mod is effective out of the box on the devices it is built for.
- *
- * <p>Design rules:
- * <ul>
- *   <li>Only runs on the client, once per install (persisted via {@code autoTuneApplied}).</li>
- *   <li>Only on tiers where the savings are worth the visual cost; desktop GPUs are
- *       never touched.</li>
- *   <li>Every option is applied reflectively: Minecraft 1.21.4 refactored its options
- *       system (the {@code OptionInstance} classes), and reflection keeps this working
- *       without depending on private field visibility. Any option that cannot be found
- *       or set is skipped and logged — a partial preset is fine, a crash is not.</li>
- *   <li>All changes are written to options.txt via {@code Options#save()} and logged,
- *       so the user can see exactly what happened and revert any of it in the video
- *       settings screen.</li>
- * </ul>
- */
 public final class MobileTuner {
 	private MobileTuner() {
 	}
 
-	/** Name, then (class, constant) for enums, or a plain object for non-enums. */
 	private record OptionTarget(String fieldName, String enumClassName, String enumConstantName, Object plainValue) {
 	}
 
@@ -50,12 +23,6 @@ public final class MobileTuner {
 		new OptionTarget("bobView", null, null, Boolean.FALSE)
 	};
 
-	/**
-	 * Applies the preset once, when the device is weak enough for it to matter.
-	 *
-	 * @param config the loaded Beryllium config (mutated + saved when the preset applies)
-	 * @param tier   the classified graphics capability tier of this device
-	 */
 	public static void applyIfEligible(BerylliumConfig config, GraphicsCapabilityTier tier) {
 		if (!config.enabled || !config.autoTuneWeakDevices || config.autoTuneApplied) {
 			return;
@@ -128,10 +95,6 @@ public final class MobileTuner {
 		}
 	}
 
-	/**
-	 * Reads an option field off the options object and sets its value through the
-	 * option instance's {@code set(...)} method.
-	 */
 	private static boolean setOption(Object options, String fieldName, Object value) {
 		try {
 			Field field = options.getClass().getDeclaredField(fieldName);

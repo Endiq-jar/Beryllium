@@ -1,13 +1,5 @@
 package com.endiq.beryllium.device;
 
-/**
- * Best-effort snapshot of the host device, gathered without needing a GL context.
- * GPU/display information lives separately in {@code GpuInfo} (client-only, requires
- * an active OpenGL context — see {@code GpuDetector}).
- *
- * @param totalRamBytes -1 if the JVM does not expose {@code com.sun.management}
- *                      (some Android-targeted JVM builds omit it); never crashes.
- */
 public record DeviceInfo(
 	String cpuModel,
 	int cpuCores,

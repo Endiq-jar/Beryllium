@@ -1,6 +1,4 @@
-/*
- * Ported from Lithium (JellySquid et al., MIT License) — see THIRD_PARTY.md.
- */
+
 package com.endiq.beryllium.mixin.common.shapes;
 
 import com.endiq.beryllium.engine.voxelshape.pairs.BerylliumDoublePairList;
@@ -14,9 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Shapes.class)
 public abstract class ShapeMergeFastPathMixin {
-    /**
-     * Replaces the returned list pair with our own optimized type.
-     */
+
     @Inject(
             method = "createIndexMerger(ILit/unimi/dsi/fastutil/doubles/DoubleList;Lit/unimi/dsi/fastutil/doubles/DoubleList;ZZ)Lnet/minecraft/world/phys/shapes/IndexMerger;",
             at = @At(

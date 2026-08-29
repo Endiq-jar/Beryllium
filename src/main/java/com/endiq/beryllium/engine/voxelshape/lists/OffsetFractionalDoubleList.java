@@ -1,12 +1,10 @@
-/*
- * Ported from Lithium (JellySquid et al., MIT License) — see THIRD_PARTY.md.
- */
+
 package com.endiq.beryllium.engine.voxelshape.lists;
 
 import it.unimi.dsi.fastutil.doubles.AbstractDoubleList;
 
 public class OffsetFractionalDoubleList extends AbstractDoubleList {
-    //this class must not extend FractionalDoubleList, due to VoxelShapes.createListPair using instanceof
+
     private final int numSections;
     private final double offset;
 

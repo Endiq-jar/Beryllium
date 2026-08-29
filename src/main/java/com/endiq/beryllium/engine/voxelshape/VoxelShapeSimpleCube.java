@@ -1,6 +1,4 @@
-/*
- * Ported from Lithium (JellySquid et al., MIT License) — see THIRD_PARTY.md.
- */
+
 package com.endiq.beryllium.engine.voxelshape;
 
 import com.google.common.collect.Lists;
@@ -14,15 +12,6 @@ import net.minecraft.world.phys.shapes.DiscreteVoxelShape;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-/**
- * An efficient implementation of {@link VoxelShape} for a shape with one simple cuboid. Since there are only ever two
- * vertices in a single cuboid (the start and end points), we can eliminate needing to iterate over voxels and to find
- * vertices through using simple comparison logic to pick between either the start or end point.
- * <p>
- * Additionally, the function responsible for determining shape penetration has been simplified and optimized by taking
- * advantage of the fact that there is only ever one voxel in a simple cuboid shape, greatly speeding up collision
- * handling in most cases as block shapes are often nothing more than a single cuboid.
- */
 public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster {
     static final double EPSILON = 1.0E-7D;
 
@@ -98,13 +87,12 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
             penetration = a1 - b2;
 
             if ((penetration < -EPSILON) || (maxDist < penetration)) {
-                //already far enough inside this shape to not collide with the surface or
-                //outside the shape and still far enough away for no collision at all
+
                 return maxDist;
             }
-            //allow moving up to the shape but not into it. This also includes going backwards by at most EPSILON.
+
         } else {
-            //whole code again, just negated for the other direction
+
             penetration = a2 - b1;
 
             if ((penetration > EPSILON) || (maxDist > penetration)) {
@@ -167,7 +155,6 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
         throw new IllegalArgumentException();
     }
 
-
     @Override
     public boolean isEmpty() {
         return (this.minX >= this.maxX) || (this.minY >= this.maxY) || (this.minZ >= this.maxZ);
@@ -196,7 +183,6 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
                 ((box.minY + 1e-7) < (this.maxY + blockY)) && ((box.maxY - 1e-7) > (this.minY + blockY)) &&
                 ((box.minZ + 1e-7) < (this.maxZ + blockZ)) && ((box.maxZ - 1e-7) > (this.minZ + blockZ));
     }
-
 
     @Override
     public void forAllBoxes(Shapes.DoubleLineConsumer boxConsumer) {

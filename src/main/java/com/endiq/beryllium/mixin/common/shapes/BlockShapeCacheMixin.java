@@ -1,6 +1,4 @@
-/*
- * Ported from Lithium (gegy1000, MIT License) — see THIRD_PARTY.md.
- */
+
 package com.endiq.beryllium.mixin.common.shapes;
 
 import com.endiq.beryllium.engine.voxelshape.Object2BooleanCacheTable;
@@ -18,10 +16,6 @@ public abstract class BlockShapeCacheMixin {
             shape -> !Shapes.joinIsNotEmpty(Shapes.block(), shape, BooleanOp.NOT_SAME)
     );
 
-    /**
-     * @reason Use a faster cache implementation
-     * @author gegy1000 (upstream); ported for Beryllium
-     */
     @Overwrite
     public static boolean isShapeFullBlock(VoxelShape shape) {
         return FULL_CUBE_CACHE.get(shape);
