@@ -1,6 +1,9 @@
 <H1 align="centre">Beryllium</H1>
-[!NOTE]
->Some Ai has been used Because of time and working on TurtleLauncher.
+
+> [!NOTE]
+> AI assistance was used during development due to time while working on TurtleLauncher.
+
+
 **A Fabric performance mod for Minecraft 1.21.4, focused on making Java Edition run
 smoother on Android and other mobile/low-end Java launchers
 (PojavLauncher/ZalithLauncher-family) — while still paying off on desktop.**
