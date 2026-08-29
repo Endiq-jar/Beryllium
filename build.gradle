@@ -2,8 +2,7 @@ plugins {
 	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
 }
 
-// Surface the real Gradle failure as a GitHub Actions annotation so CI
-// errors are visible even when the Actions log store cannot be downloaded.
+// Temporary: print failing task exceptions as Actions annotations.
 gradle.addListener(new org.gradle.api.execution.TaskExecutionListener() {
 	void beforeExecute(org.gradle.api.Task task) {}
 	void afterExecute(org.gradle.api.Task task, org.gradle.api.tasks.TaskState state) {
