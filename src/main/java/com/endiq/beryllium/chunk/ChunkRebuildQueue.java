@@ -6,6 +6,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Pending chunk-section rebuilds, ordered for consumption by {@link ChunkRebuildPriority}.
+ *
+ * <p>Fed by the client-side interception of vanilla's dirty-marking entry points
+ * ({@code LevelRenderer.setSectionDirty} / {@code SectionRenderDispatcher.setSectionDirty})
+ * and drained once per rendered frame by {@code ChunkRebuildManager}; see that class for
+ * the wiring, the per-frame drain budget and the saturation safety valve.
+ */
 public final class ChunkRebuildQueue {
 	private final Map<Long, ChunkRebuildRequest> pending = new LinkedHashMap<>();
 
@@ -23,6 +31,12 @@ public final class ChunkRebuildQueue {
 
 	public int size() {
 		return pending.size();
+	}
+
+	/** Drops every pending request. Called when the level is unloaded — stale rebuilds
+	 *  from a previous world must never be retriggered into the next one. */
+	public void clear() {
+		pending.clear();
 	}
 
 	public List<ChunkRebuildRequest> orderedSnapshot(

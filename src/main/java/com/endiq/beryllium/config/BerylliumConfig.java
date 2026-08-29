@@ -102,17 +102,15 @@ public class BerylliumConfig {
 	 *  reading shop signs on player heads, etc.), so this only trims genuinely far tags. */
 	public double nameTagCullRange = 48.0;
 
-	/** Disables the drop-shadow behind rendered text where wired up, trading a small amount
-	 *  of legibility for less overdraw in text-heavy scenes. Independently configurable
+	/** Disables the drop-shadow behind rendered text, trading a small amount of
+	 *  legibility for less overdraw in text-heavy scenes. Independently configurable
 	 *  from {@code cullNameTags} — one hides text entirely at range, the other makes text
 	 *  that IS drawn cheaper.
 	 *
-	 *  <p><b>Not yet wired to a render hook.</b> The field and default exist so the setting
-	 *  is stable in beryllium.json once implemented, but no mixin reads it yet — the exact
-	 *  {@code Font.drawInBatch} overload to intercept needs to be confirmed against
-	 *  decompiled 1.21.4 source first (there are multiple overloads; guessing one and being
-	 *  wrong is a fatal Mixin-apply crash at launch, not a silent no-op, unlike the
-	 *  reflection-based lookups used elsewhere in this mod). See phase 9 in README.md. */
+	 *  <p>Wired via {@code FontTextShadowMixin}, which suppresses the {@code dropShadow}
+	 *  argument of every {@code Font.drawInBatch} overload at its source — the same flag
+	 *  vanilla passes on to glyph layout. Setting this to {@code false} disables the text
+	 *  shadow everywhere (GUI, name tags, signs, tooltips). See phase 11 in README.md. */
 	public boolean textShadowsEnabled = true;
 
 	// --- Leaves culling ---
@@ -122,6 +120,64 @@ public class BerylliumConfig {
 	 *  no visible difference — no holes, since each leaf block still renders its own
 	 *  remaining outward faces normally). See {@code LeavesCullMixin}. */
 	public boolean cullLeavesInternalFaces = true;
+
+	// --- Chunk rebuild prioritization ---
+
+	/** Reorders vanilla chunk-section rebuilds by proximity + view alignment + urgency
+	 *  instead of FIFO. Intercepts the dirty-marking entry points
+	 *  ({@code LevelRenderer.setSectionDirty} / {@code SectionRenderDispatcher.setSectionDirty}),
+	 *  holds the sections in {@code ChunkRebuildQueue}, and re-triggers a small prioritized
+	 *  batch on every rendered frame. The queue has a hard size cap (see
+	 *  {@code chunkRebuildQueueLimit}) — beyond it, vanilla's own scheduling takes back
+	 *  over, so this can never indefinitely starve a visible section.
+	 *
+	 *  <p>Disabled automatically when Sodium is loaded (it replaces the mesh pipeline and
+	 *  already orders its rebuilds). See phase 4 in README.md. */
+	public boolean chunkRebuildPrioritization = true;
+
+	/** How many prioritized section rebuilds are re-triggered per rendered frame. Vanilla
+	 *  effectively completes a small fixed number of section builds per frame anyway, so
+	 *  this only changes the *order* of the work — values of 2-4 are sensible; larger
+	 *  values let the queue drain faster at the cost of more main-thread work per frame. */
+	public int chunkRebuildsPerFrame = 3;
+
+	/** Hard cap on the number of sections held in the prioritization queue. When the
+	 *  queue reaches this size (e.g. a redstone machine or caving session dirties far more
+	 *  sections than the per-frame drain can clear), interception is suspended and vanilla
+	 *  schedules directly again — guaranteed bounded staleness. Resumed once the queue
+	 *  drops well below the cap. */
+	public int chunkRebuildQueueLimit = 128;
+
+	// --- Frame-budgeted deferred work ---
+
+	/** Runs registered low-priority maintenance work inside a per-frame millisecond
+	 *  budget (see {@code frameBudgetMillisPerFrame}) driven by {@code FrameBudgetScheduler},
+	 *  instead of letting it pile up on the frame's critical path. The CRITICAL priority
+	 *  class always runs in full; everything else yields when the budget is spent. */
+	public boolean frameBudgetScheduling = true;
+
+	/** Upper bound (in milliseconds) of non-critical work executed per rendered frame by
+	 *  {@code frameBudgetScheduling}. The actual budget is min(this, ~10% of the current
+	 *  frame time, capped at the 60 FPS frame budget) — so on a fast machine the work gets
+	 *  more room, and during a frame-time spike it shrinks to protect the frame. */
+	public double frameBudgetMillisPerFrame = 2.0;
+
+	// --- Shader preload & caches ---
+
+	/** Preloads the UI shader as early as safely possible (client-start, rather than
+	 *  waiting for the first world load) and discovers the core shader set for the
+	 *  session, moving the GL shader compile off the first-frame hitch path where the
+	 *  version allows it. Best-effort and reflection-based — if a hook doesn't exist in
+	 *  this exact Minecraft version it is skipped and logged, never fatal. */
+	public boolean shaderPreloadEnabled = true;
+
+	/** Persists a small per-Minecraft-version state cache (whether the UI shader was
+	 *  preloaded, how long it took, discovered shader count) under
+	 *  {@code beryllium-cache/shaders} in the game directory, so repeat launches skip the
+	 *  reflection scan entirely. GL shader *programs* are never cached to disk — GPU
+	 *  drivers invalidate compiled programs between sessions; only the scan/preload state
+	 *  is versioned. */
+	public boolean shaderCacheEnabled = true;
 
 	// --- Mobile auto-tuning ---
 

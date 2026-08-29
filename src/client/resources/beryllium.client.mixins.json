@@ -7,7 +7,10 @@
 		"culling.EntityRenderDispatcherMixin",
 		"render.BlockEntityCullMixin",
 		"text.NameTagCullMixin",
-		"render.LeavesCullMixin"
+		"render.LeavesCullMixin",
+		"chunk.SectionRenderDispatcherMixin",
+		"chunk.LevelRendererMixin",
+		"text.FontTextShadowMixin"
 	],
 	"injectors": {
 		"defaultRequire": 0
