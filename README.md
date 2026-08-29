@@ -41,6 +41,19 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
   face are already covered by leaves geometry either way, so it's pure overdraw with
   zero visual difference — no holes, since each leaf block still renders every face
   that actually borders air or a non-leaves block normally.
+- **Chunk rebuild prioritization** — vanilla rebuilds chunk sections in the order their
+  dirty marks arrive; during mining, caving or redstone floods that order is essentially
+  random relative to the camera. Beryllium intercepts the dirty-marking entry points
+  (`LevelRenderer.setSectionDirty` / `SectionRenderDispatcher.setSectionDirty`), parks the
+  sections in a priority queue (proximity + view alignment + urgency), and re-triggers a
+  small prioritized batch (default 3) every rendered frame through vanilla's own
+  scheduling — the rebuilds the player can actually see happen first. A hard queue cap
+  bounds staleness, and the rebuild work itself always runs on vanilla's machinery.
+  Deferred automatically when Sodium is loaded.
+- **Text shadows toggle** — `textShadowsEnabled: false` suppresses the `dropShadow`
+  argument of every `Font.drawInBatch` overload at its source, removing the duplicate
+  shadow pass behind all text (GUI, name tags, signs, tooltips). Slightly flatter text,
+  measurably cheaper text-heavy rendering — the kind of trade mobile players want.
 - **Block entity frustum culling** — vanilla renders every block entity within a
   fixed radius of the camera regardless of facing. Beryllium skips the render call
   entirely when the block entity's bounding box is outside the camera frustum and
@@ -65,16 +78,35 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
   max texture size and display refresh rate are logged and used to pick the
   performance tier.
 
-### Infrastructure (ready for the next phases)
+### Performance / frame management
+
+- **Frame-budgeted deferred work** — `FrameMaintenanceScheduler` gives the frame budget
+  scheduler a live work source: registered maintenance tasks (chunk-rebuild telemetry,
+  shader background scan, future deferred-buffer disposal) are submitted every rendered
+  frame and run inside a budget derived from live frame-time statistics
+  (`min(frameBudgetMillisPerFrame, ~10% of frame time, capped at the 60 FPS budget)`).
+  CRITICAL-priority work always runs; everything else yields when the budget is spent —
+  deferred work never rides the frame's critical path.
+
+### Infrastructure
 
 - **Frame budget scheduler** (`FrameBudgetScheduler`/`FrameBudget`) — per-frame
-  millisecond budgets with priority classes, fed by frame-time statistics.
+  millisecond budgets with priority classes, fed by frame-time statistics. **Wired and
+  live** via `FrameMaintenanceScheduler` (phase 3).
 - **Chunk rebuild prioritization queue** (`ChunkRebuildQueue`/`ChunkRebuildRequest`/
-  `ChunkRebuildPriority`) — proximity + view-alignment + urgency scoring. *Not yet
-  wired into the 1.21.4 chunk-meshing pipeline* — that integration depends on
-  version-specific internals and will be added as its own verified phase.
-- **Buffer pooling** (`BufferPool`/`DeferredReleaseQueue`) and **versioned file
-  cache** (`VersionedFileCache`) for future GPU-buffer and shader-cache work.
+  `ChunkRebuildPriority`/`SectionPacking`) — proximity + view-alignment + urgency
+  scoring. **Wired into the 1.21.4 section pipeline** via
+  `ChunkRebuildManager` + `SectionRenderDispatcherMixin`/`LevelRendererMixin` (phase 4).
+  Mixin signatures follow the repo's not-compile-verified convention — verify against a
+  1.21.4 decompile if the feature appears inert (see the verification note below).
+- **Shader preload & versioned shader-state cache** — `ShaderPreloader` preloads the UI
+  shader at client start (before the first world load) and records per-version state
+  through `VersionedFileCache`, so repeat launches skip the scan. GL programs are never
+  cached to disk (drivers invalidate them); only scan/preload state is versioned.
+- **Buffer pooling** (`BufferPool`/`DeferredReleaseQueue`) + `ChunkBufferBuilderPool`
+  telemetry mixin (debug mode) — pooling infrastructure ready for a verified
+  GPU-buffer recycling phase; the vanilla chunk-buffer pool's acquire/release/miss
+  behavior is now observable under `debugMode: true`.
 
 ## Status
 
@@ -82,15 +114,27 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
 |---|---|
 | 1 — init, config, device detection, structured logging | ✅ done |
 | 2 — frame profiler: FPS / frame time / 1% / 0.1% lows + overlay | ✅ done |
-| 3 — frame budget scheduler | ✅ built, waiting for a live work source |
-| 4 — chunk rebuild prioritization queue | ✅ built, **not yet wired** to the 1.21.4 mesh pipeline |
+| 3 — frame budget scheduler | ✅ done — wired to a live work source (`FrameMaintenanceScheduler`, per-frame budget from profiler stats) |
+| 4 — chunk rebuild prioritization queue | ✅ done — wired into the 1.21.4 section pipeline (`ChunkRebuildManager` + dirty-mark mixins, prioritized per-frame drain) |
 | 5 — voxel shape specialization & caching (Lithium-family) | ✅ done |
 | 6 — block entity frustum culling | ✅ done |
 | 7 — mobile auto-tune preset | ✅ done |
-| 8 — shader precompile cache / GPU buffer recycling | 🚧 infrastructure only |
+| 8 — shader precompile cache / GPU buffer recycling | ✅ shader preload + versioned cache + buffer-pool telemetry live; GL buffer recycling infra remains for a verified phase |
 | 9 — name tag / text distance culling | ✅ done |
 | 10 — leaves internal-face culling | ✅ done |
-| 11 — text shadows toggle | 🚧 config field only, not wired — needs the exact `Font.drawInBatch` overload confirmed against decompiled source first |
+| 11 — text shadows toggle | ✅ done — `FontTextShadowMixin` suppresses the `dropShadow` argument of the `Font.drawInBatch` overloads |
+
+> **Verification note (phases 4, 8, 11):** the mixins and hooks added in these phases
+> target 1.21.4 internals (`SectionRenderDispatcher`/`LevelRenderer` dirty-marking,
+> `ChunkBufferBuilderPool`, `Font.drawInBatch` overloads). Following the repo's
+> established convention they use string-based descriptors with `require = 0` and
+> reflection where a live call is needed, so a signature mismatch degrades to vanilla
+> behavior instead of crashing — but it also means a wrong guess is silent. If any of
+> these features appears inert in-game, check the targeted method names/descriptors
+> against a decompile of the exact 1.21.4 build (the repo was developed without a
+> working Maven/Minecraft toolchain, so none of the mixins have been compile-verified).
+> The pure-Java engine pieces (`SectionPacking`, queue/scoring, scheduler) carry no such
+> caveat.
 
 > **Honest note on "Sodium replacement":** Sodium's headline FPS gain comes from
 > replacing the entire chunk-meshing and lighting pipeline (per-quad culling, vertex
@@ -128,8 +172,15 @@ mappings, Java 21.
 | `blockEntityCullSafeRadius` | `6.0` | Block entities within this distance are never frustum-culled |
 | `cullNameTags` | `true` | Distance-cull entity name tags independently of model culling |
 | `nameTagCullRange` | `48.0` | Name tags beyond this many blocks from the camera are skipped |
-| `textShadowsEnabled` | `true` | **Not yet wired to a render hook** — reserved for a future text-shadow toggle |
+| `textShadowsEnabled` | `true` | Text drop-shadow toggle — `false` removes the shadow pass behind all text (GUI, name tags, signs, tooltips) |
 | `cullLeavesInternalFaces` | `true` | Skip the shared face between two adjacent leaves blocks during meshing |
+| `chunkRebuildPrioritization` | `true` | Reorder chunk-section rebuilds by proximity + view alignment + urgency |
+| `chunkRebuildsPerFrame` | `3` | Prioritized rebuilds re-triggered per rendered frame |
+| `chunkRebuildQueueLimit` | `128` | Hard cap on the prioritization queue; past it, vanilla schedules directly (bounded staleness) |
+| `frameBudgetScheduling` | `true` | Run deferred maintenance work inside a per-frame millisecond budget |
+| `frameBudgetMillisPerFrame` | `2.0` | Upper bound of non-critical work per rendered frame (ms) |
+| `shaderPreloadEnabled` | `true` | Preload the UI shader at client start and discover the core shader set (best-effort) |
+| `shaderCacheEnabled` | `true` | Persist per-Minecraft-version shader preload/scan state under `beryllium-cache/shaders` |
 | `autoTuneWeakDevices` | `true` | One-shot low-end video preset on COMPATIBILITY/STANDARD-tier devices |
 | `autoTuneApplied` | `false` | Internal: set automatically once the preset has run (set `false` to re-apply) |
 | `compatibilityModeEnabled` | `true` | Detect known optimization mods and defer overlapping features (Sodium → chunk work, EntityCulling → entity & block entity culling) |

@@ -25,6 +25,12 @@ public final class FrameProfiler {
 		lastFrameStartNanos = now;
 	}
 
+	/** Nanoseconds since the previous rendered frame's START event; -1 before the first
+	 *  frame. Used by {@code FrameMaintenanceScheduler} to size the per-frame budget. */
+	public long lastFrameNanos() {
+		return lastFrameStartNanos < 0 ? -1L : System.nanoTime() - lastFrameStartNanos;
+	}
+
 	public FrameTimeRingBuffer.Snapshot snapshot() {
 		return frameTimes.snapshot();
 	}
