@@ -1,5 +1,6 @@
 <H1 align="centre">Beryllium</H1>
-
+[!NOTE]
+>Some Ai has been used Because of time and working on TurtleLauncher.
 **A Fabric performance mod for Minecraft 1.21.4, focused on making Java Edition run
 smoother on Android and other mobile/low-end Java launchers
 (PojavLauncher/ZalithLauncher-family) — while still paying off on desktop.**
@@ -11,7 +12,7 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
 
 ✦ Features
 
-### Performance engine (common — also helps dedicated servers)
+### Performance engine
 
 - **Voxel shape specialization & caching** — the single biggest CPU consumer in
   Minecraft is collision/interaction math on block shapes. Vanilla rebuilds and
