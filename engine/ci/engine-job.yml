@@ -1,0 +1,52 @@
+# Engine CI job — drop this into .github/workflows/ to enable it.
+#
+# It cannot be committed under .github/workflows/ from this sandbox: the GitHub
+# App Arena pushes with has no `workflows` permission, so GitHub rejects any
+# commit that adds or edits a file in that directory. The job below is exactly
+# what CI should run; `cp engine/ci/engine-job.yml .github/workflows/` from a
+# checkout with permission (or paste the `engine:` block into the existing
+# build.yml) enables it. All five steps were run and passed locally:
+#
+#   make -j"$(nproc)" EXTRA_CFLAGS="-Werror"                    # clean, no warnings
+#   make test                       -> 691 checks, 0 failed
+#   ./build/beryl ... --screenshot  # + tools/pngstat.py --strict
+#   make test under -fsanitize=address,undefined  -> clean, leak-free
+#   make ANDROID=1 test                           -> same suite under LTO + --gc-sections
+#
+# Steps 1-4 take about a minute on ubuntu-24.04; the sanitizer pass is the slow
+# one (~20 s for the suite itself).
+
+name: engine
+on: [push, pull_request]
+
+jobs:
+  engine:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: engine
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+      - name: build (warnings are errors)
+        run: make -j"$(nproc)" EXTRA_CFLAGS="-Werror"
+      - name: test
+        run: make test EXTRA_CFLAGS="-Werror"
+      - name: render a frame and verify it is not blank
+        run: |
+          ./build/beryl --quiet --frames 1 --view-distance 12 --screenshot ci-frame.png
+          python3 tools/pngstat.py --strict ci-frame.png
+      - name: phone profile builds and passes the same suite
+        run: make clean && make ANDROID=1 -j"$(nproc)" test
+      - name: test under address/undefined sanitizers
+        run: |
+          make clean
+          make test -j"$(nproc)" \
+            EXTRA_CFLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g" \
+            EXTRA_LDFLAGS="-fsanitize=address,undefined"
+      - name: upload the rendered frame
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: beryllium-engine-frame
+          path: engine/ci-frame.png

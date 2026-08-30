@@ -1,0 +1,7 @@
+# build artefacts and captured frames stay out of git
+# (build-*/ covers `make ANDROID=1 BUILD=build-and`, which
+# `make clean` in the default directory does not remove)
+build/
+build-*/
+*.png
+*.obj
