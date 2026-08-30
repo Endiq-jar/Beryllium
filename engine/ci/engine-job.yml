@@ -11,6 +11,7 @@
 #   make test                       -> 691 checks, 0 failed
 #   ./build/beryl ... --screenshot  # + tools/pngstat.py --strict
 #   make test under -fsanitize=address,undefined  -> clean, leak-free
+#   make ANDROID=1 test                           -> same suite under LTO + --gc-sections
 #
 # Steps 1-4 take about a minute on ubuntu-24.04; the sanitizer pass is the slow
 # one (~20 s for the suite itself).
@@ -35,6 +36,8 @@ jobs:
         run: |
           ./build/beryl --quiet --frames 1 --view-distance 12 --screenshot ci-frame.png
           python3 tools/pngstat.py --strict ci-frame.png
+      - name: phone profile builds and passes the same suite
+        run: make clean && make ANDROID=1 -j"$(nproc)" test
       - name: test under address/undefined sanitizers
         run: |
           make clean

@@ -366,10 +366,46 @@ static void raster_tri(SoftDevice *s, const BerylPipelineDesc *pd, const BerylTe
 	if (d == 0.0f) return;
 	const float inv_d = 1.0f / d;
 
+	/* Each barycentric weight is affine in the sample position, so a row is one
+	 * multiply plus a per-pixel add -- and, more importantly, the three weights
+	 * give the row's covered span in closed form. Testing every pixel of the
+	 * bounding box wastes the corners of it, which for the thin triangles a
+	 * rotated quad produces is most of the work. */
+	const float ga0 = (by - cy) * inv_d, gb0 = (cx - bx) * inv_d;
+	const float ga1 = (cy - ay) * inv_d, gb1 = (ax - cx) * inv_d;
+	const float gc0 = -(ga0 * cx + gb0 * cy);
+	const float gc1 = -(ga1 * cx + gb1 * cy);
+	const float ga2 = -ga0 - ga1, gb2 = -gb0 - gb1, gc2 = 1.0f - gc0 - gc1;
+
 	float attr[ATTR_COUNT + 1];
 	for (int y = y0; y <= y1; y++) {
-		float py = (float)y + 0.5f;
-		for (int x = x0; x <= x1; x++) {
+		const float py = (float)y + 0.5f;
+		const float c0 = gb0 * py + gc0, c1 = gb1 * py + gc1, c2 = gb2 * py + gc2;
+		int rx0 = x0, rx1 = x1;
+		bool bad = false;
+		/* l(x) = g*x + c >= 0 for each of the three weights. */
+		for (int e = 0; e < 3; e++) {
+			const float g = e == 0 ? ga0 : (e == 1 ? ga1 : ga2);
+			const float c = e == 0 ? c0  : (e == 1 ? c1  : c2);
+			if (g > -1e-6f && g < 1e-6f) { if (c < 0.0f) { bad = true; break; } continue; }
+			float xedge = -c / g;                     /* where this edge crosses 0 */
+			if (g > 0.0f) {                           /* inside is to the right */
+				int lo = (int)ceilf(xedge - 0.5f);
+				if (lo > rx0) rx0 = lo;
+			} else {                                  /* inside is to the left */
+				int hi = (int)floorf(xedge + 0.5f);
+				if (hi < rx1) rx1 = hi;
+			}
+		}
+		if (bad) continue;
+		/* One pixel of slack on each side: the division above is float, and what
+		 * decides coverage is the exact test inside the loop, not this bound. */
+		rx0 -= 1; rx1 += 1;
+		if (rx0 < x0) rx0 = x0;
+		if (rx1 > x1) rx1 = x1;
+		if (rx1 < rx0) continue;
+
+		for (int x = rx0; x <= rx1; x++) {
 			float px = (float)x + 0.5f;
 			float l0 = ((by - cy) * (px - cx) + (cx - bx) * (py - cy)) * inv_d;
 			float l1 = ((cy - ay) * (px - cx) + (ax - cx) * (py - cy)) * inv_d;

@@ -44,6 +44,8 @@ int main(int argc, char **argv) {
 
 	RUN(test_basics);
 	RUN(test_world);
+	RUN(test_pool);
+	RUN(test_perf);
 	RUN(test_soft_render);
 	RUN(test_gl_backend);
 

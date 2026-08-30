@@ -162,9 +162,16 @@ with ambient occlusion, a PVS culler, a mesh store fed by worker threads), in a
 form that can be built and *run* without a JVM, Minecraft, or a GPU.
 
 ```
-make -C engine test            # 691 checks, no GPU/network/driver needed
+make -C engine test            # 2502 checks, no GPU/network/driver needed
 make -C engine                 # ./build/beryl renders generated terrain to a PNG
+make -C engine ANDROID=1 test  # the phone profile: LTO, --gc-sections, mobile presets
 ```
+
+Frame budgets for Android/low-end launchers live in the engine too: presets
+(`--preset mobile|low-end`) and a governor that widens and narrows the per-frame
+mesh-install and upload budgets from measured frame time, ignoring stalls —
+`beryl_engine_note_frame_ms()` is the hook a launcher drives it from, so the mod can
+use Minecraft's own frame timer.
 
 `engine/README.md` states exactly what is verified and what is not: the software
 rasterizer and the OpenGL backend are exercised by tests (the GL one through a

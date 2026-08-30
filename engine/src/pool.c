@@ -296,6 +296,9 @@ int beryl_pool_queued(BerylBuilderPool *p) {
 int beryl_pool_inflight(BerylBuilderPool *p) { return (int)atomic_load(&p->inflight); }
 
 int beryl_pool_drain(BerylBuilderPool *p, BerylBuildResult *out, int max) {
+	/* Popping into a caller that cannot receive the rows would orphan the meshes,
+	 * so a degenerate call is refused instead of dropping work on the floor. */
+	if (!p || !out || max <= 0) return 0;
 	pthread_mutex_lock(&p->mtx);
 	int n = 0;
 	while (n < max && p->done_len > 0) {
@@ -303,8 +306,10 @@ int beryl_pool_drain(BerylBuilderPool *p, BerylBuildResult *out, int max) {
 		 * pure waste, so the freshest upload is the one that reaches the GPU. */
 		BerylBuildResult *r = &p->done[p->done_len - 1];
 		if (r->ok) {
-			*out = *r;
-			n++;
+			/* out is an ARRAY of `max` results: each popped result lands in its own
+			 * slot. Writing them all to out[0] orphans every mesh but the last one,
+			 * which is a silent leak of the whole batch, not a lost upload. */
+			out[n++] = *r;
 		} else {
 			beryl_section_mesh_free(&r->mesh);
 		}
@@ -324,6 +329,17 @@ void beryl_pool_release_result(BerylBuilderPool *p, BerylBuildResult *res) {
 	}
 }
 
+/* Take everything the workers finished and throw the meshes away. Used only by
+ * finish_all(), which by definition is not a caller that wants the results; every
+ * other path installs them. */
+static void drain_and_discard(BerylBuilderPool *p) {
+	BerylBuildResult batch[32];
+	int k;
+	while ((k = beryl_pool_drain(p, batch, 32)) > 0) {
+		for (int i = 0; i < k; i++) beryl_section_mesh_free(&batch[i].mesh);
+	}
+}
+
 void beryl_pool_finish_all(BerylBuilderPool *p) {
 	for (;;) {
 		pthread_mutex_lock(&p->mtx);
@@ -331,17 +347,11 @@ void beryl_pool_finish_all(BerylBuilderPool *p) {
 		pthread_mutex_unlock(&p->mtx);
 		if (!busy) break;
 		/* Drain results so the done-ring cannot grow without bound. */
-		BerylBuildResult r;
-		while (beryl_pool_drain(p, &r, 32) > 0) {
-			beryl_section_mesh_free(&r.mesh);
-		}
+		drain_and_discard(p);
 		struct timespec ts = { 0, 2000000 };
 		nanosleep(&ts, NULL);
 	}
-	BerylBuildResult r;
-	while (beryl_pool_drain(p, &r, 32) > 0) {
-		beryl_section_mesh_free(&r.mesh);
-	}
+	drain_and_discard(p);
 }
 
 void beryl_pool_wait_idle(BerylBuilderPool *p) {

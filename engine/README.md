@@ -31,6 +31,8 @@ make                      # build/beryl (demo) + build/beryl_tests + tools
 make test                 # build and run the whole suite
 make bench                # meshing/render benchmark on a generated region
 make EXTRA_CFLAGS=-Werror # the tree is warning-free with -Wall -Wextra -Wshadow -Werror
+make ANDROID=1            # phone profile: LTO, section gc, hidden visibility, mobile presets
+make ANDROID=1 test       # same suite, same expectations, under those flags
 ```
 
 ```sh
@@ -43,7 +45,8 @@ python3 tools/pngstat.py --strict frame.png  # structural + content check, exit 
 
 `--backend opengl` on a machine without libGL prints why and falls back to the
 software rasterizer instead of failing to link or crashing. `--help` lists every
-flag.
+flag; the frame-budget ones are `--preset desktop|mobile|low-end`,
+`--target-ms N` and `--no-adaptive` (see "Android and low-end devices").
 
 ## Layout
 
@@ -57,6 +60,7 @@ flag.
 | `src/occlusion.*` | PVS walk from the camera section, sealed-face rejection |
 | `src/pool.*` | worker pool: priority queue, coalescing, done-ring |
 | `src/engine.*` | the store, per-frame budget, uniform assembly, draw submission, OBJ export |
+| `src/perf.*` | the frame governor: how much a frame may spend, and the presets a launcher exposes |
 | `src/rhi.*`, `rhi_soft.*`, `rhi_gl.*` | the backend interface, the reference rasterizer, the GL backend |
 | `src/png.*` | the deflate/stored-block PNG writer used for screenshots |
 | `shaders/terrain.*.glsl` | the GPU source of truth, embedded into the binary by `tools/embed.c` |
@@ -88,7 +92,7 @@ flag.
 
 ## Test suite (`make test`)
 
-691 checks in four suites, all of them running against the real generator and the
+2502 checks in six suites, all of them running against the real generator and the
 real mesh data:
 
 - `test_basics` — math, block table, format packing/unpacking, the light
@@ -98,6 +102,17 @@ real mesh data:
   whose four air-side cells are open sky is baked to full brightness with no
   ambient occlusion, which pins the light sampler to the correct side of the face
   and would catch a "reads the block it belongs to" bug immediately.
+- `test_pool` — the mesh store's input contract: `beryl_pool_drain()` must hand
+  back one result row per finished build, each owning distinct buffers, with every
+  index in range and every vertex inside its section. A missing result is not a
+  visible bug (the section stays dirty and is rebuilt later), it is a leak, so this
+  suite counts rows and checks pointer aliasing instead of pixels.
+- `test_perf` — the governor: dead-band silence while the device is on target,
+  monotone back-off under sustained overrun, reopening under headroom, never
+  outside its clamps, stalls neither averaged nor combined with neighbouring
+  frames; plus the presets (mobile tighter than desktop, explicit flags win,
+  idempotent, budgets inside the governor's range) and one test that drives a real
+  engine and reads the moved budgets back through `beryl_engine_settings()`.
 - `test_soft_render` — end-to-end frames: alpha is always opaque, colour variety,
   ground coverage below the horizon, byte-identical repeat renders, resize, the
   debug render modes, the box-in-lightmap-culling test, OBJ export integrity,
@@ -114,7 +129,63 @@ The suite is also **mutation checked**: inverting the rasterizer's backface sign
 sampling light from the owning cell instead of the air side, pinning AO to a
 constant, selecting `GL_UNSIGNED_SHORT` for indices of a 4-byte stride, using
 `glFrontFace(GL_CW)`, uploading 256 instead of 288 bytes of uniforms, dropping the
-uniform cache, or using `GL_REPEAT` on the tile array each make the suite fail.
+uniform cache or using `GL_REPEAT` on the tile array each make the suite fail — as
+do writing drained results into one slot instead of one row per result, and
+removing the governor's dead band, its hitch guard or its install floor. Every one
+of those mutants was actually built and run.
+
+## Android and low-end devices
+
+A phone-class SoC does not need different rendering, it needs different
+*scheduling*: the frame is mostly bookkeeping (mesh installs, VBO uploads, chunk
+generation) and the ceiling is thermal rather than architectural. Three pieces,
+all of them exercised by the suite.
+
+**Presets.** `beryl_settings_apply_preset()` picks a starting point. `desktop` is
+the compiled defaults; `mobile` is 8 sections of view distance, 8 installs and
+2 MB of uploads per frame, 2 chunks of generation per frame, occlusion on, nearest
+filtering, governor on at 16.7 ms; `low-end` is 6 sections, 4 installs, 1 MB,
+33.3 ms. A preset starts from the defaults and sets every field it cares about
+while preserving the caller's framebuffer and backend, so applying one twice is
+applying it once, and an explicit `--view-distance` still wins over `--preset`.
+`make ANDROID=1` (`-DBERYL_MOBILE=1`) makes the demo begin in `mobile`: a build for
+a launcher arrives shaped for the device, rather than depending on a flag.
+
+**The governor** (`src/perf.h`) owns `rebuilds_per_frame` and
+`uploads_per_frame_bytes`. Nothing happens inside −20 %/+10 % of the target, a
+sustained overrun cuts both budgets to three quarters after two bad frames,
+sustained headroom adds an eighth back after eight good ones, and a frame worse
+than 3x the target is counted as a stall and ignored — GC, an activity switch and
+the launcher's own stutter say nothing about the steady-state cost of a budget, and
+folding them into the average would pin the budgets at the floor for minutes. Both
+floors are pinned above the values that would wedge the renderer (0 installs is a
+permanent hole; a 0 upload budget means *unlimited* to the store). It is arithmetic
+only — no clock, no globals, no allocation — which is what makes it testable
+without a phone, and `beryl_engine_note_frame_ms()` lets the embedder feed it the
+half of the frame the engine cannot see (its own submit and swap). Minecraft's
+client frame timer is the right source for the mod.
+
+**The build profile.** `ANDROID=1` adds `-flto -fno-semantic-interposition
+-fvisibility=hidden -fno-plt -ffunction-sections -fdata-sections` plus
+`-Wl,--gc-sections`, and `NDEBUG=1` drops the asserts. It changes no code path, so
+the same `make test` proves it: here it took the demo binary from 757 KB to 709 KB
+(-6.4 %) with the suite's expectations unchanged. The lto-wrapper's
+"serial compilation of N LTRANS jobs" note is informational, not a warning about
+the code.
+
+**The rasterizer.** `raster_tri`'s scanline walk now solves each row's covered
+span once (the barycentric weights are affine, so the span is closed-form) instead
+of testing every pixel of the bounding box, while coverage itself stays the exact
+per-pixel test. A 6-frame 960x540 run at view distance 10 went from 53.2 ms/frame
+to 47.2 ms/frame (-11 %) and wrote a **byte-identical PNG** — verified by hashing
+the two renders. That is the only kind of rasterizer change worth making without a
+device to look at: fewer pixels examined, provably the same pixels written.
+
+**Not verified:** anything device-specific. No NDK, no ARM hardware and no GPU were
+available, so the preset numbers are "where a mid-range phone should start", with
+the reasoning in the comments — not measurements on a phone. The governor's
+behaviour, the presets' consistency, the profile's flags and the rasterizer's
+identity are all tested; what a Snapdragon does with them is not.
 
 ## OpenGL backend: what "tested" means here
 
@@ -171,16 +242,14 @@ of what a third one has to do.
 
 ## Known issues
 
-- **The demo orphans CPU-side mesh arrays.** Running the demo under
-  AddressSanitizer leaks roughly 0.25 MB per frame (4 frames at `--view-distance 4`:
-  1200 blocks, all allocated in `build_from_slice` in `src/mesher.c`), and the
-  amount grows with the frame count. `./build/beryl_tests` under ASan+UBSan is
-  leak-free, so the store teardown and the tested install paths are sound; the
-  leak is in a per-frame ownership handoff that the current tests do not cover.
-  Reproduce with
-  `make clean && make EXTRA_CFLAGS="-fsanitize=address -O1 -g" EXTRA_LDFLAGS="-fsanitize=address" && ./build/beryl --frames 4 --view-distance 4`.
-  The first fix is a test: mesh the same sections N times and assert the mesh
-  allocation count returns to its starting value.
+- **`beryl_pool_drain()` used to lose meshes, silently.** It took a `max` count and
+  a single result pointer, and wrote every popped result into that one slot, so a
+  caller that asked for the whole queue installed the last build and orphaned all
+  the others: about 0.25 MB per captured frame under ASan, with no visible artefact,
+  because a dropped section simply stays dirty and gets rebuilt. The API now drains
+  into `out[0..max)` — one row per result — and `test_pool` is what keeps it that
+  way. The general lesson for an async engine: an ownership handoff with no test on
+  it is not a clean design, it is a leak with good manners.
 - `beryl_engine_stats().total_quads` and `merge_ratio` are cumulative for the
   process, not per frame — never compare them against one export.
 - Occlusion culling does not yet shrink the *draw* set as much as it could:

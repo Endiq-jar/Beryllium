@@ -3,6 +3,7 @@
 #   make            the demo binary (build/beryl) and the test runner
 #   make test       build + run the whole test suite
 #   make bench      meshing/render benchmark on a generated region
+#   make ANDROID=1  phone-class build profile (see "Build profiles" below)
 #   make clean
 #
 # The engine is C11 + libc + pthread + dl only. Set ENGINE_CC to use another
@@ -28,12 +29,41 @@ CFLAGS     += -std=c11 $(OPT) $(WARN) -g -D_POSIX_C_SOURCE=200809L -Isrc -I$(BUI
 CFLAGS     += $(EXTRA_CFLAGS)
 LDFLAGS    += -lm -lpthread -ldl $(EXTRA_LDFLAGS)
 
-# --- Vulkan: only the loader is needed at build time; the prototypes we call are
-# declared in-tree (src/vk_min.h) so no SDK headers are required. ---
+# --- Build profiles -------------------------------------------------------------
+#
+#   make                                     desktop / container default
+#   make ANDROID=1                           phone-class ARM: LTO, section
+#                                            gathering, hidden visibility, the
+#                                            mobile runtime defaults (BERYL_MOBILE)
+#   make ANDROID=1 NDEBUG=1                  the above minus the asserts, for a
+#                                            shipping build
+#
+# ANDROID=1 only changes flags, never code paths, so the same `make test` proves
+# it. With an NDK this is the whole build:
+#
+#   make ANDROID=1 BUILD=build-and \
+#        ENGINE_CC=$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/clang \
+#        EXTRA_CFLAGS="--target=aarch64-linux-android21 -fPIC -D__ANDROID__"
+#
+# and without one the flags still compile and run the suite here, which is how
+# they stay honest. -DNDEBUG is deliberately NOT part of ANDROID=1: the test
+# binary is built with the same flags, and asserts are the only internal
+# checks the suite can lean on.
+PROFILE_CFLAGS := -flto -fno-semantic-interposition -fvisibility=hidden -fno-plt \
+                  -ffunction-sections -fdata-sections $(if $(NDEBUG),-DNDEBUG,)
+PROFILE_LDFLAGS := -flto -Wl,--gc-sections
+ifdef ANDROID
+CFLAGS  += $(PROFILE_CFLAGS) -DBERYL_MOBILE=1
+LDFLAGS += $(PROFILE_LDFLAGS)
+endif
+
+# --- Optional backends are selected by which sources exist; see BACKEND_DEFS.
+# There is no Vulkan device backend in tree (see README), so nothing here needs
+# a loader or SDK headers. ---
 CORE_SRCS := \
 	src/bcore.c src/bmath.c src/blocks.c src/chunk.c src/world.c src/worldgen.c \
 	src/light.c src/mesh_format.c src/mesher.c src/pool.c src/camera.c src/occlusion.c \
-	src/rhi.c src/rhi_soft.c src/png.c src/engine.c
+	src/rhi.c src/rhi_soft.c src/png.c src/perf.c src/engine.c
 SRCS := $(CORE_SRCS) $(BACKEND_SRCS)
 MAIN_SRC := src/main.c
 TEST_SRCS := $(wildcard tests/*.c)

@@ -19,6 +19,10 @@ typedef struct AppOpts {
 	int  width, height;
 	uint32_t seed;
 	int  view_distance;
+	int  view_distance_set;      /* an explicit flag wins over the preset */
+	int  chunks_set;
+	float target_ms;
+	char preset[24];
 	int  frames;
 	int  threads;
 	int  chunks;          /* pre-generated NxN chunk grid */
@@ -27,6 +31,7 @@ typedef struct AppOpts {
 	bool orbit;
 	bool linear;
 	bool no_occlusion;
+	bool no_adaptive;            /* pin the budgets where the preset left them */
 	bool leaves_cull;
 	bool day_cycle;
 	bool quiet;
@@ -46,7 +51,11 @@ static void usage(const char *argv0) {
 "  --backend software|opengl|vulkan   renderer (default: software)\n"
 "  --size WxH                         framebuffer size (default 960x540)\n"
 "  --seed N                           world seed\n"
-"  --view-distance N                  radius in sections (default 16)\n"
+"  --view-distance N                  radius in sections (default 16)\n"\
+"  --preset desktop|mobile|low-end    budget tuning (mobile by default when\n"
+"                                    built with make ANDROID=1)\n"
+"  --target-ms N                      aim the frame governor at N ms (enables it)\n"
+"  --no-adaptive                      pin rebuild/upload budgets, governor off\n"
 "  --frames N                         render N frames (default 1)\n"
 "  --screenshot PATH                  write a PNG (default frame 1)\n"
 "  --shot-at N                        which frame to write\n"
@@ -100,6 +109,18 @@ static bool next_int(int *i, int argc, char **argv, int *out) {
 	*out = atoi(argv[*i]);
 	return true;
 }
+static bool next_float(int *i, int argc, char **argv, float *out) {
+	if (*i + 1 >= argc) return false;
+	(*i)++;
+	*out = (float)atof(argv[*i]);
+	return true;
+}
+static bool next_str(int *i, int argc, char **argv, char *out, int cap) {
+	if (*i + 1 >= argc || cap <= 0) return false;
+	(*i)++;
+	snprintf(out, (size_t)cap, "%s", argv[*i]);
+	return true;
+}
 
 int main(int argc, char **argv) {
 	AppOpts o;
@@ -118,10 +139,12 @@ int main(int argc, char **argv) {
 			int w = 0, h = 0;
 			if (sscanf(argv[++i], "%dx%d", &w, &h) == 2 && w > 0 && h > 0) { o.width = w; o.height = h; }
 		} else if (!strcmp(a, "--seed") && next_int(&i, argc, argv, (int *)&o.seed)) {
-		} else if (!strcmp(a, "--view-distance")) { next_int(&i, argc, argv, &o.view_distance);
+		} else if (!strcmp(a, "--view-distance")) { if (!next_int(&i, argc, argv, &o.view_distance)) return 2;
+			o.view_distance_set = 1;
 		} else if (!strcmp(a, "--frames"))     { next_int(&i, argc, argv, &o.frames);
 		} else if (!strcmp(a, "--threads"))    { next_int(&i, argc, argv, &o.threads);
-		} else if (!strcmp(a, "--generate"))   { next_int(&i, argc, argv, &o.chunks);
+		} else if (!strcmp(a, "--generate"))   { if (!next_int(&i, argc, argv, &o.chunks)) return 2;
+			o.chunks_set = 1;
 		} else if (!strcmp(a, "--mode"))       { if (++i < argc) o.mode = parse_mode(argv[i]);
 		} else if (!strcmp(a, "--fov"))        { if (++i < argc) o.fov = (float)atof(argv[i]);
 		} else if (!strcmp(a, "--fps-cap"))    { next_int(&i, argc, argv, &o.fps_cap);
@@ -139,6 +162,9 @@ int main(int argc, char **argv) {
 		} else if (!strcmp(a, "--orbit"))     { o.orbit = true;
 		} else if (!strcmp(a, "--linear"))    { o.linear = true;
 		} else if (!strcmp(a, "--day-cycle")) { o.day_cycle = true;
+		} else if (!strcmp(a, "--preset")) { if (!next_str(&i, argc, argv, o.preset, (int)sizeof(o.preset))) return 2;
+		} else if (!strcmp(a, "--target-ms")) { if (!next_float(&i, argc, argv, &o.target_ms)) return 2;
+		} else if (!strcmp(a, "--no-adaptive"))   { o.no_adaptive = true;
 		} else if (!strcmp(a, "--no-occlusion")) { o.no_occlusion = true;
 		} else if (!strcmp(a, "--leaves-cull"))  { o.leaves_cull = true;
 		} else if (!strcmp(a, "--benchmark"))    { benchmark = true;
@@ -170,16 +196,39 @@ int main(int argc, char **argv) {
 		o.backend = BERYL_BACKEND_SOFTWARE;
 	}
 
+	/* Preset first, then the explicit flags: --preset mobile --view-distance 12
+	 * means "mobile, but I asked for 12", and an Android build starts in the
+	 * shape it actually ships in. */
+	BerylPreset pr =
+#if defined(BERYL_MOBILE)
+	    BERYL_PRESET_MOBILE;
+#else
+	    BERYL_PRESET_DESKTOP;
+#endif
+	if (o.preset[0]) {
+		if      (!strcmp(o.preset, "desktop")) pr = BERYL_PRESET_DESKTOP;
+		else if (!strcmp(o.preset, "mobile"))  pr = BERYL_PRESET_MOBILE;
+		else if (!strcmp(o.preset, "low-end") || !strcmp(o.preset, "lowend")) pr = BERYL_PRESET_LOW_END;
+		else { fprintf(stderr, "unknown preset '%s' (desktop|mobile|low-end)\n", o.preset); return 2; }
+	}
 	BerylSettings s;
 	beryl_settings_default(&s, o.width, o.height, o.backend);
-	s.view_distance_sections = o.view_distance;
+	beryl_settings_apply_preset(&s, pr);
+	if (o.view_distance_set) s.view_distance_sections = o.view_distance;
+	if (o.target_ms > 0.0f) { s.target_frame_ms = o.target_ms; s.adaptive_budget = true; }
+	if (o.no_adaptive) s.adaptive_budget = false;
+	if (!o.quiet && pr != BERYL_PRESET_DESKTOP)
+		printf("preset %s: view %d sections, %d rebuilds + %d KB uploads per frame, %sgovernor at %.1f ms\n",
+		       pr == BERYL_PRESET_MOBILE ? "mobile" : "low-end", s.view_distance_sections,
+		       s.rebuilds_per_frame, s.uploads_per_frame_bytes / 1024,
+		       s.adaptive_budget ? "" : "no ", (double)s.target_frame_ms);
 	s.builder_threads = o.threads;
 	s.render_mode = o.mode;
 	s.linear_filter = o.linear;
 	s.occlusion_culling = !o.no_occlusion;
 	s.leaves_internal_cull = o.leaves_cull;
 	s.fov_degrees = o.fov;
-	s.chunks_per_frame = o.chunks * o.chunks > 32 ? 16 : 8;
+	if (o.chunks_set) s.chunks_per_frame = o.chunks * o.chunks > 32 ? 16 : 8;
 	s.max_fps = (float)o.fps_cap;
 
 	BerylWorldDesc wd;
@@ -264,9 +313,10 @@ int main(int argc, char **argv) {
 		cam.yaw = atan2f(dz, dx);
 		cam.pitch = -atan2f(-dy, hl > 1e-3f ? hl : 1e-3f);
 		landmark = beryl_vec3((float)lx, (float)ltop, (float)lz);
-		/* Match the projection to the view distance so the border dissolves into
-		 * the fog instead of ending in a line. */
-		cam.zfar = (float)BERYL_MAX(o.view_distance, 4) * (float)BERYL_SECTION_SIDE;
+		/* Match the projection to what is actually rendered: the border then
+		 * dissolves into the fog instead of ending in a line, and a shorter far
+		 * plane is depth precision a 1080p phone framebuffer can use. */
+		cam.zfar = (float)BERYL_MAX(s.view_distance_sections, 4) * (float)BERYL_SECTION_SIDE;
 		cam.znear = 0.0625f;
 		cam.fog_end = cam.zfar * 0.98f;
 		cam.fog_start = cam.fog_end * 0.45f;
@@ -367,8 +417,16 @@ int main(int argc, char **argv) {
 		       t_render, frames, t_render / frames, frames * 1000.0 / BERYL_MAX(t_render, 0.001));
 		printf("        cull %.2f ms  mesh %.2f ms  draw %.2f ms\n",
 		       st.cull_ms, st.mesh_ms, st.draw_ms);
-		printf("meshing: %lld builds, %.2f ms total (%.1f us avg)\n",
-		       (long long)0, 0.0, 0.0);
+		printf("meshing: %d sections built (%.2f ms synchronous), %d installed in the last frame\n",
+		       built, t_mesh, st.built_sections);
+		if (s.adaptive_budget) {
+			BerylSettings cur;
+			beryl_engine_settings(eng, &cur);
+			printf("governor: aiming %.1f ms -> %d installs + %d KB uploads per frame;"
+			       " %lu adjustments, %lu stalls ignored\n", (double)s.target_frame_ms,
+			       cur.rebuilds_per_frame, cur.uploads_per_frame_bytes / 1024,
+			       (unsigned long)st.perf_adjustments, (unsigned long)st.perf_hitches);
+		}
 	}
 
 	beryl_engine_destroy(eng);

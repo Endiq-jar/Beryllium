@@ -47,9 +47,13 @@ void beryl_pool_request(BerylBuilderPool *p, int32_t cx, int32_t csy, int32_t cz
 
 int  beryl_pool_queued(BerylBuilderPool *p);
 int  beryl_pool_inflight(BerylBuilderPool *p);
-/* Pops finished builds. `max` bounds per-frame work (Beryllium's rebuild batch);
- * returns the number drained. Results must be beryl_pool_release_result()d after
- * the caller has taken ownership of the mesh. */
+/* Pops finished builds into out[0..n-1] (newest first) and returns n. `out` must
+ * therefore be an ARRAY with room for `max` results -- `max` is the batch size, so
+ * pick a small constant (16..256) and loop, never the queue depth. `max` is what
+ * bounds per-frame work (Beryllium's rebuild batch). Each drained result transfers
+ * ownership of its mesh to the caller and must be beryl_pool_release_result()d (or
+ * beryl_section_mesh_free()d if it is not installed), or its buffers belong to
+ * nobody. */
 int  beryl_pool_drain(BerylBuilderPool *p, BerylBuildResult *out, int max);
 void beryl_pool_release_result(BerylBuilderPool *p, BerylBuildResult *res);
 

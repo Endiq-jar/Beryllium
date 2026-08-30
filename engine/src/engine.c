@@ -1,6 +1,7 @@
 /* engine.c -- frame loop, mesh store, per-frame budgets. See engine.h. */
 #include "buf.h"
 #include "engine.h"
+#include "perf.h"
 #include "light.h"
 
 #include <stdio.h>
@@ -33,6 +34,8 @@ typedef struct MeshStore {
 
 struct BerylEngine {
 	BerylSettings  set;
+	BerylPerf      perf;             /* only read/ticked when set.adaptive_budget */
+	float          ext_frame_ms;     /* the embedder's measurement, see the API */
 	BerylWorld    *world;
 	BerylBuilderPool *pool;
 	BerylRhi      *rhi;
@@ -67,6 +70,8 @@ void beryl_settings_default(BerylSettings *s, int width, int height, BerylBacken
 	s->view_distance_sections = 16;   /* 256 blocks, matching the default far plane */
 	s->builder_threads = 0;
 	s->chunks_per_frame = 4;
+	s->adaptive_budget = false;
+	s->target_frame_ms = 16.7f;
 	s->rebuilds_per_frame = 6;
 	s->uploads_per_frame_bytes = 4 * 1024 * 1024;
 	s->occlusion_culling = true;
@@ -314,9 +319,59 @@ BerylEngine *beryl_engine_create(const BerylSettings *settings, const BerylWorld
 		BERYL_LOGI("renderer: %s / %s", e->rhi->info.backend, e->rhi->info.renderer);
 	}
 
+	/* The governor starts from whatever the caller chose, so enabling it never
+	 * changes the first frames' behaviour -- it can only move from there. */
+	{
+		BerylPerfCfg pc;
+		if (e->set.target_frame_ms > 30.0f) beryl_perf_cfg_30fps(&pc);
+		else beryl_perf_cfg_default(&pc);
+		pc.target_frame_ms = e->set.target_frame_ms > 0.0f ? e->set.target_frame_ms : 16.7f;
+		beryl_perf_init(&e->perf, &pc, e->set.rebuilds_per_frame,
+		                (size_t)e->set.uploads_per_frame_bytes);
+	}
+
 	e->day_clock = 0.0;
 	memset(&e->stats, 0, sizeof(e->stats));
 	return e;
+}
+
+void beryl_settings_apply_preset(BerylSettings *s, BerylPreset preset) {
+	if (!s) return;
+	/* From the defaults, every time: a preset that only touched two fields would
+	 * leave whatever the caller had before, which is how "mobile" turns into a
+	 * desktop view distance with a mobile upload budget and a 2 MB hole in it. */
+	beryl_settings_default(s, s->width, s->height, s->backend);
+	switch (preset) {
+	case BERYL_PRESET_MOBILE:
+		/* Mid-range ARM, 1080p panel, GLES 3. This is not "minimum settings": the
+		 * aim is that a frame's bookkeeping (install, upload, generate) stays a
+		 * small fraction of the frame on two in-order cores, because that is what
+		 * stops a phone dropping frames while the player walks. */
+		s->view_distance_sections = 8;            /* 128 blocks */
+		s->rebuilds_per_frame = 8;                /* batches are cheap now; bytes are not */
+		s->uploads_per_frame_bytes = 2 * 1024 * 1024;
+		s->chunks_per_frame = 2;
+		s->occlusion_culling = true;              /* fewer draws, no visible change */
+		s->linear_filter = false;                 /* nearest: cheaper, and a 16px atlas wants it */
+		s->adaptive_budget = true;
+		s->target_frame_ms = 16.7f;
+		break;
+	case BERYL_PRESET_LOW_END:
+		/* Where the loader, not the rasterizer, is the bottleneck: generate and
+		 * mesh slower and let the governor find the rest. */
+		s->view_distance_sections = 6;
+		s->rebuilds_per_frame = 4;
+		s->uploads_per_frame_bytes = 1024 * 1024;
+		s->chunks_per_frame = 1;
+		s->occlusion_culling = true;
+		s->linear_filter = false;
+		s->adaptive_budget = true;
+		s->target_frame_ms = 33.3f;
+		break;
+	default:
+		break;   /* BERYL_PRESET_DESKTOP *is* the defaults */
+	}
+	if (s->target_frame_ms <= 0.0f) s->target_frame_ms = 16.7f;
 }
 
 void beryl_engine_destroy(BerylEngine *e) {
@@ -348,6 +403,11 @@ BerylWorld *beryl_engine_world(BerylEngine *e) { return e->world; }
 BerylRhi   *beryl_engine_rhi(BerylEngine *e)   { return e->rhi; }
 BerylTexture beryl_engine_texarray(BerylEngine *e) { return e->texarray; }
 BerylTexture beryl_engine_lightmap(BerylEngine *e) { return e->lightmap_tex; }
+
+void beryl_engine_note_frame_ms(BerylEngine *e, float frame_ms) {
+	if (!e) return;
+	e->ext_frame_ms = (frame_ms > 0.0f && isfinite(frame_ms)) ? frame_ms : 0.0f;
+}
 
 void beryl_engine_settings(BerylEngine *e, BerylSettings *out) { *out = e->set; }
 
@@ -552,6 +612,22 @@ void beryl_engine_update(BerylEngine *e, BerylCamera *cam, double dt) {
 	e->stats.frame_ms = beryl_time_ms() - t0;
 	(void)generated;
 
+	/* The governor's input is the *whole* frame, measured by the embedder's clock
+	 * when it has one; the update-time sum is what the launcher can hand us for
+	 * free, and it is the part the budgets actually control. */
+	if (e->set.adaptive_budget) {
+		/* What the governor needs is the frame the user experiences, and the
+		 * engine only sees half of it: prefer the embedder's number. */
+		float gms = e->ext_frame_ms > 0.0f ? e->ext_frame_ms
+		                                   : (float)(e->stats.frame_ms + e->stats.draw_ms);
+		e->ext_frame_ms = 0.0f;
+		beryl_perf_tick(&e->perf, gms);
+		e->set.rebuilds_per_frame = e->perf.rebuilds;
+		e->set.uploads_per_frame_bytes = (int)e->perf.upload_bytes;
+		e->stats.perf_adjustments = e->perf.adjustments;
+		e->stats.perf_hitches = e->perf.hitches;
+	}
+
 	if ((e->frame_no & 127u) == 0u) store_prune(e);
 }
 
@@ -746,20 +822,27 @@ int beryl_engine_prepare_capture(BerylEngine *e, BerylCamera *cam) {
 	 *    a discarded result would be a permanent hole. */
 	if (e->pool) {
 		beryl_pool_wait_idle(e->pool);
-		BerylBuildResult res;
-		while (beryl_pool_drain(e->pool, &res, 1 << 20) > 0) {
-			MeshEntry *entry = store_insert(e, res.cx, res.csy, res.cz);
-			if (entry) {
-				entry->mesh = res.mesh;
-				entry->last_frame = e->frame_no;
-				entry->needs_upload = false;
-				store_upload(e, entry);
-				mark_section_meshed(e, res.cx, res.csy, res.cz, res.built_revision);
-				installed++;
-			} else {
-				beryl_section_mesh_free(&res.mesh);
+		/* Batch, never max=INT_MAX against a single struct: drain() writes one row
+		 * per result, and this used to ask for the whole queue into one slot --
+		 * every mesh but the last was then owned by nobody. */
+		BerylBuildResult batch[64];
+		int k;
+		while ((k = beryl_pool_drain(e->pool, batch, 64)) > 0) {
+			for (int i = 0; i < k; i++) {
+				BerylBuildResult *res = &batch[i];
+				MeshEntry *entry = store_insert(e, res->cx, res->csy, res->cz);
+				if (entry) {
+					entry->mesh = res->mesh;
+					entry->last_frame = e->frame_no;
+					entry->needs_upload = false;
+					store_upload(e, entry);
+					mark_section_meshed(e, res->cx, res->csy, res->cz, res->built_revision);
+					installed++;
+				} else {
+					beryl_section_mesh_free(&res->mesh);
+				}
+				beryl_pool_release_result(e->pool, res);
 			}
-			beryl_pool_release_result(e->pool, &res);
 		}
 	}
 

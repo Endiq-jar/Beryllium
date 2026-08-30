@@ -44,6 +44,8 @@ extern int beryl_test_failed;
 /* Each suite exposes exactly one entry point. */
 void test_basics(void);
 void test_world(void);
+void test_pool(void);
+void test_perf(void);
 void test_soft_render(void);
 void test_gl_backend(void);
 

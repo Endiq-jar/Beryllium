@@ -40,10 +40,25 @@ typedef struct BerylSettings {
 	float max_fps;                     /* 0 = uncapped                   */
 	int   anisotropic;                 /* texture filter hint            */
 	bool  linear_filter;
+	/* See perf.h. With adaptive_budget on, the governor owns rebuilds_per_frame
+	 * and uploads_per_frame_bytes from the first frame after the one you set; the
+	 * two fields are then its starting point, not a cap. */
+	bool  adaptive_budget;
+	float target_frame_ms;         /* what the governor aims at (16.7 = 60 fps)   */
 	const char *log_prefix;
 } BerylSettings;
 
 void beryl_settings_default(BerylSettings *s, int width, int height, BerylBackend backend);
+
+/* Frame-budget presets: the tuning a launcher would offer as "Mobile"/"Low end".
+ * A preset sets every field it cares about (it starts from the defaults), so
+ * applying one twice is the same as applying it once. */
+typedef enum BerylPreset {
+	BERYL_PRESET_DESKTOP = 0,   /* the compiled defaults                       */
+	BERYL_PRESET_MOBILE,        /* phone-class ARM at 60 fps, GLES 3          */
+	BERYL_PRESET_LOW_END        /* old SoC, 30 fps, tight memory and thermal   */
+} BerylPreset;
+void beryl_settings_apply_preset(BerylSettings *s, BerylPreset preset);
 
 typedef struct BerylEngineStats {
 	double frame_ms, mesh_ms, upload_ms, cull_ms, draw_ms;
@@ -56,6 +71,9 @@ typedef struct BerylEngineStats {
 	double   merge_ratio;
 	float    fps;
 	double   frame_seconds;
+	/* What the governor did, so a --benchmark run or an overlay can tell "the
+	 * budgets moved" apart from "the budgets are at their floor". */
+	uint64_t perf_adjustments, perf_hitches;
 } BerylEngineStats;
 
 typedef struct BerylEngine BerylEngine;
@@ -67,6 +85,12 @@ BerylWorld  *beryl_engine_world(BerylEngine *e);
 BerylRhi    *beryl_engine_rhi(BerylEngine *e);
 void         beryl_engine_settings(BerylEngine *e, BerylSettings *out);
 void         beryl_engine_set_settings(BerylEngine *e, const BerylSettings *s);
+
+/* Hand the frame governor the whole frame time -- including the embedder's own
+ * submit/swap, which the engine cannot see. Minecraft's client frame timer is the
+ * right source; without it the governor falls back to the engine's own estimate
+ * (update + last draw). Consumed by the next tick. */
+void         beryl_engine_note_frame_ms(BerylEngine *e, float frame_ms);
 void         beryl_engine_resize(BerylEngine *e, int width, int height);
 
 /* Loads terrain around the camera, services the builder pool and uploads meshes.
