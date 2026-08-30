@@ -1,0 +1,4 @@
+# build artefacts and captured frames stay out of git
+build/
+*.png
+*.obj

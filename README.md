@@ -154,6 +154,24 @@ mappings, Java 21.
 ./gradlew runClient
 ```
 
+## Standalone engine (`engine/`)
+
+Alongside the mod there is a small dependency-free C11 voxel renderer — the same
+ideas Beryllium pushes in Minecraft (greedy meshing, baked skylight/block light
+with ambient occlusion, a PVS culler, a mesh store fed by worker threads), in a
+form that can be built and *run* without a JVM, Minecraft, or a GPU.
+
+```
+make -C engine test            # 691 checks, no GPU/network/driver needed
+make -C engine                 # ./build/beryl renders generated terrain to a PNG
+```
+
+`engine/README.md` states exactly what is verified and what is not: the software
+rasterizer and the OpenGL backend are exercised by tests (the GL one through a
+recording loader, since there is no driver here), while the Vulkan slot in the
+backend interface is deliberately left unimplemented rather than shipped on
+transcribed constants nobody could check.
+
 ## Config (`config/beryllium.json`)
 
 | Field | Default | Meaning |
