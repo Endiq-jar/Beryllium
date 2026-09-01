@@ -2,7 +2,7 @@ package com.endiq.beryllium.chunk;
 
 import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
-import com.endiq.beryllium.mixin.chunk.SectionRenderDispatcherMixin;
+import com.endiq.beryllium.mixin.chunk.ViewAreaMixin;
 import com.endiq.beryllium.util.BerylliumLog;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -17,11 +17,12 @@ import java.util.List;
  * <p>Vanilla rebuilds chunk sections in the order their dirty marks arrive; during a
  * mining run, caving session or redstone flood that order is essentially random relative
  * to the camera. This manager instead: (1) intercepts the two dirty-marking entry points
- * ({@code LevelRenderer.setSectionDirty} and {@code SectionRenderDispatcher.setSectionDirty})
- * and parks the sections in {@link ChunkRebuildQueue}, then (2) on every rendered frame
- * drains a small prioritized batch (proximity + view alignment + urgency, see
- * {@link ChunkRebuildPriority}) and re-triggers each one through vanilla's own
- * {@code setSectionDirty}, which schedules the actual (asynchronous) rebuild.
+ * ({@code LevelRenderer.setSectionDirty} and its 1.21.4 delegate
+ * {@code ViewArea.setDirty}) and parks the sections in {@link ChunkRebuildQueue}, then
+ * (2) on every rendered frame drains a small prioritized batch (proximity + view
+ * alignment + urgency, see {@link ChunkRebuildPriority}) and re-triggers each one
+ * through vanilla's own dirty-marking path, which schedules the actual (asynchronous)
+ * rebuild.
  *
  * <p>Safety properties:
  * <ul>
@@ -37,20 +38,23 @@ import java.util.List;
  *       already orders its rebuilds).</li>
  * </ul>
  *
- * <p>The mixins follow the repo's NOT-COMPILE-VERIFIED convention (string-based method
- * descriptors + {@code require = 0}); if a signature doesn't match 1.21.4, interception
- * silently no-ops and vanilla behavior is unchanged. The re-trigger bridge is
- * reflection-based for the same reason. All methods here are called from the render
- * thread only (mixins and {@code WorldRenderEvents.START}).
+ * <p>The mixin targets were verified against a 1.21.4 Mojang-mapped decompile
+ * ({@code LevelRenderer.setSectionDirty(int,int,int)} / {@code (int,int,int,boolean)}
+ * and {@code ViewArea.setDirty(int,int,int,boolean)}; the pre-1.21.2
+ * {@code SectionRenderDispatcher.setSectionDirty(long,boolean)} does not exist in
+ * 1.21.4). The re-trigger bridge is reflection-based so a future signature drift
+ * degrades to vanilla behavior instead of crashing. All methods here are called from
+ * the render thread only (mixins and {@code WorldRenderEvents.START}).
  */
 public final class ChunkRebuildManager {
 	private static volatile ChunkRebuildManager instance;
 
 	private final ChunkRebuildQueue queue = new ChunkRebuildQueue();
 
-	/** The {@code SectionRenderDispatcher} instance of the current renderer, captured on
-	 *  first interception; null until a world is actually rendering. */
-	private volatile Object dispatcherRef;
+	/** The renderer object to re-trigger parked sections through (a
+	 *  {@code ViewArea} or {@code LevelRenderer}, whichever mixin fired first);
+	 *  captured on first interception; null until a world is actually rendering. */
+	private volatile Object rendererRef;
 
 	/** True while the per-frame drain is re-triggering a request through vanilla's
 	 *  setSectionDirty — mixins check this and let the call through instead of re-queueing. */
@@ -125,11 +129,13 @@ public final class ChunkRebuildManager {
 		return true;
 	}
 
-	/** Captured from the {@code SectionRenderDispatcherMixin} on first interception. */
-	public void setDispatcher(Object dispatcher) {
-		if (dispatcherRef != dispatcher) {
-			dispatcherRef = dispatcher;
-			BerylliumLog.debug("[BERYLLIUM-CHUNK] Attached to SectionRenderDispatcher@" + System.identityHashCode(dispatcher));
+	/** Captured from the {@code LevelRendererMixin}/{@code ViewAreaMixin} on first
+	 *  interception; used by the per-frame drain as the re-trigger target. */
+	public void setRendererRef(Object renderer) {
+		if (rendererRef != renderer) {
+			rendererRef = renderer;
+			BerylliumLog.debug("[BERYLLIUM-CHUNK] Attached to renderer@"
+				+ System.identityHashCode(renderer) + " (" + renderer.getClass().getSimpleName() + ")");
 		}
 	}
 
@@ -146,7 +152,7 @@ public final class ChunkRebuildManager {
 		if (config == null || !config.enabled || !config.chunkRebuildPrioritization) {
 			return;
 		}
-		if (queue.size() == 0 || dispatcherRef == null) {
+		if (queue.size() == 0 || rendererRef == null) {
 			return;
 		}
 
@@ -155,7 +161,7 @@ public final class ChunkRebuildManager {
 		for (ChunkRebuildRequest request : next) {
 			bypassing = true;
 			try {
-				if (SectionRenderDispatcherMixin.beryllium$rescheduleDirty(dispatcherRef, request.key(), request.urgent())) {
+				if (ViewAreaMixin.beryllium$rescheduleDirty(rendererRef, request.key(), request.urgent())) {
 					drainedTotal++;
 				} else {
 					// Re-trigger failed (vanilla method not reachable) — the request is
@@ -173,7 +179,7 @@ public final class ChunkRebuildManager {
 	public void onWorldUnload() {
 		int cleared = queue.size();
 		queue.clear();
-		dispatcherRef = null;
+		rendererRef = null;
 		BerylliumLog.debug("[BERYLLIUM-CHUNK] World unloaded — cleared " + cleared + " queued rebuilds.");
 	}
 

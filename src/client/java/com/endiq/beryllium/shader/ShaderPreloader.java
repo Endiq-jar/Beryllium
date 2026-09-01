@@ -6,6 +6,7 @@ import com.endiq.beryllium.config.BerylliumConfig;
 import com.endiq.beryllium.util.BerylliumLog;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
+import net.minecraft.server.packs.resources.ResourceProvider;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -26,8 +27,9 @@ import java.util.Map;
  * {@code MobileTuner}): hooks that do not exist in this exact Minecraft version are
  * skipped and logged, never fatal. Notably:
  * <ul>
- *   <li>{@code GameRenderer#preloadUiShader()} — present since 1.20.x, called by vanilla
- *       itself at world load; invoking it earlier just moves the compile earlier.</li>
+ *   <li>{@code GameRenderer#preloadUiShader(ResourceProvider)} — present since 1.20.x,
+ *       used by vanilla itself around world load; invoking it earlier (with the game's
+ *       {@code ResourceManager}) just moves the compile earlier.</li>
  *   <li>A scan of {@code GameRenderer}'s fields for a shader map (values named
  *       {@code ShaderInstance} in 1.20.x, {@code ShaderProgram} from the 1.21.2 render
  *       refactor) — discovery + count only; GL compilation stays vanilla-owned.</li>
@@ -102,7 +104,12 @@ public final class ShaderPreloader {
 	}
 
 	/**
-	 * Invokes {@code GameRenderer#preloadUiShader()} reflectively.
+	 * Invokes {@code GameRenderer#preloadUiShader(ResourceProvider)} reflectively.
+	 * In 1.21.4 the method takes a {@code ResourceProvider} (vanilla calls it with the
+	 * shader manager's provider during world load); the game's {@code ResourceManager}
+	 * implements that interface and is available from client start, so the preload can
+	 * run earlier than vanilla's own first use. A no-arg lookup would silently find
+	 * nothing on 1.21.4, which is exactly the bug this parameter fixes.
 	 *
 	 * @return a short description of what was invoked, or null if the method is not
 	 *         present on this version.
@@ -114,9 +121,9 @@ public final class ShaderPreloader {
 				return null;
 			}
 			Object gameRenderer = minecraft.gameRenderer;
-			Method preload = gameRenderer.getClass().getMethod("preloadUiShader");
-			preload.invoke(gameRenderer);
-			return gameRenderer.getClass().getSimpleName() + "#preloadUiShader()";
+			Method preload = gameRenderer.getClass().getMethod("preloadUiShader", ResourceProvider.class);
+			preload.invoke(gameRenderer, minecraft.getResourceManager());
+			return gameRenderer.getClass().getSimpleName() + "#preloadUiShader(ResourceProvider)";
 		} catch (ReflectiveOperationException e) {
 			return null;
 		} catch (RuntimeException e) {

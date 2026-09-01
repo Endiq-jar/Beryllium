@@ -44,7 +44,7 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
 - **Chunk rebuild prioritization** — vanilla rebuilds chunk sections in the order their
   dirty marks arrive; during mining, caving or redstone floods that order is essentially
   random relative to the camera. Beryllium intercepts the dirty-marking entry points
-  (`LevelRenderer.setSectionDirty` / `SectionRenderDispatcher.setSectionDirty`), parks the
+  (`LevelRenderer.setSectionDirty` / its 1.21.4 delegate `ViewArea.setDirty`), parks the
   sections in a priority queue (proximity + view alignment + urgency), and re-triggers a
   small prioritized batch (default 3) every rendered frame through vanilla's own
   scheduling — the rebuilds the player can actually see happen first. A hard queue cap
@@ -96,9 +96,11 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
 - **Chunk rebuild prioritization queue** (`ChunkRebuildQueue`/`ChunkRebuildRequest`/
   `ChunkRebuildPriority`/`SectionPacking`) — proximity + view-alignment + urgency
   scoring. **Wired into the 1.21.4 section pipeline** via
-  `ChunkRebuildManager` + `SectionRenderDispatcherMixin`/`LevelRendererMixin` (phase 4).
-  Mixin signatures follow the repo's not-compile-verified convention — verify against a
-  1.21.4 decompile if the feature appears inert (see the verification note below).
+  `ChunkRebuildManager` + `ViewAreaMixin`/`LevelRendererMixin` (phase 4). The mixin
+  targets (`LevelRenderer.setSectionDirty(int,int,int)` / `(int,int,int,boolean)` and
+  `ViewArea.setDirty(int,int,int,boolean)`) are verified against a 1.21.4
+  Mojang-mapped decompile; the re-trigger bridge is reflection-based so a future
+  signature drift degrades to vanilla behavior instead of crashing.
 - **Shader preload & versioned shader-state cache** — `ShaderPreloader` preloads the UI
   shader at client start (before the first world load) and records per-version state
   through `VersionedFileCache`, so repeat launches skip the scan. GL programs are never
@@ -125,14 +127,17 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
 | 11 — text shadows toggle | ✅ done — `FontTextShadowMixin` suppresses the `dropShadow` argument of the `Font.drawInBatch` overloads |
 
 > **Verification note (phases 4, 8, 11):** the mixins and hooks added in these phases
-> target 1.21.4 internals (`SectionRenderDispatcher`/`LevelRenderer` dirty-marking,
-> `Font.drawInBatch` overloads). Following the repo's established convention they use
-> string-based descriptors with `require = 0` and reflection where a live call is
-> needed, so a signature mismatch degrades to vanilla behavior instead of crashing —
-> but it also means a wrong guess is silent. If any of these features appears inert
-> in-game, check the targeted method names/descriptors against a decompile of the exact
-> 1.21.4 build. The pure-Java engine pieces (`SectionPacking`, queue/scoring,
-> scheduler) carry no such caveat.
+> target 1.21.4 internals. Phase 4's targets (`LevelRenderer.setSectionDirty(int,int,int)`
+> and `(int,int,int,boolean)`, `ViewArea.setDirty(int,int,int,boolean)` — the
+> pre-1.21.2 `SectionRenderDispatcher.setSectionDirty(long,boolean)` no longer exists)
+> and phase 11's `Font.drawInBatch` overloads are verified against 1.21.4
+> Mojang-mapped decompiles. Phase 8's shader preload calls
+> `GameRenderer#preloadUiShader(ResourceProvider)` (1.21.4 signature) reflectively and
+> is best-effort by design. Where reflection is used a signature mismatch degrades to
+> vanilla behavior instead of crashing — but it also means a wrong guess is silent, so
+> if any of these features appears inert in-game, re-check the targeted method
+> names/descriptors against a decompile of the exact 1.21.4 build. The pure-Java
+> engine pieces (`SectionPacking`, queue/scoring, scheduler) carry no such caveat.
 
 > **Honest note on "Sodium replacement":** Sodium's headline FPS gain comes from
 > replacing the entire chunk-meshing and lighting pipeline (per-quad culling, vertex
