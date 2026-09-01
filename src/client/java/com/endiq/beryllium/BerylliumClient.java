@@ -30,7 +30,7 @@ public class BerylliumClient implements ClientModInitializer {
 		new DebugOverlay(profiler).register();
 
 		// Phase 4 — chunk rebuild prioritization, wired into the 1.21.4 section pipeline.
-		// The mixins (SectionRenderDispatcherMixin/LevelRendererMixin) feed dirty sections
+		// The mixins (ViewAreaMixin/LevelRendererMixin) feed dirty sections
 		// into ChunkRebuildQueue; this manager drains a prioritized batch every rendered
 		// frame and re-triggers them through vanilla. Cleared on world unload so stale
 		// sections never cross into the next world. (Set the singleton before the frame

@@ -8,7 +8,7 @@
 		"render.BlockEntityCullMixin",
 		"text.NameTagCullMixin",
 		"render.LeavesCullMixin",
-		"chunk.SectionRenderDispatcherMixin",
+		"chunk.ViewAreaMixin",
 		"chunk.LevelRendererMixin",
 		"text.FontTextShadowMixin"
 	],
