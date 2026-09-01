@@ -423,6 +423,101 @@ static void test_editing(void) {
 	beryl_world_free(w);
 }
 
+/* -------------------------------------- light idempotence & convergence ------ */
+/* The light field must be a pure function of the block state:
+ *  - a full relight of an unchanged world must change nothing (the old reset
+ *    covered the requested chunks only, so a second pass stopped at
+ *    previously-lit neighbours and border cells came out darker than a fresh
+ *    world -- a no-op relight was not a no-op);
+ *  - the incremental queue after edits must converge to exactly the same field
+ *    a full relight produces (the removal pass clears a connected region, and
+ *    every surviving source must be re-seeded or the re-add pass starts from
+ *    almost nothing and the cleared region stays dark);
+ *  - an emitter sitting just outside the requested span must still light the
+ *    area, which is what the one-section ring around the reset exists for.
+ * Each is asserted over every voxel of a 3x3-chunk dump, not a sample. */
+static int light_dump(BerylWorld *w, uint8_t *out, size_t cap) {
+	size_t n = 0;
+	for (int z = 0; z < 48; z++) {
+		for (int x = 0; x < 48; x++) {
+			for (int y = 0; y < BERYL_WORLD_MAX_Y; y++) {
+				if (n >= cap) return -1;
+				int s, b;
+				beryl_world_get_light(w, x, y, z, &s, &b);
+				out[n++] = (uint8_t)((s & 15) | ((b & 15) << 4));
+			}
+		}
+	}
+	return (int)n;
+}
+
+static void test_light_idempotence(void) {
+	enum { LIGHT_DUMP = 48 * 48 * BERYL_WORLD_MAX_Y };
+	static uint8_t la[LIGHT_DUMP], lb[LIGHT_DUMP];
+
+	/* 1. Relighting an unchanged world is a no-op, voxel for voxel. */
+	BerylWorld *a = make_world(12ull, true, true, true);
+	BerylWorld *b = make_world(12ull, true, true, true);
+	if (!a || !b) { CHECK(0, "world alloc"); return; }
+	beryl_world_generate_area(a, 0, 0, 2, 2);
+	beryl_world_generate_area(b, 0, 0, 2, 2);
+	beryl_light_relight_area(b, 0, 0, 2, 2);
+	CHECK(light_dump(a, la, sizeof(la)) == LIGHT_DUMP, "dump a");
+	CHECK(light_dump(b, lb, sizeof(lb)) == LIGHT_DUMP, "dump b");
+	int same = memcmp(la, lb, sizeof(la)) == 0;
+	CHECK(same, "a no-op relight must not change the light field");
+	beryl_world_free(a);
+	beryl_world_free(b);
+
+	/* 2. Incremental edits and a full relight of the same edits agree. The
+	 * tower scenario is the nasty one: a column of blocks placed in open sky
+	 * and removed again, which used to leave border cells dark because the
+	 * removal flood cleared them and nothing re-seeded the survivors. */
+	static const int tower[][4] = {
+		{24, 60, 24, BERYL_BLOCK_STONE}, {24, 61, 24, BERYL_BLOCK_STONE},
+		{24, 62, 24, BERYL_BLOCK_STONE}, {24, 63, 24, BERYL_BLOCK_STONE},
+		{24, 64, 24, BERYL_BLOCK_STONE}, {24, 65, 24, BERYL_BLOCK_STONE},
+		{24, 60, 24, BERYL_BLOCK_AIR},   {24, 61, 24, BERYL_BLOCK_AIR},
+		{24, 62, 24, BERYL_BLOCK_AIR},   {24, 63, 24, BERYL_BLOCK_AIR},
+		{24, 64, 24, BERYL_BLOCK_AIR},   {24, 65, 24, BERYL_BLOCK_AIR},
+		{-1, 0, 0, 0},
+	};
+	a = make_world(12ull, true, true, true);
+	b = make_world(12ull, true, true, true);
+	beryl_world_generate_area(a, 0, 0, 2, 2);
+	beryl_world_generate_area(b, 0, 0, 2, 2);
+	for (int i = 0; tower[i][0] != -1; i++) {
+		beryl_world_set_block(a, tower[i][0], tower[i][1], tower[i][2], (beryl_bid)tower[i][3]);
+		beryl_world_set_block(b, tower[i][0], tower[i][1], tower[i][2], (beryl_bid)tower[i][3]);
+	}
+	beryl_light_process_queue(a, 1 << 20);
+	beryl_light_relight_area(b, 0, 0, 2, 2);
+	CHECK(light_dump(a, la, sizeof(la)) == LIGHT_DUMP, "dump a");
+	CHECK(light_dump(b, lb, sizeof(lb)) == LIGHT_DUMP, "dump b");
+	same = memcmp(la, lb, sizeof(la)) == 0;
+	CHECK(same, "incremental edits must converge to a full relight");
+	/* Drain the global edit queue so later tests start clean. */
+	beryl_light_process_queue(b, 1 << 20);
+	beryl_world_free(a);
+	beryl_world_free(b);
+
+	/* 3. An emitter in the ring still lights the area. The torch sits in chunk
+	 * (1,1), just outside a relight of chunk (0,0); without the ring the
+	 * emitter was never seeded and the neighbouring cells stayed dark. */
+	a = make_world(20260901ull, true, true, true);
+	if (!a) { CHECK(0, "world alloc"); return; }
+	beryl_world_generate_area(a, 0, 0, 2, 2);
+	int ty = beryl_world_top_y(a, 16, 16);
+	beryl_world_set_block(a, 16, ty + 1, 16, BERYL_BLOCK_TORCH);
+	beryl_light_process_queue(a, 1 << 20);
+	beryl_light_relight_area(a, 0, 0, 0, 0);
+	int s = -1, blk = -1;
+	beryl_world_get_light(a, 14, ty + 1, 14, &s, &blk);
+	CHECK(blk > 0, "a torch just outside the span must still light the area (blk=%d)", blk);
+	beryl_light_process_queue(a, 1 << 20);
+	beryl_world_free(a);
+}
+
 /* ------------------------------------------------------------ occlusion ------ */
 static void test_occlusion(void) {
 	BerylWorld *w = make_world(20260829ull, true, true, true);
@@ -477,5 +572,6 @@ void test_world(void) {
 	test_mesh_lighting();
 	test_light_transport();
 	test_editing();
+	test_light_idempotence();
 	test_occlusion();
 }

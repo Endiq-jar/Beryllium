@@ -151,23 +151,40 @@ int beryl_visible_set_compute(BerylVisibleSet *v, BerylWorld *w, const BerylCame
 		for (int f = 0; f < 6; f++) {
 			Node m = { n.cx + k_delta[f][0], n.csy + k_delta[f][1], n.cz + k_delta[f][2] };
 			uint64_t mk = beryl_section_key(m.cx, m.csy, m.cz);
-			if (!visit_mark(v, mk)) continue;
 
+			/* Decide the seal cull *before* marking the neighbour. Marking first
+			 * means a culled section stays marked even though it was never pushed
+			 * onto the stack, so every other path into it is deduplicated away and
+			 * it vanishes from the set -- even when it is adjacent to the camera,
+			 * whose 27-section neighbourhood is supposed to be unconditionally
+			 * visible. The order this triggers in depends on which neighbour the
+			 * walk happens to reach first (empty ring sections from a padded
+			 * relight change it), which is exactly the kind of traversal-order
+			 * dependence a cull must never have. */
 			bool sealed = s && (s->sealed_faces & (1u << f));
-			if (sealed && !adjacent_to_camera) {
-				/* Only reject when the eye really is behind the sealing face: if the
-				 * camera already sits past it, rays to the neighbour never cross this
-				 * section at all, so the mask says nothing. */
-				BerylVec3 plane_point = beryl_vec3(
-					((float)n.cx + 0.5f) * cs + k_normal[f].x * (cs * 0.5f),
-					((float)n.csy + 0.5f) * cs + k_normal[f].y * (cs * 0.5f),
-					((float)n.cz + 0.5f) * cs + k_normal[f].z * (cs * 0.5f));
-				BerylVec3 to_cam = beryl_v3_sub(p, plane_point);
-				if (beryl_v3_dot(to_cam, k_normal[f]) > 0.0f) {
-					v->culled_by_occlusion++;
-					continue;
+			if (sealed) {
+				/* The guarantee is for the neighbour: a section that touches the
+				 * camera is never culled no matter which side it was reached
+				 * from. Only reject when the eye really is behind the sealing
+				 * face: if the camera already sits past it, rays to the neighbour
+				 * never cross this section at all, so the mask says nothing. */
+				bool m_adjacent =
+				    (m.cx >= cam_sx - 1 && m.cx <= cam_sx + 1) &&
+				    (m.csy >= cam_sy - 1 && m.csy <= cam_sy + 1) &&
+				    (m.cz >= cam_sz - 1 && m.cz <= cam_sz + 1);
+				if (!m_adjacent) {
+					BerylVec3 plane_point = beryl_vec3(
+						((float)n.cx + 0.5f) * cs + k_normal[f].x * (cs * 0.5f),
+						((float)n.csy + 0.5f) * cs + k_normal[f].y * (cs * 0.5f),
+						((float)n.cz + 0.5f) * cs + k_normal[f].z * (cs * 0.5f));
+					BerylVec3 to_cam = beryl_v3_sub(p, plane_point);
+					if (beryl_v3_dot(to_cam, k_normal[f]) > 0.0f) {
+						v->culled_by_occlusion++;
+						continue;
+					}
 				}
 			}
+			if (!visit_mark(v, mk)) continue;
 			stack[sp++] = m;
 		}
 	}

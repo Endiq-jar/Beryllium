@@ -206,12 +206,24 @@ static void removal(BerylRemovalCtx *rc) {
 			int nl = cur_light(rc->cur, nx, ny, nz, rc->sky);
 			if (nl == 0) continue;
 			beryl_bid src = cur_state(rc->cur, nx, ny, nz);
+			bool keeps = false;
 			if (src != BERYL_BLOCK_AIR && beryl_block_light_emission(src) > 0 && !rc->sky) {
-				continue; /* a real emitter keeps its light */
+				keeps = true; /* a real emitter keeps its light */
 			}
 			if (rc->sky && cur_state(rc->cur, nx, ny + 1, nz) == BERYL_BLOCK_AIR
 			    && ny + 1 < BERYL_WORLD_MAX_Y && cur_light(rc->cur, nx, ny + 1, nz, true) == 15) {
-				continue; /* open sky above: this column gets re-seeded instead */
+				keeps = true; /* open sky above: this column gets re-seeded instead */
+			}
+			if (keeps) {
+				/* The cell survives the retraction, but it must also become a
+				 * source for the re-propagation pass that follows, or everything
+				 * it lights that the flood *did* clear would stay dark. Without
+				 * this, placing a block in open air flooded the whole connected
+				 * shaded region (caves, overhangs) to zero and nothing ever lit
+				 * it again -- the survivors kept their own light but were never
+				 * re-seeded, so the readd spread had nothing to start from. */
+				lb_push(rc->readd, nl, nx, ny, nz);
+				continue;
 			}
 			if (nl <= level) {
 				cur_set_light(rc->cur, nx, ny, nz, rc->sky, 0);
@@ -241,10 +253,25 @@ static void reset_region(BerylWorld *w, int x0, int x1, int z0, int z1) {
 	(void)cur;
 }
 
+/* A column can only be seeded once its chunk has actually been generated.
+ * The reset pass creates chunks for the whole ring, but a chunk that was never
+ * terrain-generated is all air. Seeding such a column as open sky would turn
+ * the ring into an infinite sky shaft and leak light 15 sideways into the
+ * area's real terrain (water, caves, overhangs) near the border, brightening
+ * it beyond what a fully generated world would show. Seeding only generated
+ * columns keeps relight idempotent (the ring is still reset, so it never
+ * carries stale light into the spread) and matches the game's flow, where a
+ * chunk's neighbours are generated before they are lit. */
+static bool column_generated(BerylWorld *w, int x, int z) {
+	BerylChunk *c = beryl_world_chunk(w, x >> 4, z >> 4, false);
+	return c && c->generated;
+}
+
 static void seed_columns(BerylWorld *w, int x0, int x1, int z0, int z1, BerylLBuckets *sky_q) {
 	BerylLCursor cur = { w, NULL, 0, 0, 0 };
 	for (int x = x0; x <= x1; x++) {
 		for (int z = z0; z <= z1; z++) {
+			if (!column_generated(w, x, z)) continue;
 			int level = 15;
 			for (int y = BERYL_WORLD_MAX_Y - 1; y >= BERYL_WORLD_MIN_Y; y--) {
 				beryl_bid id = cur_state(&cur, x, y, z);
@@ -266,6 +293,7 @@ static void seed_emitters(BerylWorld *w, int x0, int x1, int z0, int z1, BerylLB
 	BerylLCursor cur = { w, NULL, 0, 0, 0 };
 	for (int x = x0; x <= x1; x++) {
 		for (int z = z0; z <= z1; z++) {
+			if (!column_generated(w, x, z)) continue;
 			for (int y = BERYL_WORLD_MIN_Y; y < BERYL_WORLD_MAX_Y; y++) {
 				beryl_bid id = cur_state(&cur, x, y, z);
 				if (id == BERYL_BLOCK_AIR) continue;
@@ -279,16 +307,41 @@ static void seed_emitters(BerylWorld *w, int x0, int x1, int z0, int z1, BerylLB
 }
 
 void beryl_light_relight_area(BerylWorld *w, int32_t cx0, int32_t cz0, int32_t cx1, int32_t cz1) {
-	int x0 = cx0 * BERYL_SECTION_SIDE, x1 = cx1 * BERYL_SECTION_SIDE + BERYL_SECTION_SIDE - 1;
-	int z0 = cz0 * BERYL_SECTION_SIDE, z1 = cz1 * BERYL_SECTION_SIDE + BERYL_SECTION_SIDE - 1;
+	/* Light travels at most 15 blocks (levels cap at 15 and every step costs at
+	 * least 1), so every source that can light the requested chunks and every
+	 * path that can reach them lies within a one-section ring around the area.
+	 * Resetting and re-seeding that whole region -- not just the requested
+	 * chunks -- is what makes the result self-contained: nothing outside the
+	 * ring can influence it, so the answer no longer depends on whatever light
+	 * the neighbouring sections happened to hold from an earlier pass.
+	 *
+	 * Without the ring, relighting was not idempotent: the spread treats an
+	 * already-lit cell as an upper bound and stops propagating there, so a path
+	 * that left the area through a previously-lit neighbour and re-entered it
+	 * (a cave loop crossing the chunk border) was silently cut off on the
+	 * second pass, leaving border cells darker than a fresh world. Re-seeding
+	 * the ring also picks up emitters in the neighbouring chunks that are close
+	 * enough to light the area, which a bare-area relight missed.
+	 *
+	 * The ring is reset unconditionally, but only columns whose chunks have
+	 * actually been generated are seeded (see column_generated): a not-yet-
+	 * generated ring chunk is empty air, and seeding it as open sky would leak
+	 * light 15 sideways into the area's real terrain. Its light is instead
+	 * whatever the area's own sources spread into it, exactly as a fresh world
+	 * would leave it, so a relight of the same area is a true no-op. */
+	const int pad = 1;   /* one section = 16 blocks > the 15-block light radius */
+	int x0 = (cx0 - pad) * BERYL_SECTION_SIDE;
+	int x1 = (cx1 + pad) * BERYL_SECTION_SIDE + BERYL_SECTION_SIDE - 1;
+	int z0 = (cz0 - pad) * BERYL_SECTION_SIDE;
+	int z1 = (cz1 + pad) * BERYL_SECTION_SIDE + BERYL_SECTION_SIDE - 1;
 
 	BerylLBuckets sky, blk;
 	lb_init(&sky); lb_init(&blk);
 
 	/* Sections that will receive light must exist first: creating them lazily in
 	 * the middle of the BFS would invalidate the cursor's cached pointer. */
-	for (int cx = cx0; cx <= cx1; cx++) {
-		for (int cz = cz0; cz <= cz1; cz++) {
+	for (int cx = cx0 - pad; cx <= cx1 + pad; cx++) {
+		for (int cz = cz0 - pad; cz <= cz1 + pad; cz++) {
 			BerylChunk *c = beryl_world_chunk(w, cx, cz, true);
 			for (int sy = 0; sy < BERYL_CHUNK_SECTIONS; sy++) {
 				beryl_chunk_section_at(c, sy, true);
@@ -308,9 +361,13 @@ void beryl_light_relight_area(BerylWorld *w, int32_t cx0, int32_t cz0, int32_t c
 
 	lb_free(&sky); lb_free(&blk);
 
+	/* The ring's light changed too (it was reset and re-derived), so its meshes
+	 * are stale just like the requested chunks' -- mark the whole expanded
+	 * region dirty, or the sections just across the border keep meshes baked
+	 * from the pre-relight light. */
 	int n = 0;
-	for (int cx = cx0; cx <= cx1; cx++) {
-		for (int cz = cz0; cz <= cz1; cz++) {
+	for (int cx = cx0 - pad; cx <= cx1 + pad; cx++) {
+		for (int cz = cz0 - pad; cz <= cz1 + pad; cz++) {
 			BerylChunk *c = beryl_world_chunk(w, cx, cz, false);
 			if (!c) continue;
 			for (int sy = 0; sy < BERYL_CHUNK_SECTIONS; sy++) {
