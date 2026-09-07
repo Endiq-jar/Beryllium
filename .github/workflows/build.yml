@@ -1,25 +1,72 @@
 name: build
-on: [push, pull_request]
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: beryllium-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
+  release-matrix:
+    name: resolve complete Minecraft release matrix
     runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.releases.outputs.matrix }}
+      latest: ${{ steps.releases.outputs.latest }}
     steps:
       - name: checkout repository
         uses: actions/checkout@v6
-      - name: validate gradle wrapper
+
+      - name: validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@v6
-      - name: setup jdk
+
+      - name: resolve every release from 1.19.4 through latest
+        id: releases
+        run: python3 scripts/resolve_minecraft_releases.py --github-output
+
+      - name: show coverage
+        run: |
+          echo "Latest release: ${{ steps.releases.outputs.latest }}"
+          echo '${{ steps.releases.outputs.matrix }}' | python3 -m json.tool
+
+  build:
+    name: Minecraft ${{ matrix.minecraft }} (${{ matrix.loom_pipeline }})
+    needs: release-matrix
+    runs-on: ubuntu-24.04
+    strategy:
+      # Continue compiling every other version if one target fails.
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.release-matrix.outputs.matrix) }}
+
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+
+      - name: setup JDK 25
         uses: actions/setup-java@v5
         with:
-          java-version: '25'
-          distribution: 'microsoft'
-      - name: make gradle wrapper executable
+          java-version: "25"
+          distribution: microsoft
+          cache: gradle
+
+      - name: make Gradle wrapper executable
         run: chmod +x ./gradlew
-      - name: build
-        run: ./gradlew build
-      - name: capture build artifacts
+
+      - name: build exact-version artifact
+        run: ./gradlew --no-daemon clean build -Pminecraft_version=${{ matrix.minecraft }}
+
+      - name: validate generated mod metadata
+        run: python3 scripts/validate_built_mod.py build/libs '${{ matrix.minecraft }}'
+
+      - name: capture Minecraft ${{ matrix.minecraft }} artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: beryllium-build
-          path: build/libs/
+          name: beryllium-${{ matrix.id }}
+          path: build/libs/*.jar
+          if-no-files-found: error
+          retention-days: 14
