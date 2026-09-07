@@ -87,9 +87,16 @@ dependencies {
 		mappings loom.officialMojangMappings()
 	}
 
-	modImplementation "net.fabricmc:fabric-loader:${loaderVersion}"
+	// The remapping plugin supplies Loom's modImplementation configuration. The
+	// unobfuscated 26.1+ plugin intentionally uses Gradle's normal implementation
+	// configuration instead, because no mod bytecode remapping is necessary.
+	if (unobfuscatedGame) {
+		implementation "net.fabricmc:fabric-loader:${loaderVersion}"
+	} else {
+		modImplementation "net.fabricmc:fabric-loader:${loaderVersion}"
+	}
 
-	// Only the 1.21.4 renderer profile uses Fabric API event callbacks.  Keeping the
+	// Only the 1.21.4 renderer profile uses Fabric API event callbacks. Keeping the
 	// compatibility core Loader-only is what makes it portable to every release in
 	// the coverage range (including versions Fabric API no longer actively targets).
 	if (fullRendererProfile) {
