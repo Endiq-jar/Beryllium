@@ -8,6 +8,7 @@ import com.endiq.beryllium.device.GpuDetector;
 import com.endiq.beryllium.device.GpuInfo;
 import com.endiq.beryllium.performance.FrameMaintenanceScheduler;
 import com.endiq.beryllium.performance.WorkPriority;
+import com.endiq.beryllium.platform.LauncherEnvironment;
 import com.endiq.beryllium.profiler.DebugOverlay;
 import com.endiq.beryllium.profiler.FrameProfiler;
 import com.endiq.beryllium.shader.ShaderPreloader;
@@ -20,6 +21,19 @@ public class BerylliumClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		if (!Beryllium.config().enabled) {
+			return;
+		}
+
+		LauncherEnvironment launcher = LauncherEnvironment.detect();
+		if (Beryllium.config().androidSafeMode && launcher.isAndroidJavaLauncher()) {
+			// Do this before constructing any optional renderer module. Android Java
+			// launchers often emulate desktop GLFW/OpenGL through a translation layer;
+			// probing it or transforming renderer internals during startup can crash
+			// before Minecraft reaches the title screen. The mixin plugin applies the
+			// same policy even earlier, during transformation.
+			BerylliumLog.mobile("Android launcher safe mode is active (" + launcher.describe()
+				+ "). Skipping native GPU probes, shader preload, renderer hooks, and frame callbacks. "
+				+ "Set androidSafeMode=false only after validating this launcher/renderer pair.");
 			return;
 		}
 

@@ -1,59 +1,179 @@
-plugins {
-	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+import org.gradle.api.JavaVersion
+import org.gradle.api.tasks.compile.JavaCompile
+
+/*
+ * One source tree produces one exact-Minecraft artifact at a time.  The CI workflow
+ * feeds every released Minecraft version from 1.19.4 through Mojang's current latest
+ * release into -Pminecraft_version, rather than maintaining a lossy hand-written
+ * matrix.  A released artifact therefore always advertises one exact game version.
+ */
+def minecraftVersion = providers.gradleProperty("minecraft_version").getOrElse("26.2")
+def loaderVersion = providers.gradleProperty("loader_version").getOrElse("0.19.5")
+def fabricApiVersion = providers.gradleProperty("fabric_api_version").getOrElse("0.119.4+1.21.4")
+def berylliumVersion = providers.gradleProperty("mod_version").getOrElse("0.2.0")
+
+/**
+ * Mojang stopped obfuscating the distributed game jar in 26.1.  Fabric Loom uses a
+ * deliberately separate plugin for that format; selecting it here is what lets the
+ * same command build both 1.19.4 and current releases.
+ */
+def numericVersion = { String value ->
+	def match = (value =~ /^(\d+)\.(\d+)(?:\.(\d+))?$/)
+	if (!match.matches()) {
+		throw new GradleException("minecraft_version must be a released numeric version, got '${value}'")
+	}
+	return [match.group(1).toInteger(), match.group(2).toInteger(),
+			match.group(3) == null ? 0 : match.group(3).toInteger()]
+}
+def versionParts = numericVersion(minecraftVersion)
+def unobfuscatedGame = versionParts[0] >= 26
+apply plugin: unobfuscatedGame ? 'net.fabricmc.fabric-loom' : 'net.fabricmc.fabric-loom-remap'
+
+group = 'com.endiq'
+version = "${berylliumVersion}+mc${minecraftVersion}"
+
+base {
+	archivesName = "beryllium-mc${minecraftVersion}"
 }
 
-repositories {
-	// Loom already adds the Minecraft/Mojang/Fabric maven repositories it needs.
-	// Add anything else here only when depending on other mods.
+/*
+ * The original, verified renderer hooks are retained in the 1.21.4 profile.  Every
+ * other release uses the mapping-free compatibility core: it has no game-class or
+ * native-GL linkage, so it can load safely across API eras and on Android launchers.
+ * This is intentionally a profile distinction, not a skipped version: CI builds an
+ * artifact for every release and its fabric.mod.json pins that exact release.
+ */
+def fullRendererProfile = minecraftVersion == '1.21.4'
+
+if (!fullRendererProfile) {
+	sourceSets {
+		main {
+			java {
+				srcDir 'src/compat/java'
+				exclude 'com/endiq/beryllium/BerylliumMixinPlugin.java'
+				exclude 'com/endiq/beryllium/engine/voxelshape/**'
+				exclude 'com/endiq/beryllium/mixin/**'
+			}
+		}
+	}
 }
 
 loom {
-	accessWidenerPath = file("src/main/resources/beryllium.accesswidener")
+	if (fullRendererProfile) {
+		accessWidenerPath = file('src/main/resources/beryllium.accesswidener')
+		splitEnvironmentSourceSets()
 
-	splitEnvironmentSourceSets()
-
-	mods {
-		"beryllium" {
-			sourceSet sourceSets.main
-			sourceSet sourceSets.client
+		mods {
+			"beryllium" {
+				sourceSet sourceSets.main
+				sourceSet sourceSets.client
+			}
+		}
+	} else {
+		mods {
+			"beryllium" {
+				sourceSet sourceSets.main
+			}
 		}
 	}
 }
 
 dependencies {
-	// To change versions, see gradle.properties.
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings loom.officialMojangMappings()
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	minecraft "com.mojang:minecraft:${minecraftVersion}"
 
-	// Fabric API — used for client lifecycle hooks (Phase 1) and rendering-related
-	// events in later phases.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-}
+	// Obfuscated releases need named mappings for Loom's remap pipeline.  26.1+
+	// ships unobfuscated and must not be given a mapping dependency.
+	if (!unobfuscatedGame) {
+		mappings loom.officialMojangMappings()
+	}
 
-processResources {
-	def version = project.version
-	inputs.property "version", version
+	modImplementation "net.fabricmc:fabric-loader:${loaderVersion}"
 
-	filesMatching("fabric.mod.json") {
-		expand "version": version
+	// Only the 1.21.4 renderer profile uses Fabric API event callbacks.  Keeping the
+	// compatibility core Loader-only is what makes it portable to every release in
+	// the coverage range (including versions Fabric API no longer actively targets).
+	if (fullRendererProfile) {
+		modImplementation "net.fabricmc.fabric-api:fabric-api:${fabricApiVersion}"
 	}
 }
 
+processResources {
+	def accessWidenerDeclaration = fullRendererProfile
+		? '"accessWidener": "beryllium.accesswidener",'
+		: ''
+	def mixinDeclaration = fullRendererProfile
+		? '''"mixins": [
+		"beryllium.mixins.json",
+		{
+			"config": "beryllium.client.mixins.json",
+			"environment": "client"
+		}
+	],'''
+		: ''
+	def clientEntrypoint = fullRendererProfile
+		? 'com.endiq.beryllium.BerylliumClient'
+		: 'com.endiq.beryllium.compat.CompatibilityClient'
+	def fabricApiDependency = fullRendererProfile
+		? ',\n\t\t"fabric-api": ">=0.119.4"'
+		: ''
+
+	inputs.properties([
+		version: project.version,
+		minecraft_version: minecraftVersion,
+		access_widener_declaration: accessWidenerDeclaration,
+		mixin_declaration: mixinDeclaration,
+		client_entrypoint: clientEntrypoint,
+		fabric_api_dependency: fabricApiDependency
+	])
+
+	filesMatching('fabric.mod.json') {
+		expand([
+			version: project.version,
+			minecraft_version: minecraftVersion,
+			access_widener_declaration: accessWidenerDeclaration,
+			mixin_declaration: mixinDeclaration,
+			client_entrypoint: clientEntrypoint,
+			fabric_api_dependency: fabricApiDependency
+		])
+	}
+}
+
+/*
+ * Beryllium's compatibility core deliberately stays at Java 17 bytecode.  That is
+ * the runtime floor for 1.19.4 and the Android Java launchers this project targets;
+ * newer Minecraft versions can load Java-17 mod bytecode unchanged.  CI itself uses
+ * Java 25 because 26.1+ requires it to prepare the development game jars.
+ */
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
+	it.options.release.set(17)
+	it.options.encoding = 'UTF-8'
 }
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
 }
 
 jar {
 	def projectName = project.name
-	inputs.property "projectName", projectName
+	inputs.property 'projectName', projectName
 
-	from("LICENSE") {
-		rename { "${it}_$projectName" }
+	from('LICENSE') {
+		rename { "${it}_${projectName}" }
 	}
+}
+
+/** Prints the selected profile in local/CI logs before expensive Loom work begins. */
+tasks.register('printBuildTarget') {
+	group = 'verification'
+	description = 'Prints the exact Minecraft target and Beryllium compatibility profile.'
+	doLast {
+		println "Beryllium target: Minecraft ${minecraftVersion}; " +
+			(fullRendererProfile ? '1.21.4 renderer hooks' : 'cross-version safe compatibility core') +
+			"; ${unobfuscatedGame ? 'unobfuscated' : 'remapped'} Loom pipeline"
+	}
+}
+
+tasks.named('build') {
+	dependsOn tasks.named('printBuildTarget')
 }

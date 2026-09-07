@@ -3,9 +3,16 @@
 > [!NOTE]
 > AI assistance was used during development due to time while working on TurtleLauncher.
 
-**A Fabric performance mod for Minecraft 1.21.4, focused on making Java Edition run
-smoother on Android and other mobile/low-end Java launchers
-(PojavLauncher/ZalithLauncher-family) — while still paying off on desktop.**
+**A Fabric performance and launch-safety mod built for every stable Minecraft Java
+Edition release from 1.19.4 through the current release (26.2 on 2026-09-07), focused
+on making Java Edition safer and smoother on Android and other mobile/low-end Java
+launchers (PojavLauncher/ZalithLauncher/TurtleLauncher-family) — while still paying
+off on desktop.**
+
+Every release receives its own exact-version JAR. The GitHub Actions matrix is resolved
+from Mojang's official version manifest on every run, so a stable version in this range
+cannot be silently skipped. See [Version coverage](#version-coverage) for the profile
+and safety guarantees for each artifact.
 
 Beryllium reduces CPU work, removes unnecessary render calls, and tunes the video
 settings that matter most on weak devices. It is designed as a lightweight
@@ -110,6 +117,57 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
   the per-section `BufferBuilder` pool with a different allocation model, so the
   telemetry mixin that tracked pool misses was dropped rather than shipped unverified.
 
+## Version coverage
+
+Beryllium deliberately builds **one JAR per exact Minecraft release**. Its workflow asks
+Mojang's version manifest for every stable numeric release from `1.19.4` through the
+manifest's `latest.release`, then compiles and validates the generated `fabric.mod.json`
+for each entry. It does not use a manually curated subset that can drift when Mojang ships
+a hotfix.
+
+At the time of this update, that means:
+
+```
+1.19.4
+1.20, 1.20.1, 1.20.2, 1.20.3, 1.20.4, 1.20.5, 1.20.6
+1.21, 1.21.1, 1.21.2, 1.21.3, 1.21.4, 1.21.5, 1.21.6,
+1.21.7, 1.21.8, 1.21.9, 1.21.10, 1.21.11
+26.1, 26.1.1, 26.1.2, 26.2
+```
+
+Snapshots and pre-releases are intentionally not called supported releases: their mapping
+and renderer changes are not stable enough to make a launch-safety promise. When `26.3`
+or a later **stable** release arrives, the CI resolver adds it automatically and the build
+must pass before it can be called covered.
+
+### Profiles
+
+| Artifact target | Profile | What loads |
+|---|---|---|
+| `1.21.4` | **Renderer profile** | The existing verified voxel-shape, culling, scheduler, shader and mobile-tuning hooks. Fabric API is required. |
+| Every other covered release | **Cross-version compatibility core** | Configuration, compatibility detection, frame/chunk primitives and Android launch safety, with no game-class, mixin, GLFW or OpenGL linkage during client startup. No Fabric API dependency. |
+
+This split is intentional. Minecraft's rendering internals and mapping format changed
+repeatedly across this range (and 26.1 switched to unobfuscated game jars). Guessing a
+renderer descriptor on an unverified version is worse than a missing optimization: it can
+make a mobile launcher crash before the title screen. The compatibility-core artifact is a
+real, exact-version supported launch-safe baseline; version-specific renderer hooks are
+only included once they are verified for their profile.
+
+### Android / TurtleLauncher crash guard
+
+`androidSafeMode` defaults to `true`. Before game mixins are applied, Beryllium uses only
+safe JVM properties, environment markers, and standard Android filesystem hints to detect
+Android/Pojav/Zalith/TurtleLauncher-style hosts. On a match it suppresses Beryllium's
+version-sensitive mixins; the client entry point also returns before creating GPU probes,
+shader preloads, or Fabric render callbacks. This avoids both early native GLFW/OpenGL
+linkage and renderer-class transformation — the common causes of startup crashes on GL4ES
+and other launcher render bridges.
+
+The setting can be set to `false` only for users who have personally tested their precise
+launcher, Java runtime, renderer bridge, and Minecraft version. A failed optional
+optimization should never prevent Minecraft from reaching the title screen.
+
 ## Status
 
 | Phase | State |
@@ -148,16 +206,32 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
 
 ## Building
 
-Targets Minecraft 1.21.4 / Fabric Loader 0.19.3 / Fabric API 0.119.4+1.21.4, Mojang
-mappings, Java 21.
+Use JDK 25 to build the complete range: Minecraft 26.1+ requires it while Loom prepares
+the development jars. Beryllium's own compatibility-core classes are emitted as Java 17
+bytecode, the floor needed by Minecraft 1.19.4 and Android Java launchers.
 
-```
-./gradlew build
+```bash
+# Current stable release (the default target at the time of writing)
+./gradlew clean build
+
+# Any exact stable release in the supported range
+./gradlew clean build -Pminecraft_version=1.19.4
+./gradlew clean build -Pminecraft_version=1.21.4
+./gradlew clean build -Pminecraft_version=26.2
 ```
 
+Each output JAR includes that exact version in both its filename and `fabric.mod.json`;
+do not install a JAR made for one target into a different Minecraft version. The `1.21.4`
+renderer profile uses Fabric API 0.119.4+1.21.4. Compatibility-core artifacts deliberately
+need Fabric Loader only.
+
+```bash
+# Runs the development client for the selected target (use 1.21.4 for the renderer profile)
+./gradlew runClient -Pminecraft_version=1.21.4
 ```
-./gradlew runClient
-```
+
+CI runs the equivalent build for every release resolved from Mojang's manifest and verifies
+that the JAR metadata is pinned to the matrix version.
 
 ## Standalone engine (`engine/`)
 
@@ -190,7 +264,8 @@ transcribed constants nobody could check.
 |---|---|---|
 | `enabled` | `true` | Master switch |
 | `debugMode` | `false` | Verbose logging + the FPS/1%/0.1% overlay |
-| `voxelShapeOptimizations` | `true` | Voxel-shape suite (common). **Restart required** — read at class-load time by the mixin plugin |
+| `androidSafeMode` | `true` | On Android/Pojav/Zalith/TurtleLauncher-style hosts, suppress native GPU startup work and version-sensitive renderer mixins before the title screen. Disable only after testing the exact launcher/renderer/runtime combination. |
+| `voxelShapeOptimizations` | `true` | Voxel-shape suite (1.21.4 renderer profile). **Restart required** — read at class-load time by the mixin plugin |
 | `cullBehindCameraEntities` | `true` | Behind-camera entity culling |
 | `cullSafeRadius` | `4.0` | Never cull anything within this many blocks, regardless of facing |
 | `cullAggressiveDistance` | `48.0` | Distance at which the entity cull angle reaches its most aggressive setting |

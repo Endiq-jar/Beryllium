@@ -28,6 +28,18 @@ public class BerylliumConfig {
 	/** Enables verbose [BERYLLIUM-DEBUG] logging and the profiler overlay. */
 	public boolean debugMode = false;
 
+	// --- Launcher safety ---
+
+	/**
+	 * Uses Beryllium's conservative startup path when Android or a known Android Java
+	 * launcher (Pojav, Zalith, TurtleLauncher-family) is detected. The safe path avoids
+	 * early GLFW/OpenGL probes and version-sensitive renderer mixins, which are the two
+	 * classes of work most likely to turn a launcher-specific compatibility problem into
+	 * a crash before the title screen. Disable only after testing a particular launcher
+	 * and renderer combination yourself.
+	 */
+	public boolean androidSafeMode = true;
+
 	// --- Performance engine (common) ---
 
 	/** Enables the voxel-shape optimization suite: specialized empty/simple-cuboid shape
