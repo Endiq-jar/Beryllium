@@ -3,6 +3,7 @@ package com.endiq.beryllium.device;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Method;
 
 /**
  * Detects non-GPU device information. Every lookup here is wrapped so a platform that
@@ -53,14 +54,28 @@ public final class DeviceDetector {
 	}
 
 	/**
-	 * Total physical RAM, via {@code com.sun.management}. Returns -1 rather than throwing
-	 * if that interface isn't implemented by the running JVM.
+	 * Total physical RAM, queried reflectively. Android launcher JVMs often do not ship
+	 * {@code com.sun.management.OperatingSystemMXBean}; keeping that type out of this
+	 * class's bytecode avoids a class-linkage failure before our defensive catch block
+	 * could run. Modern JDKs call the method {@code getTotalMemorySize}, while older
+	 * JDKs expose {@code getTotalPhysicalMemorySize}, so try both.
 	 */
 	private static long readTotalRamBytes() {
 		try {
 			Object osBean = ManagementFactory.getOperatingSystemMXBean();
-			if (osBean instanceof com.sun.management.OperatingSystemMXBean sunBean) {
-				return sunBean.getTotalMemorySize();
+			for (String methodName : new String[] {"getTotalMemorySize", "getTotalPhysicalMemorySize"}) {
+				try {
+					Method method = osBean.getClass().getMethod(methodName);
+					Object value = method.invoke(osBean);
+					if (value instanceof Number) {
+						long bytes = ((Number) value).longValue();
+						if (bytes > 0L) {
+							return bytes;
+						}
+					}
+				} catch (ReflectiveOperationException | SecurityException ignored) {
+					// Try the other name, or report unknown below.
+				}
 			}
 		} catch (Throwable ignored) {
 			// Not present on every JVM distribution — treat as unknown, not fatal.

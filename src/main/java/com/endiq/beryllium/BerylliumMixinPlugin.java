@@ -1,5 +1,6 @@
 package com.endiq.beryllium;
 
+import com.endiq.beryllium.platform.LauncherEnvironment;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.objectweb.asm.tree.ClassNode;
@@ -36,7 +37,9 @@ public class BerylliumMixinPlugin implements IMixinConfigPlugin {
 
     private boolean masterEnabled = true;
     private boolean voxelShapeOptimizations = true;
+    private boolean androidSafeMode = true;
     private boolean configLoadAttempted = false;
+    private boolean androidSafetyLogged = false;
 
     @Override
     public void onLoad(String mixinPackage) {
@@ -61,8 +64,9 @@ public class BerylliumMixinPlugin implements IMixinConfigPlugin {
                 if (snapshot != null) {
                     this.masterEnabled = snapshot.enabled;
                     this.voxelShapeOptimizations = snapshot.voxelShapeOptimizations;
-                    LOGGER.info("[BERYLLIUM] Mixin config loaded from {}: master={}, voxelShapeOptimizations={}",
-                            configPath, this.masterEnabled, this.voxelShapeOptimizations);
+                    this.androidSafeMode = snapshot.androidSafeMode;
+                    LOGGER.info("[BERYLLIUM] Mixin config loaded from {}: master={}, voxelShapeOptimizations={}, androidSafeMode={}",
+                            configPath, this.masterEnabled, this.voxelShapeOptimizations, this.androidSafeMode);
                     return;
                 }
             } catch (IOException | JsonSyntaxException e) {
@@ -76,6 +80,7 @@ public class BerylliumMixinPlugin implements IMixinConfigPlugin {
     private static class MixinConfigSnapshot {
         public boolean enabled = true;
         public boolean voxelShapeOptimizations = true;
+        public boolean androidSafeMode = true;
     }
 
     @Override
@@ -85,12 +90,27 @@ public class BerylliumMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+        if (mixinClassName.startsWith("com.endiq.beryllium.mixin.")
+                && this.androidSafeMode
+                && LauncherEnvironment.detect().isAndroidJavaLauncher()) {
+            // This runs before a Minecraft window exists. Do not let a renderer hook
+            // force GLFW/OpenGL linkage or apply against a launcher-transformed class
+            // before the game can reach its title screen. Users who have validated a
+            // launcher/renderer combination can explicitly set androidSafeMode=false.
+            if (!this.androidSafetyLogged) {
+                this.androidSafetyLogged = true;
+                LOGGER.warn("[BERYLLIUM] Android launcher detected during mixin setup; "
+                        + "androidSafeMode is suppressing renderer/shape mixins for this session.");
+            }
+            return false;
+        }
+
         if (mixinClassName.startsWith(MIXIN_PACKAGE_ROOT)) {
             return this.masterEnabled && this.voxelShapeOptimizations;
         }
 
-        // The plugin is only referenced from the common mixin config, but be defensive:
-        // never block a mixin we don't own.
+        // The plugin is also used by the 1.21.4 client mixin config. Never block a
+        // mixin we do not own so other configs retain their normal behavior.
         return true;
     }
 

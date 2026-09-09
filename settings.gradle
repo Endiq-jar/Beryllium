@@ -9,4 +9,15 @@ pluginManagement {
 	}
 }
 
+/*
+ * Minecraft 26.1 switched to unobfuscated game jars. Loom intentionally exposes a
+ * different plugin id for those jars, while older releases keep using the remapping
+ * plugin. Both are declared up front so build.gradle can select the correct one from
+ * -Pminecraft_version without maintaining separate branches/build files.
+ */
+plugins {
+	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}" apply false
+	id 'net.fabricmc.fabric-loom' version "${loom_version}" apply false
+}
+
 rootProject.name = 'beryllium'

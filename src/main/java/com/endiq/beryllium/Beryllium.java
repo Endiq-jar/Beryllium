@@ -4,6 +4,7 @@ import com.endiq.beryllium.compat.CompatibilityChecker;
 import com.endiq.beryllium.config.BerylliumConfig;
 import com.endiq.beryllium.device.DeviceDetector;
 import com.endiq.beryllium.device.DeviceInfo;
+import com.endiq.beryllium.platform.LauncherEnvironment;
 import com.endiq.beryllium.util.BerylliumLog;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
@@ -104,6 +105,12 @@ public class Beryllium implements ModInitializer {
 		}
 
 		BerylliumLog.info("Debug mode: " + (config.debugMode ? "enabled" : "disabled"));
+
+		LauncherEnvironment launcher = LauncherEnvironment.detect();
+		if (launcher.isAndroidJavaLauncher()) {
+			BerylliumLog.mobile("Android Java launcher detected (" + launcher.describe() + "). "
+				+ "Safe mode is " + (config.androidSafeMode ? "enabled" : "disabled") + ".");
+		}
 
 		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
 			BerylliumLog.info("GPU/display info will follow once the client window has started.");
