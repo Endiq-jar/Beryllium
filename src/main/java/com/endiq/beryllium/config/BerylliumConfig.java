@@ -122,8 +122,44 @@ public class BerylliumConfig {
 	 *  <p>Wired via {@code FontTextShadowMixin}, which suppresses the {@code dropShadow}
 	 *  argument of every {@code Font.drawInBatch} overload at its source — the same flag
 	 *  vanilla passes on to glyph layout. Setting this to {@code false} disables the text
-	 *  shadow everywhere (GUI, name tags, signs, tooltips). See phase 11 in README.md. */
-	public boolean textShadowsEnabled = true;
+	 *  shadow everywhere (GUI, name tags, signs, tooltips). See phase 11 in README.md.
+	 *
+	 *  <p>Phase 12 default flip: {@code false} (no text shadows) is the out-of-the-box
+	 *  value now — removing the duplicate shadow pass behind every glyph is one of the
+	 *  cheapest pure-overdraw wins available, and the phase-12 posture is maximum FPS
+	 *  by default. Set it back to {@code true} in beryllium.json if you want the
+	 *  vanilla shadowed look. */
+	public boolean textShadowsEnabled = false;
+
+	// --- Fog-wall culling (phase 12) ---
+
+	/** Skips render calls for content sitting in the outermost fringe of the render
+	 *  distance, where distance fog has already (nearly) fully hidden it: entity
+	 *  models (plus their shadow pass), block-entity renders and name tags beyond the
+	 *  fog-wall plane are unreadable either way, so their per-frame CPU/GPU cost is
+	 *  pure waste. The plane is derived from the client's own render distance and
+	 *  {@code fogCullFactor} — no version-sensitive renderer internals are touched
+	 *  (see {@code FogCulling}); anything close to the camera (see
+	 *  {@code fogCullSafeRadius}) is never culled.
+	 *
+	 *  <p>Visual impact: none in normal play — the culled band is where fog colour has
+	 *  already replaced the image. With fog disabled by another mod or an extreme
+	 *  "no fog" video setting, content pops in at the fog-wall line instead of
+	 *  gradually: set {@code fogCullFactor} to {@code 2.0} (or higher) to turn the
+	 *  cull off entirely. */
+	public boolean cullFogHiddenContent = true;
+
+	/** Where the fog-wall cull plane sits, as a fraction of the render distance
+	 *  (render distance in chunks x 16 blocks x this factor). 0.9 = 90% of the render
+	 *  distance, inside the band where fog is dense enough that culled content is
+	 *  unreadable anyway. Lower = more aggressive (more culled, more visible pop when
+	 *  fog is off); {@code >= 2.0} disables the cull. */
+	public double fogCullFactor = 0.9;
+
+	/** Hard never-cull zone for {@code cullFogHiddenContent}: anything within this
+	 *  many blocks of the camera is never fog-wall-culled, no matter how the plane is
+	 *  configured — a close object is a large on-screen object and must never pop. */
+	public double fogCullSafeRadius = 12.0;
 
 	// --- Leaves culling ---
 

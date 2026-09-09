@@ -1,6 +1,7 @@
 package com.endiq.beryllium.profiler;
 
 import com.endiq.beryllium.Beryllium;
+import com.endiq.beryllium.culling.FogCulling;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -43,5 +44,18 @@ public final class DebugOverlay {
 		y += lineHeight;
 		guiGraphics.drawString(client.font,
 			String.format("0.1%% Low: %.0f", snapshot.zeroPointOnePercentLowFps()), x, y, color);
+		y += lineHeight;
+
+		// Phase 12 — fog-wall culling receipts: how many render calls were skipped
+		// this session because the fog already hid them. A cheap way to confirm the
+		// cull is doing work (and a diagnostic if it ever looks inert).
+		long fogEntities = FogCulling.hiddenEntities();
+		long fogBlockEntities = FogCulling.hiddenBlockEntities();
+		long fogNameTags = FogCulling.hiddenNameTags();
+		if (fogEntities + fogBlockEntities + fogNameTags > 0) {
+			guiGraphics.drawString(client.font, String.format(
+				"Fog-culled: %d entities, %d block entities, %d name tags",
+				fogEntities, fogBlockEntities, fogNameTags), x, y, color);
+		}
 	}
 }

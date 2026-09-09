@@ -2,6 +2,7 @@ package com.endiq.beryllium.mixin.text;
 
 import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
+import com.endiq.beryllium.culling.FogCulling;
 import com.endiq.beryllium.text.TextCulling;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -64,13 +65,21 @@ public abstract class NameTagCullMixin {
 		}
 
 		Vec3 camPos = mc.gameRenderer.getMainCamera().getPosition();
-		boolean cull = TextCulling.exceedsRange(
+		boolean fogHidden = FogCulling.isBeyondFogWall(
+			camPos.x, camPos.y, camPos.z,
+			entity.getX(), entity.getY(), entity.getZ(),
+			config.fogCullSafeRadius
+		);
+		boolean cull = fogHidden || TextCulling.exceedsRange(
 			camPos.x, camPos.y, camPos.z,
 			entity.getX(), entity.getY(), entity.getZ(),
 			config.nameTagCullRange
 		);
 
 		if (cull) {
+			if (fogHidden) {
+				FogCulling.noteHiddenNameTag();
+			}
 			cir.setReturnValue(false);
 		}
 	}

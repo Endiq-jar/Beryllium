@@ -1,5 +1,7 @@
 package com.endiq.beryllium.culling;
 
+import com.endiq.beryllium.Beryllium;
+import com.endiq.beryllium.config.BerylliumConfig;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -71,6 +73,20 @@ public final class BlockEntityCulling {
 			double safeRadiusSq = safeRadius * safeRadius;
 			if (camera.getPosition().distanceToSqr(center) < safeRadiusSq) {
 				return false;
+			}
+
+			// Phase 12 — fog-wall cull for block entities. The frustum test below
+			// covers the full view distance; this cheaper distance test first skips
+			// anything sitting in the (nearly) fully fogged fringe, where a sign,
+			// banner or item frame is unreadable either way. Enforced entirely
+			// inside FogCulling (config gate included); fails safe to "keep".
+			BerylliumConfig config = Beryllium.config();
+			Vec3 camPos = camera.getPosition();
+			if (config != null && config.enabled
+				&& FogCulling.isBeyondFogWall(camPos.x, camPos.y, camPos.z,
+					center.x, center.y, center.z, config.fogCullSafeRadius)) {
+				FogCulling.noteHiddenBlockEntity();
+				return true;
 			}
 
 			Frustum frustum = currentFrustum(minecraft);

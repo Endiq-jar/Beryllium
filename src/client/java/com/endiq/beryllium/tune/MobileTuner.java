@@ -103,12 +103,27 @@ public final class MobileTuner {
 			}
 		}
 
+		// Phase 12 — render distance is the single biggest FPS lever on a weak GPU.
+		// Cap it per tier as part of the one-shot preset: fewer chunks = a fraction
+		// of the terrain geometry, light updates, entities and rebuilds per frame.
+		// Applied reflectively like every other entry, so a renamed/missing option
+		// on some version logs and continues instead of failing the preset.
+		int cappedRenderDistance = tier == GraphicsCapabilityTier.COMPATIBILITY ? 6 : 10;
+		if (setOption(options, "renderDistance", cappedRenderDistance)) {
+			applied++;
+			BerylliumLog.mobile("  - renderDistance = " + cappedRenderDistance
+				+ " chunks (capped for " + tier + " tier)");
+		} else {
+			BerylliumLog.mobile("  - renderDistance: skipped (option not found or not settable).");
+		}
+
 		if (applied > 0) {
 			invokeNoArg(options, "save");
 			config.autoTuneApplied = true;
 			config.save();
-			BerylliumLog.mobile("Auto-tune complete: " + applied + "/" + PRESET.length + " options applied. "
-				+ "They are saved in options.txt and can be changed in the video settings screen at any time.");
+			BerylliumLog.mobile("Auto-tune complete: " + applied
+				+ " options applied. They are saved in options.txt and can be changed"
+				+ " in the video settings screen at any time.");
 		} else {
 			BerylliumLog.warn("Auto-tune applied nothing (options API mismatch?); leaving vanilla settings untouched.");
 		}

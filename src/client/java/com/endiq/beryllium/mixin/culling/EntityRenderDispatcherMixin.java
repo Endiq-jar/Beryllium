@@ -1,7 +1,9 @@
 package com.endiq.beryllium.mixin.culling;
 
 import com.endiq.beryllium.Beryllium;
+import com.endiq.beryllium.config.BerylliumConfig;
 import com.endiq.beryllium.culling.BehindCameraCulling;
+import com.endiq.beryllium.culling.FogCulling;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -27,10 +29,8 @@ public abstract class EntityRenderDispatcherMixin {
 		if (!cir.getReturnValueZ()) {
 			return;
 		}
-		if (!Beryllium.config().enabled || !Beryllium.config().cullBehindCameraEntities) {
-			return;
-		}
-		if (Beryllium.isCullingDeferredToOtherMod()) {
+		BerylliumConfig config = Beryllium.config();
+		if (config == null || !config.enabled) {
 			return;
 		}
 		if (camera == null) {
@@ -40,17 +40,35 @@ public abstract class EntityRenderDispatcherMixin {
 		Vec3 camPos = camera.getPosition();
 		Vector3f forward = camera.getLookVector();
 
-		boolean behind = BehindCameraCulling.isBehindCamera(
-			camPos.x, camPos.y, camPos.z,
-			forward.x(), forward.y(), forward.z(),
-			x, y, z,
-			Beryllium.config().cullSafeRadius,
-			Beryllium.config().cullAggressiveDistance,
-			Beryllium.config().cullDotThresholdNear,
-			Beryllium.config().cullDotThresholdFar
-		);
+		// Behind-camera cull: its own toggle, deferred to EntityCulling when that
+		// mod owns the same decision.
+		if (config.cullBehindCameraEntities && !Beryllium.isCullingDeferredToOtherMod()) {
+			boolean behind = BehindCameraCulling.isBehindCamera(
+				camPos.x, camPos.y, camPos.z,
+				forward.x(), forward.y(), forward.z(),
+				x, y, z,
+				config.cullSafeRadius,
+				config.cullAggressiveDistance,
+				config.cullDotThresholdNear,
+				config.cullDotThresholdFar
+			);
+			if (behind) {
+				cir.setReturnValue(false);
+				return;
+			}
+		}
 
-		if (behind) {
+		// Phase 12 — fog-wall cull: the outermost fringe of the render distance is
+		// already fully fogged over, so an entity model there is unreadable; skip it
+		// instead of paying a render call (plus its shadow pass) for fog colour.
+		// Independent toggle (enforced inside FogCulling via cullFogHiddenContent)
+		// and intentionally NOT deferred to EntityCulling: that mod decides by
+		// visibility direction, this decides by fog range — and two mods both
+		// skipping the same entity is harmless (skips are idempotent), unlike two
+		// mods both deciding to draw it.
+		if (FogCulling.isBeyondFogWall(camPos.x, camPos.y, camPos.z, x, y, z,
+			config.fogCullSafeRadius)) {
+			FogCulling.noteHiddenEntity();
 			cir.setReturnValue(false);
 		}
 	}

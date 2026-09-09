@@ -70,6 +70,21 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
   a 4-block never-cull radius, with the cull angle relaxing from ~127° off-center up
   close to ~93° by 48 blocks out. Crowded farms and mob-heavy servers feel the
   difference most.
+- **Fog-wall culling** — the outermost fringe of the render distance is already
+  (nearly) fully replaced by distance fog, yet vanilla still pays full render calls
+  for entity models (plus their shadow passes), block entities and name tags out
+  there. Beryllium skips content beyond a fog-wall plane derived from the client's
+  own render distance (`fogCullFactor`, default 0.9) with a hard never-cull zone
+  (`fogCullSafeRadius`, default 12 blocks). No version-sensitive renderer internals
+  are touched — it reuses the same verified `shouldRender`/block-entity/name-tag
+  hook points and pure distance math, so it cannot break a version at load. In
+  normal play there is no visible difference (the fog already hid it); the debug
+  overlay counts every skipped call per session.
+- **No-mercy defaults** — phase 12 posture is maximum FPS out of the box:
+  `textShadowsEnabled` now defaults to `false` (removes the duplicate glyph shadow
+  pass behind all text — the cheapest pure-overdraw win available), and the
+  low-end auto-tune additionally caps render distance per device tier (6 chunks on
+  COMPATIBILITY, 10 on STANDARD), the single biggest FPS lever on weak GPUs.
 - **Frame profiler & debug overlay** — FPS, frame time, 1% low, 0.1% low
   (`debugMode: true`).
 
@@ -183,9 +198,16 @@ optimization should never prevent Minecraft from reaching the title screen.
 | 9 — name tag / text distance culling | ✅ done |
 | 10 — leaves internal-face culling | ✅ done |
 | 11 — text shadows toggle | ✅ done — `FontTextShadowMixin` suppresses the `dropShadow` argument of the `Font.drawInBatch` overloads |
+| 12 — fog-wall culling & max-FPS defaults | ✅ done — entities / block entities / name tags beyond the fog-wall plane are skipped on the existing verified hook surfaces (`FogCulling` + the phase 6/9/11 mixins); `textShadowsEnabled` defaults off; low-end auto-tune caps render distance per tier |
 
 > **Verification note (phases 4, 8, 11):** the mixins and hooks added in these phases
-> target 1.21.4 internals. Phase 4's targets (`LevelRenderer.setSectionDirty(int,int,int)`
+> target 1.21.4 internals. Phase 12 deliberately adds **no new injection points**: its
+> fog-wall culling extends the already-hooked phase 6/9/11 decision points with pure
+> distance logic, and the only game API it reads (`Minecraft.getInstance()`,
+> `Minecraft.options`) are members this codebase already used — the render-distance
+> value itself is captured reflectively by field name/type (`FogCulling`), so a
+> different option-system shape degrades to "culling off" instead of a wrong plane or
+> a crash. Phase 4's targets (`LevelRenderer.setSectionDirty(int,int,int)`
 > and `(int,int,int,boolean)`, `ViewArea.setDirty(int,int,int,boolean)` — the
 > pre-1.21.2 `SectionRenderDispatcher.setSectionDirty(long,boolean)` no longer exists)
 > and phase 11's `Font.drawInBatch` overloads are verified against 1.21.4
@@ -275,8 +297,11 @@ transcribed constants nobody could check.
 | `blockEntityCullSafeRadius` | `6.0` | Block entities within this distance are never frustum-culled |
 | `cullNameTags` | `true` | Distance-cull entity name tags independently of model culling |
 | `nameTagCullRange` | `48.0` | Name tags beyond this many blocks from the camera are skipped |
-| `textShadowsEnabled` | `true` | Text drop-shadow toggle — `false` removes the shadow pass behind all text (GUI, name tags, signs, tooltips) |
 | `cullLeavesInternalFaces` | `true` | Skip the shared face between two adjacent leaves blocks during meshing |
+| `cullFogHiddenContent` | `true` | Skip entities / block entities / name tags sitting beyond the fog-wall plane (phase 12) |
+| `fogCullFactor` | `0.9` | Fog-wall plane as a fraction of render distance; `>= 2.0` disables fog-wall culling |
+| `fogCullSafeRadius` | `12.0` | Fog-wall culling never applies inside this distance from the camera |
+| `textShadowsEnabled` | `false` | Text drop-shadow toggle — `false` (default) removes the shadow pass behind all text (GUI, name tags, signs, tooltips); set `true` for the vanilla look |
 | `chunkRebuildPrioritization` | `true` | Reorder chunk-section rebuilds by proximity + view alignment + urgency |
 | `chunkRebuildsPerFrame` | `3` | Prioritized rebuilds re-triggered per rendered frame |
 | `chunkRebuildQueueLimit` | `128` | Hard cap on the prioritization queue; past it, vanilla schedules directly (bounded staleness) |
