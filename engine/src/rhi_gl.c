@@ -829,6 +829,21 @@ static void gl_destroy(BerylRhi *r) {
 	free(r);
 }
 
+/* The GL backend renders on the GPU; there are no CPU raster lanes to tune
+ * and nothing to defer (the driver already batches). */
+static BerylResult gl_set_raster_threads(BerylRhi *r, int threads) {
+	(void)r; (void)threads;
+	return BERYL_OK;
+}
+static BerylResult gl_begin_batch(BerylRhi *r) {
+	(void)r;
+	return BERYL_OK;
+}
+static BerylResult gl_end_batch(BerylRhi *r) {
+	(void)r;
+	return BERYL_OK;
+}
+
 static const BerylRhiVTable gl_vtable = {
 	"opengl",
 	gl_destroy,
@@ -836,7 +851,9 @@ static const BerylRhiVTable gl_vtable = {
 	gl_create_texture, gl_destroy_texture, gl_upload_texture_layer,
 	gl_create_pipeline, gl_destroy_pipeline,
 	gl_begin_frame, gl_begin_pass, gl_bind, gl_draw_indexed, gl_end_pass, gl_end_frame,
-	gl_readback, gl_get_info, gl_stat, gl_reset_stats
+	gl_readback, gl_get_info, gl_stat, gl_reset_stats,
+	gl_set_raster_threads,
+	gl_begin_batch, gl_end_batch
 };
 
 BerylRhi *beryl_rhi_new_gl(int width, int height, BerylGLLoader *loader) {

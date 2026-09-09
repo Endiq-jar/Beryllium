@@ -81,6 +81,9 @@ void beryl_settings_default(BerylSettings *s, int width, int height, BerylBacken
 	s->day_factor = 0.85f;
 	s->max_fps = 0.0f;
 	s->linear_filter = false;
+	s->raster_threads = 0;        /* auto: min(cpus, 4) raster lanes          */
+	s->lod_distance_blocks = 0;   /* off: every section renders fully shaded  */
+	s->fog_cull = true;           /* provably invisible geometry is not drawn */
 	s->log_prefix = "beryl";
 }
 
@@ -316,6 +319,10 @@ BerylEngine *beryl_engine_create(const BerylSettings *settings, const BerylWorld
 		beryl_rhi_get_info(e->rhi, &e->rhi->info);
 		create_textures(e);
 		create_pipelines(e);
+		/* The software backend rasterizes the frame on CPU lanes (the render
+		 * thread plus helpers, spawned lazily on the first draw big enough to
+		 * amortize them); GPU backends ignore this. 0 means auto. */
+		beryl_rhi_set_raster_threads(e->rhi, e->set.raster_threads);
 		BERYL_LOGI("renderer: %s / %s", e->rhi->info.backend, e->rhi->info.renderer);
 	}
 
@@ -355,6 +362,9 @@ void beryl_settings_apply_preset(BerylSettings *s, BerylPreset preset) {
 		s->linear_filter = false;                 /* nearest: cheaper, and a 16px atlas wants it */
 		s->adaptive_budget = true;
 		s->target_frame_ms = 16.7f;
+		s->fog_cull = true;                       /* skip provably invisible draws */
+		s->lod_distance_blocks = 80;              /* far terrain: textures only */
+		s->raster_threads = 0;                    /* auto raster lanes, min(cpus, 4) */
 		break;
 	case BERYL_PRESET_LOW_END:
 		/* Where the loader, not the rasterizer, is the bottleneck: generate and
@@ -367,6 +377,9 @@ void beryl_settings_apply_preset(BerylSettings *s, BerylPreset preset) {
 		s->linear_filter = false;
 		s->adaptive_budget = true;
 		s->target_frame_ms = 33.3f;
+		s->fog_cull = true;
+		s->lod_distance_blocks = 64;
+		s->raster_threads = 0;
 		break;
 	default:
 		break;   /* BERYL_PRESET_DESKTOP *is* the defaults */
@@ -747,11 +760,24 @@ int beryl_engine_render(BerylEngine *e, BerylCamera *cam) {
 	rhi->vt->begin_frame(rhi, &fd);
 	if (rhi->vt->begin_pass(rhi, &pass) != BERYL_OK) return 0;
 
+	/* Frame batching: the software backend collects the frame's binds/draws
+	 * and rasterizes them at end_batch, splitting the whole frame across its
+	 * raster lanes in one dispatch. GPU backends treat both calls as no-ops. */
+	rhi->vt->begin_batch(rhi);
+
 	build_uniforms(e, cam);
 
 	int draws = 0;
 	BerylTerrainUniforms *u = &e->uni;
 	float cs = (float)BERYL_SECTION_SIDE;
+
+	/* Section half-diagonal: the radius that turns a centre distance into a
+	 * conservative closest-corner distance, so decisions use "could this
+	 * section be closer than X" rather than "is its centre closer than X". */
+	const float half_diag = 0.5f * cs * 1.7320508f;
+	const bool lod_active = e->set.lod_distance_blocks > 0 &&
+	                        e->set.render_mode == BERYL_MODE_NORMAL;
+	const bool fog_active = e->set.fog_cull && cam->fog_end > cam->fog_start;
 
 	for (int layer = 0; layer < BERYL_LAYER_COUNT; layer++) {
 		BerylPipeline pipe = layer == BERYL_LAYER_SOLID ? e->pipe_solid
@@ -770,9 +796,34 @@ int beryl_engine_render(BerylEngine *e, BerylCamera *cam) {
 			if (!me->has_gpu) continue;                      /* nothing uploaded yet */
 			if (me->idx_count[layer] == 0) continue;          /* no geometry for this layer */
 
+			float nearest = sqrtf(v->distance_sq) - half_diag;
+			if (nearest < 0.0f) nearest = 0.0f;
+
+			/* "Don't render what can't be seen": a solid/cutout section whose
+			 * closest corner is beyond fog_end would rasterize to exactly the
+			 * clear colour (fog completes to the sky colour, which *is* the
+			 * clear colour, see build_uniforms). Skipping it changes nothing
+			 * but the fill cost. Blend draws are kept: water mixes over the
+			 * colour behind it, so its result is not provably the clear colour
+			 * and culling it would be a visible change. */
+			if (fog_active && layer != BERYL_LAYER_BLEND && nearest >= cam->fog_end) {
+				e->stats.fog_culled_draws++;
+				continue;
+			}
+
+			/* Distance detail: beyond lod_distance_blocks the baked lightmap,
+			 * ambient occlusion and face shading are dropped and the section is
+			 * drawn textured-texel-colour with fog -- at that range the shading
+			 * gradients are below the fog's, so the eye reads it as the same
+			 * terrain. The geometry is untouched, so a section that steps back
+			 * across the boundary only loses shading, never shape. */
+			bool flat = lod_active && nearest > (float)e->set.lod_distance_blocks;
+			if (flat) e->stats.lod_draws++;
+
 			u->section[0] = (float)v->cx * cs;
 			u->section[1] = (float)v->csy * cs;
 			u->section[2] = (float)v->cz * cs;
+			u->params[2] = flat ? (float)BERYL_MODE_TINT : (float)e->set.render_mode;
 
 			BerylBindState bs = { 0 };
 			bs.vertex_buffer = me->vbo;
@@ -790,6 +841,7 @@ int beryl_engine_render(BerylEngine *e, BerylCamera *cam) {
 		}
 	}
 
+	rhi->vt->end_batch(rhi);
 	rhi->vt->end_pass(rhi);
 	rhi->vt->end_frame(rhi);
 
@@ -982,12 +1034,14 @@ void beryl_engine_describe(BerylEngine *e, char *buf, size_t len) {
 	snprintf(buf, len,
 	         "%s | chunks %d sections %d | visible %d (occl %d, frustum %d) | "
 	         "quads %lld merges %.1fx | draws %llu tris %llu | "
+	         "lod %d fogskip %d | "
 	         "queued %d inflight %d built %lld (%.1f ms avg) | "
 	         "frame %.2f ms (cull %.2f mesh %.2f up %.2f draw %.2f) | %.1f fps",
 	         e->rhi ? e->rhi->info.backend : "no-backend",
 	         s.chunks, s.sections, s.visible_sections, s.culled_occlusion, s.culled_frustum,
 	         (long long)s.total_quads, s.merge_ratio,
 	         (unsigned long long)s.draws, (unsigned long long)s.triangles,
+	         s.lod_draws, s.fog_culled_draws,
 	         s.queued_jobs, s.inflight_jobs,
 	         (long long)beryl_pool_total_builds(e->pool),
 	         beryl_pool_total_builds(e->pool) > 0

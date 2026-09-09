@@ -172,10 +172,27 @@ typedef struct BerylRhiVTable {
 	/* Lets a backend report how much geometry it actually consumed, for the
 	 * "software == GL command stream" equivalence tests. */
 	void          (*reset_stats)(BerylRhi *);
+	/* Optional: how many raster lanes a CPU backend may use for one draw
+	 * (the render thread plus helpers, each filling a horizontal band of the
+	 * framebuffer). 1 = single-threaded, 0 = backend default. GPU backends
+	 * ignore it. */
+	BerylResult (*set_raster_threads)(BerylRhi *, int lanes);
+	/* Optional frame batching for CPU backends: between begin_batch and
+	 * end_batch the backend may defer draw_indexed calls and rasterize them
+	 * together at end_batch, so a frame of hundreds of small draws is split
+	 * across the raster lanes once instead of once per draw. Draws must still
+	 * be issued in order; the caller must not mutate buffers bound inside the
+	 * batch until end_batch returns (the engine never uploads mid-frame).
+	 * Backends that do not need it (GL) make both calls no-ops. */
+	BerylResult (*begin_batch)(BerylRhi *);
+	BerylResult (*end_batch)(BerylRhi *);
 } BerylRhiVTable;
 
 enum { BERYL_STAT_DRAW_CALLS = 0, BERYL_STAT_TRIANGLES = 1, BERYL_STAT_BUFFER_UPLOADS = 2,
-	   BERYL_STAT_BUFFER_BYTES = 3, BERYL_STAT_TEXTURE_UPLOADS = 4, BERYL_STAT_VERTS = 5 };
+	   BERYL_STAT_BUFFER_BYTES = 3, BERYL_STAT_TEXTURE_UPLOADS = 4, BERYL_STAT_VERTS = 5,
+	   /* Software backend: how many draws were rasterized by more than one
+	    * lane, and how many raster lanes are active (1 = single threaded). */
+	   BERYL_STAT_PARALLEL_DRAWS = 6, BERYL_STAT_RASTER_LANES = 7 };
 
 struct BerylRhi {
 	const BerylRhiVTable *vt;
@@ -206,6 +223,16 @@ void      beryl_rhi_destroy(BerylRhi *rhi);
 /* Inline dispatch: the vtable is one indirection per call, which is what a
  * real RHI costs; the per-frame call count is small (a few hundred). */
 #define BERYL_RHI_CALL(rhi, fn, ...) ((rhi)->vt->fn ? (rhi)->vt->fn(rhi, ##__VA_ARGS__) : BERYL_OK)
+
+/* Configures how many raster lanes a CPU backend may use per draw
+ * (0 = backend default; 1 = single-threaded). A no-op on backends that do
+ * not rasterize on the CPU. Safe to call at any time outside
+ * begin_pass..end_pass; the change applies from the next rasterized draw. */
+static inline BerylResult beryl_rhi_set_raster_threads(BerylRhi *rhi, int lanes) {
+	if (!rhi || !rhi->vt) return BERYL_ERR_INVALID;
+	if (rhi->vt->set_raster_threads) return rhi->vt->set_raster_threads(rhi, lanes);
+	return BERYL_OK;
+}
 
 /* Backend constructors, each present only in builds that compile that backend
  * (the Makefile sets BERYL_WITH_OPENGL / BERYL_WITH_VULKAN accordingly). */

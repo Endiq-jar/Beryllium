@@ -45,6 +45,27 @@ typedef struct BerylSettings {
 	 * two fields are then its starting point, not a cap. */
 	bool  adaptive_budget;
 	float target_frame_ms;         /* what the governor aims at (16.7 = 60 fps)   */
+	/* Software-backend raster threading: how many raster lanes the frame is
+	 * split into (the render thread plus helpers, each taking a horizontal
+	 * band of the framebuffer). 1 = single-threaded, 0 = auto: lanes match
+	 * min(cpus, 4). Draws too small to amortize the dispatch run
+	 * single-threaded on the render thread. Ignored by GPU backends. */
+	int   raster_threads;
+	/* Distance detail ("far terrain is texture-only"). When > 0 and the render
+	 * mode is NORMAL, sections whose closest point is farther than
+	 * lod_distance_blocks are drawn without the lightmap/AO/face-shading passes
+	 * -- textured texels plus fog, which is all the eye can use at that range --
+	 * while every section inside the radius keeps the full baked lighting. The
+	 * geometry never changes, so stepping across the boundary only swaps
+	 * shading, never shape. 0 disables the automatic switch. */
+	int   lod_distance_blocks;
+	/* Fog culling: geometry fully beyond fog_end rasterizes to exactly the
+	 * clear colour (fog completes to the sky colour, which is the clear
+	 * colour), so drawing it is pure fill waste with zero visible effect.
+	 * When set, opaque/cutout draws whose whole section is past fog_end are
+	 * skipped. Blend (water) draws are kept: they mix over the colour behind
+	 * them, so their result is not provably the clear colour. */
+	bool  fog_cull;
 	const char *log_prefix;
 } BerylSettings;
 
@@ -74,6 +95,9 @@ typedef struct BerylEngineStats {
 	/* What the governor did, so a --benchmark run or an overlay can tell "the
 	 * budgets moved" apart from "the budgets are at their floor". */
 	uint64_t perf_adjustments, perf_hitches;
+	/* Distance-detail and fog-culling accounting: how many draws ran in the
+	 * flat texture-only variant, how many were skipped as fully fogged. */
+	int lod_draws, fog_culled_draws;
 } BerylEngineStats;
 
 typedef struct BerylEngine BerylEngine;

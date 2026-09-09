@@ -25,6 +25,9 @@ typedef struct AppOpts {
 	char preset[24];
 	int  frames;
 	int  threads;
+	int  raster_threads;   /* software rasterizer lanes (0 = auto, 1 = ST) */
+	int  lod_distance;     /* far-terrain texture-only distance in blocks    */
+	bool no_fog_cull;
 	int  chunks;          /* pre-generated NxN chunk grid */
 	int  mode;
 	int  fps_cap;
@@ -64,6 +67,11 @@ static void usage(const char *argv0) {
 "  --fov N                            vertical field of view, degrees\n"
 "  --generate N                       pre-generate an NxN chunk grid\n"
 "  --threads N                        builder threads (0 = auto)\n"
+"  --raster-threads N                 software rasterizer lanes, 1 = single threaded\n"
+"                                      (0 = auto: min(cpu count, 4))\n"
+"  --lod-distance N                   far terrain (beyond N blocks) renders textures only;\n"
+"                                      near terrain keeps full baked lighting (0 = off)\n"
+"  --no-fog-cull                      draw geometry that sits fully inside the fog anyway\n"
 "  --mode normal|lightmap|tint|wireframe|fog\n"
 "  --linear                           linear texture filtering (default nearest)\n"
 "  --no-occlusion                     frustum culling only (for A/B comparison)\n"
@@ -98,6 +106,8 @@ static void opts_default(AppOpts *o) {
 	o->mode = BERYL_MODE_NORMAL;
 	o->fps_cap = 0;
 	o->leaves_cull = true;
+	o->raster_threads = 0;
+	o->lod_distance = -1;        /* unset: the preset's choice wins */
 	o->fov = 70.0f;
 	o->shot_at = 0;
 	snprintf(o->screenshot, sizeof(o->screenshot), "frame.png");
@@ -143,6 +153,9 @@ int main(int argc, char **argv) {
 			o.view_distance_set = 1;
 		} else if (!strcmp(a, "--frames"))     { next_int(&i, argc, argv, &o.frames);
 		} else if (!strcmp(a, "--threads"))    { next_int(&i, argc, argv, &o.threads);
+		} else if (!strcmp(a, "--raster-threads")) { next_int(&i, argc, argv, &o.raster_threads);
+		} else if (!strcmp(a, "--lod-distance")) { next_int(&i, argc, argv, &o.lod_distance);
+		} else if (!strcmp(a, "--no-fog-cull")) { o.no_fog_cull = true;
 		} else if (!strcmp(a, "--generate"))   { if (!next_int(&i, argc, argv, &o.chunks)) return 2;
 			o.chunks_set = 1;
 		} else if (!strcmp(a, "--mode"))       { if (++i < argc) o.mode = parse_mode(argv[i]);
@@ -223,6 +236,9 @@ int main(int argc, char **argv) {
 		       s.rebuilds_per_frame, s.uploads_per_frame_bytes / 1024,
 		       s.adaptive_budget ? "" : "no ", (double)s.target_frame_ms);
 	s.builder_threads = o.threads;
+	s.raster_threads = o.raster_threads;
+	if (o.lod_distance >= 0) s.lod_distance_blocks = o.lod_distance;
+	if (o.no_fog_cull) s.fog_cull = false;
 	s.render_mode = o.mode;
 	s.linear_filter = o.linear;
 	s.occlusion_culling = !o.no_occlusion;
@@ -417,6 +433,19 @@ int main(int argc, char **argv) {
 		       t_render, frames, t_render / frames, frames * 1000.0 / BERYL_MAX(t_render, 0.001));
 		printf("        cull %.2f ms  mesh %.2f ms  draw %.2f ms\n",
 		       st.cull_ms, st.mesh_ms, st.draw_ms);
+		{
+			BerylRhi *rhi = beryl_engine_rhi(eng);
+			if (rhi && rhi->vt->stat) {
+				uint64_t lanes  = rhi->vt->stat(rhi, BERYL_STAT_RASTER_LANES);
+				uint64_t pdraws = rhi->vt->stat(rhi, BERYL_STAT_PARALLEL_DRAWS);
+				if (lanes > 1) {
+					printf("raster: %llu lanes (%llu draws banded across them)\n",
+					       (unsigned long long)lanes, (unsigned long long)pdraws);
+				}
+			}
+		}
+		printf("        flat-texture LOD draws %d, fog-culled draws %d\n",
+		       st.lod_draws, st.fog_culled_draws);
 		printf("meshing: %d sections built (%.2f ms synchronous), %d installed in the last frame\n",
 		       built, t_mesh, st.built_sections);
 		if (s.adaptive_budget) {
