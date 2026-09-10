@@ -162,9 +162,9 @@ public final class JarPacker {
 						byte[] rewritten = rewriteMixinConfig(r.getValue(), prefixDotted, compact,
 								!vulkanConfigHasRefmapKey && raw.containsKey("vulkanmod.refmap.json"));
 						entries.put(prefix + "vulkanmod.mixins.json", rewritten);
-					} else if (name.equals("vulkanmod.refmap.json")) {
-						entries.put("vulkanmod-mc" + compact + ".refmap.json",
-								rewriteRefmap(r.getValue(), prefixDotted));
+				} else if (name.equals("vulkanmod.refmap.json")) {
+					entries.put("vulkanmod-mc" + compact + ".refmap.json",
+						rewriteRefmap(r.getValue(), prefix));
 					} else if (name.endsWith(".mixins.json") || name.endsWith(".refmap.json")) {
 						// Bundled Fabric API mixin configs / refmaps: dropped along
 						// with the API classes (the runtime API brings its own).
@@ -346,8 +346,9 @@ public final class JarPacker {
 		return gson.toJson(o).getBytes(StandardCharsets.UTF_8);
 	}
 
-	/** Prefixes every mapping key (a mixin class name) of a refmap. */
-	private static byte[] rewriteRefmap(byte[] json, String prefixDotted) {
+	/** Prefixes every mapping key of a refmap.  Refmap keys are internal (slash)
+	 * names, unlike mixin-config entries. */
+	private static byte[] rewriteRefmap(byte[] json, String prefixSlash) {
 		Gson gson = new Gson();
 		JsonObject o = gson.fromJson(new String(json, StandardCharsets.UTF_8), JsonObject.class);
 		JsonObject mappings = o.getAsJsonObject("mappings");
@@ -356,8 +357,9 @@ public final class JarPacker {
 			for (String key : keys) {
 				JsonElement value = mappings.get(key);
 				mappings.remove(key);
-				if (key.startsWith(MOD_PACKAGE_DOTTED)) {
-					mappings.add(prefixDotted + key.substring(MOD_PACKAGE_DOTTED.length()), value);
+				String internal = key.replace('.', '/'); // tolerate either form
+				if (internal.startsWith(MOD_PACKAGE)) {
+					mappings.add(prefixSlash + internal.substring(MOD_PACKAGE.length()), value);
 				} else {
 					mappings.add(key, value);
 				}
@@ -474,7 +476,9 @@ public final class JarPacker {
 					}
 					for (JsonElement mixin : config.getAsJsonArray(section)) {
 						String entryName = mixin.getAsString();
-						String fq = entryName.startsWith(base) ? entryName : base + entryName;
+						// Relative names in a mixin config are dotted and
+						// resolved against the config's package.
+						String fq = entryName.startsWith(base) ? entryName : base + "." + entryName;
 						String classPath = fq.replace('.', '/') + ".class";
 						if (jar.getJarEntry(classPath) == null) {
 							throw new IllegalStateException("mixin class missing from jar: " + classPath
