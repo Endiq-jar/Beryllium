@@ -385,7 +385,36 @@ With `compatibilityModeEnabled: true`, Beryllium defers automatically:
   the same vanilla entry points). If you see odd behavior with both installed, set
   `voxelShapeOptimizations: false` and restart.
 
+## VulkanMod integration (`vulkanmod/`)
+
+`vulkanmod/` vendors the complete
+[VulkanMod](https://github.com/xCollateral/VulkanMod) Vulkan rendering engine
+(LGPL-3.0, by xCollateral) — a full replacement of Minecraft's OpenGL renderer
+with optimized chunk meshing, section culling, entity rendering and
+chunk-building threads — as seven per-version Loom builds plus a
+**universal single jar** covering all of them at once:
+
+- **Per-version jars** (`vulkanmod-mc-1.20.4` … `vulkanmod-mc-1.21.11` CI
+  artifacts) are the upstream-style self-contained builds for exactly one
+  Minecraft version: 1.20.4, 1.21, 1.21.1, 1.21.3, 1.21.4, 1.21.10, 1.21.11 —
+  the versions for which upstream ships source.
+- **The universal jar** (`vulkanmod-universal` CI artifact) merges all seven
+  code sets into one file. Each code set is relocated into its own
+  `net.vulkanmod.mc<version>` package, and every per-version mixin
+  configuration carries a version gate: on a game version that doesn't match,
+  the configuration removes all of its targets, so zero mixins apply and the
+  jar is inert. On a matching version the full Vulkan renderer activates; on
+  any other 1.19.4+ version the jar loads safely and stays off. It requires
+  the Fabric API for your version alongside (the per-version API bundles are
+  replaced by a runtime dependency in the merge).
+
+The merge is structurally verified by CI (every relocated class, mixin config,
+refmap and access-widener entry resolves inside the jar) before the artifact
+is accepted. Details, the support table and the "add a version" procedure are
+in [`vulkanmod/README.md`](vulkanmod/README.md).
+
 ## License
 
-MIT — see [LICENSE](LICENSE). Third-party code (Lithium shape suite) is MIT; see
-[THIRD_PARTY.md](THIRD_PARTY.md).
+MIT — see [LICENSE](LICENSE). Third-party code: the Lithium shape suite (MIT,
+see [THIRD_PARTY.md](THIRD_PARTY.md)) and VulkanMod (LGPL-3.0, see
+`vulkanmod/README.md`).

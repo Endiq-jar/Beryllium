@@ -32,6 +32,12 @@ bin/
 
 run/
 
+# VulkanMod source packages are literally named "build" (render/chunk/build) -
+# un-ignore those source directories only; real Gradle output dirs (vulkanmod/*/build)
+# stay ignored because their paths never contain /src/.
+!vulkanmod/mc-*/src/**/build/
+!vulkanmod/mc-*/src/**/build/**
+
 # java
 
 hs_err_*.log

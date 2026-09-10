@@ -1,0 +1,103 @@
+name: vulkanmod
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: vulkanmod-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Every sibling tree under vulkanmod/ is a standalone Fabric Loom build pinned
+# to exactly one Minecraft version.  The per-version jobs produce self-contained
+# jars (upstream layout: bundled Fabric API + LWJGL natives); the universal job
+# merges all of them into a single jar whose code sets self-gate on the running
+# game version (see vulkanmod/README.md).
+
+jobs:
+  per-version:
+    name: "VulkanMod MC ${{ matrix.mc }}"
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mc: "1.20.4"
+          - mc: "1.21"
+          - mc: "1.21.1"
+          - mc: "1.21.3"
+          - mc: "1.21.4"
+          - mc: "1.21.10"
+          - mc: "1.21.11"
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+
+      - name: setup JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: "21"
+          distribution: microsoft
+          cache: gradle
+
+      - name: build exact-version artifact
+        working-directory: vulkanmod/mc-${{ matrix.mc }}
+        run: chmod +x ./gradlew && ./gradlew --no-daemon clean build
+
+      - name: capture Minecraft ${{ matrix.mc }} artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: vulkanmod-mc-${{ matrix.mc }}
+          path: vulkanmod/mc-${{ matrix.mc }}/build/libs/*.jar
+          if-no-files-found: error
+          retention-days: 14
+
+  universal:
+    name: "VulkanMod universal (single jar, all versions)"
+    needs: per-version
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+
+      - name: setup JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: "21"
+          distribution: microsoft
+          cache: gradle
+
+      - name: download per-version artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: vulkanmod-mc-*
+          path: artifacts
+
+      - name: assemble universal jar
+        working-directory: vulkanmod/universal
+        run: |
+          chmod +x ./gradlew
+          ARGS=""
+          # Primary version first: it wins resource/native ties in the merge.
+          for v in 1.21.11 1.21.10 1.21.4 1.21.3 1.21.1 1.21 1.20.4; do
+            jar=$(find ../../artifacts/vulkanmod-mc-$v -name '*.jar' ! -name '*-sources*' ! -name '*.orig' | head -n1)
+            if [ -z "$jar" ]; then
+              echo "missing per-version jar for $v" >&2
+              exit 1
+            fi
+            aw=../../vulkanmod/mc-$v/src/main/resources/vulkanmod.accesswidener
+            ARGS="$ARGS --in $v=$jar --aw $v=$aw"
+          done
+          ./gradlew --no-daemon assembleUniversal \
+            --args="$ARGS --extra LICENSE_BERYLLIUM=../../LICENSE --out build/VulkanModUniversal.jar --version 1.0.0+universal"
+
+      - name: capture universal artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: vulkanmod-universal
+          path: vulkanmod/universal/build/VulkanModUniversal.jar
+          if-no-files-found: error
+          retention-days: 14

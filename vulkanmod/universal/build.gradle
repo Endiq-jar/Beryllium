@@ -1,0 +1,63 @@
+/*
+ * Universal VulkanMod assembler.
+ *
+ * This is deliberately NOT a Loom build: it compiles the small version-dispatch
+ * entry point and the JarPacker merger against plain fabric-loader and ASM,
+ * then merges the per-version Loom artifacts produced by the sibling builds
+ * (../mc-*) into a single jar.  Each sibling tree keeps its own Loom version,
+ * Minecraft version and mappings - the only place they meet is inside the jar.
+ */
+plugins {
+	id 'java'
+}
+
+group = 'net.vulkanmod'
+version = '1.0.0'
+
+repositories {
+	maven {
+		name = 'Fabric'
+		url = 'https://maven.fabricmc.net/'
+	}
+	mavenCentral()
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+	// fabric-loader provides the loader API (mod version lookup) used by the
+	// entry point and the per-version mixin plugins.
+	implementation "net.fabricmc:fabric-loader:0.18.4"
+
+	// Bytecode relocation of the per-version code sets.
+	implementation "org.ow2.asm:asm:9.7.1"
+	implementation "org.ow2.asm:asm-commons:9.7.1"
+
+	// Mixin configuration / refmap rewriting.
+	implementation "com.google.code.gson:gson:2.11.0"
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release.set(17)
+	it.options.encoding = 'UTF-8'
+}
+
+/*
+ * Merges the per-version jars.  All CLI options are forwarded:
+ *   --in <version>=<jar>   (repeatable; primary version first - it wins resource ties)
+ *   --aw <version>=<aw>    (repeatable; the per-version source access wideners)
+ *   --extra <name>=<file>  (repeatable; extra jar entries such as licenses)
+ *   --out <jar>            (output path)
+ *   --version <modVersion> (the version string written into fabric.mod.json)
+ * The task re-runs the verification pass over the assembled jar and fails on
+ * any unresolved reference.
+ */
+tasks.register('assembleUniversal', JavaExec) {
+	group = 'build'
+	description = 'Merges the per-version VulkanMod jars into one universal jar.'
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass = 'net.vulkanmod.universal.JarPacker'
+}
