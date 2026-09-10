@@ -426,7 +426,8 @@ public final class JarPacker {
 					classes++;
 					try (InputStream stream = jar.getInputStream(ze)) {
 						ClassReader reader = new ClassReader(stream);
-						String expected = name.substring(0, name.length() - 6).replace('/', '.');
+						// ClassReader.getClassName() returns the internal (slash) form.
+						String expected = name.substring(0, name.length() - 6);
 						if (!reader.getClassName().equals(expected)) {
 							throw new IllegalStateException("class " + expected + " has internal name "
 									+ reader.getClassName());
