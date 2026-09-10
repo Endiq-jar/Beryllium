@@ -32,6 +32,15 @@ public final class CompatibilityClient implements ClientModInitializer {
 			return;
 		}
 
+		// Phase 14 — the compatibility core's FPS layer. Runs *before* the Android safe
+		// path below, deliberately: option tuning is the one optimization that does not
+		// touch GL, GLFW or any renderer internals (it reflects on the options object
+		// from a daemon thread once the client is up), so it is safe exactly where the
+		// engine is otherwise most constrained — and that Android phone population is
+		// the hardware Beryllium exists for. Every write is individually best-effort;
+		// a build whose options shape differs simply logs "skipped".
+		CompatTuner.schedule();
+
 		if (launcher.isAndroidJavaLauncher()) {
 			if (config.androidSafeMode) {
 				BerylliumLog.mobile("Android launcher safe mode is active (" + launcher.describe()
@@ -55,11 +64,14 @@ public final class CompatibilityClient implements ClientModInitializer {
 		// launch-safe core by design, because guessing renderer internals on an
 		// unverified version is how a performance mod becomes a startup crash.
 		BerylliumLog.info("[BERYLLIUM-PROFILE] This artifact is the cross-version compatibility core:"
-			+ " it contains configuration, device detection, launch safety and the scheduling"
-			+ " primitives, but NO renderer hooks and NO culling. If you installed Beryllium for FPS,"
-			+ " install the 1.21.4 build (the fully verified renderer profile) or pair this version with"
-			+ " Sodium + Lithium + EntityCulling + FerriteCore + Dynamic FPS, which cover the same"
-			+ " ground per-version. Beryllium's own renderer features activate only where their hook"
-			+ " targets have been verified against that exact Minecraft version.");
+			+ " it contains configuration, device detection, launch safety, option tuning and the"
+			+ " scheduling primitives, but NO renderer hooks and NO culling. The option tuner"
+			+ " (compatPreset, default \"maxfps\") removes VSync, framerate-cap and simulation-distance"
+			+ " cost without touching visuals. For the full renderer optimization set (culling,"
+			+ " occlusion culling, chunk prioritization, fog-wall culling) install the 1.21.4 build —"
+			+ " that is the only version where those hook targets have been verified against the exact"
+			+ " game code. On any other version, pair this artifact with Sodium + Lithium +"
+			+ " EntityCulling + FerriteCore + ImmediatelyFast + Dynamic FPS, which cover the same ground"
+			+ " per-version.");
 	}
 }

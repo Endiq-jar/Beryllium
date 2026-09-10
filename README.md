@@ -120,6 +120,18 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
   shadows → off, clouds → off, biome blending → off, view bobbing → off. Desktop
   devices are never touched. Everything is logged under `[BERYLLIUM-MOBILE]`, written
   to `options.txt`, and reversible in the video settings screen.
+- **Compatibility-core option tuning (every supported version)** — the compatibility
+  core contains no renderer hooks by design, so on those releases Beryllium removes
+  frame cost through vanilla's own options instead: on first launch a daemon thread
+  waits for the client, then applies `compatPreset`. `"maxfps"` (default) touches only
+  non-visual settings — VSync off, framerate limit unlocked, simulation distance at
+  vanilla's minimum — so **every fancy visual stays exactly as configured**.
+  `"mobile"` adds the weak-device trade-offs (particles minimal, clouds off, entity
+  shadows off, biome blending off, view bobbing off, plus a device-tier render
+  distance cap). `"off"` disables it. Implemented entirely with reflection: no mixin,
+  no GL call, no Minecraft type named at compile time, so an unknown build logs each
+  option as "skipped" instead of failing. This is the FPS layer that works on phones
+  running 1.19.4 → 26.2, where the renderer profile does not ship.
 - **OpenGL ES-aware GPU detection & capability tiers** — vendor/renderer/GL version,
   max texture size and display refresh rate are logged and used to pick the
   performance tier.
@@ -224,6 +236,7 @@ optimization should never prevent Minecraft from reaching the title screen.
 | 11 — text shadows toggle | ✅ done — `FontTextShadowMixin` suppresses the `dropShadow` argument of the `Font.drawInBatch` overloads |
 | 12 — fog-wall culling & max-FPS defaults | ✅ done — entities / block entities / name tags beyond the fog-wall plane are skipped on the existing verified hook surfaces (`FogCulling` + the phase 6/9/11 mixins); `textShadowsEnabled` defaults off; low-end auto-tune caps render distance per tier |
 | 13 — occlusion culling, Dynamic FPS, max-FPS preset, hook self-diagnosis | ✅ done — silhouette raymarch behind solid terrain, backgrounded-window framerate throttle, a non-visual max-FPS preset, and a startup `[applied]/[MISSING]` report for every mixin hook |
+| 14 — compatibility-core option tuning (all versions) | ✅ done — reflection-only preset application for every non-1.21.4 artifact; `maxfps` (non-visual: VSync/framerate/simulation distance) or `mobile` (visual trade-offs + render-distance cap), no mixins or GL calls |
 
 > **Verification note (phases 4, 8, 11):** the mixins and hooks added in these phases
 > target 1.21.4 internals. Phase 12 deliberately adds **no new injection points**: its
@@ -345,6 +358,9 @@ transcribed constants nobody could check.
 | `dynamicFpsUnfocusedLimit` | `10` | Framerate limit used while backgrounded (vanilla floor) |
 | `fancyMaxFpsPreset` | `true` | One-shot non-visual preset: VSync off, FPS unlocked, simulation distance at minimum |
 | `maxFpsPresetApplied` | `false` | Internal: set once the max-FPS preset has run |
+| `compatAutoTune` | `true` | Compatibility-core option tuning on non-1.21.4 artifacts (reflection-only) |
+| `compatPreset` | `"maxfps"` | `"maxfps"` = non-visual only (visuals untouched), `"mobile"` = weak-device trade-offs + render-distance cap, `"off"` = nothing |
+| `compatAutoTuneApplied` | `false` | Internal: set once the compat preset has run |
 | `chunkRebuildPrioritization` | `true` | Reorder chunk-section rebuilds by proximity + view alignment + urgency |
 | `chunkRebuildsPerFrame` | `3` | Prioritized rebuilds re-triggered per rendered frame |
 | `chunkRebuildQueueLimit` | `128` | Hard cap on the prioritization queue; past it, vanilla schedules directly (bounded staleness) |

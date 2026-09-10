@@ -219,6 +219,33 @@ public class BerylliumConfig {
 	 *  is only ever applied once. Set false to re-apply. */
 	public boolean maxFpsPresetApplied = false;
 
+	// --- Compatibility-core tuning (phase 14) ---
+
+	/** Compatibility-core releases (every version except the verified 1.21.4 renderer
+	 *  profile) contain no renderer hooks by design, so they cannot cull or reorder
+	 *  render work. They can still remove real frame cost through vanilla's own
+	 *  options, which is what this enables: on the first launch, a daemon thread waits
+	 *  for the client to come up and applies the {@code compatPreset} through
+	 *  reflection. No game class is named at compile time, no GL call is made and no
+	 *  mixin is involved, so this cannot turn into a launcher crash — an unrecognized
+	 *  build just logs each option as "skipped". */
+	public boolean compatAutoTune = true;
+
+	/** Which option preset the compatibility core applies:
+	 *  {@code "maxfps"} (default) = only non-visual frame costs (VSync off, framerate
+	 *  limit unlocked, simulation distance at vanilla's minimum) with every visual
+	 *  setting left exactly as configured;
+	 *  {@code "mobile"} = the above plus weak-device visual trade-offs (particles
+	 *  minimal, clouds off, entity shadows off, biome blending off, view bobbing off)
+	 *  and a device-tier render-distance cap;
+	 *  {@code "off"} = change nothing. */
+	public String compatPreset = "maxfps";
+
+	/** Internal bookkeeping: set to true once {@code compatAutoTune} has applied its
+	 *  preset, so it only ever runs once. Set false to re-apply (useful after changing
+	 *  {@code compatPreset}). */
+	public boolean compatAutoTuneApplied = false;
+
 	// --- Leaves culling ---
 
 	/** Skips rendering the shared face between two adjacent leaves blocks (both sides are
