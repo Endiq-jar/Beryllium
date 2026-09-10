@@ -105,6 +105,7 @@ public final class JarPacker {
 	private static void pack(Map<String, Path> inputs, Map<String, Path> awInputs, Map<String, Path> extras,
 			Path out, String version) throws Exception {
 		Map<String, byte[]> entries = new LinkedHashMap<>();
+		Set<String> keptLwjglBases = new LinkedHashSet<>();
 		int relocatedClasses = 0;
 		int droppedApiClasses = 0;
 		int copiedResources = 0;
@@ -187,31 +188,6 @@ public final class JarPacker {
 					// colliding, so the universal build depends on the API at
 					// runtime instead.
 					api++;
-				} else if (name.endsWith(".class") && name.contains("org/lwjgl/")) {
-					// LWJGL Java bindings bundled by upstream (possibly nested
-					// under a per-artifact prefix by Loom): hoist to the
-					// root, where LWJGL and the mod expect them.
-					String target = "org/lwjgl/" + name.substring(name.indexOf("org/lwjgl/") + "org/lwjgl/".length());
-					if (!entries.containsKey(target)) {
-						entries.put(target, r.getValue());
-						copiedResources++;
-					}
-				} else if (name.endsWith(".so") || name.endsWith(".dll") || name.endsWith(".dylib")) {
-					// LWJGL native libraries (possibly nested under a
-					// per-artifact prefix): hoist to the classpath-root
-					// natives/<os>/<lib> layout LWJGL looks up at runtime.
-					String target = name;
-					int natives = name.lastIndexOf("/natives/");
-					if (natives >= 0) {
-						target = "natives/" + name.substring(natives + "/natives/".length());
-					}
-					if (!target.equals(name)) {
-						System.out.println("[JarPacker] " + v + ": hoisted native " + name + " -> " + target);
-					}
-					if (!entries.containsKey(target)) {
-						entries.put(target, r.getValue());
-						copiedResources++;
-					}
 				} else if (name.endsWith(".class")) {
 					System.err.println("[JarPacker] WARNING: unexpected class from " + v + ": " + name);
 				} else if (name.equals(vulkanConfigName)) {
@@ -227,47 +203,24 @@ public final class JarPacker {
 						// Bundled Fabric API mixin configs / refmaps: dropped along
 						// with the API classes (the runtime API brings its own).
 				} else if (name.startsWith("META-INF/jars/") && name.contains("lwjgl")) {
-					// Loom's include() bundles dependencies as nested jars
-					// under META-INF/jars/.  The LWJGL ones (Java bindings
-					// plus native libraries) are version-agnostic, so extract
-					// their loose entries to the classpath root where LWJGL
-					// looks them up (natives/<os>/lib..., org/lwjgl/...).
-					// Fabric API module jars are left dropped (the universal
+					// Loom's include() bundles LWJGL as nested jars under
+					// META-INF/jars/ (Java bindings plus native libraries
+					// laid out <os>/<arch>/org/lwjgl/<module>/lib...).
+					// Fabric-loader expands nested jars onto the classpath at
+					// runtime and LWJGL resolves natives relative to them, so
+					// the universal jar keeps the nested jars byte-identical
+					// to the verified per-version jars.  One set per artifact
+					// base is enough (newest version wins, first-wins merge).
+					// Fabric API nested jars stay dropped (the universal
 					// build declares Fabric API as a runtime dependency).
-					int innerCount = 0;
-					int extracted = 0;
-					List<String> firstNames = new ArrayList<>();
-					Path tempFile = null;
-					try {
-						byte[] nestedBytes = r.getValue();
-						tempFile = Files.createTempFile("nested", ".jar");
-						Files.write(tempFile, nestedBytes);
-						try (var nested = new java.util.zip.ZipFile(tempFile.toFile())) {
-							var innerEn = nested.entries();
-							while (innerEn.hasMoreElements()) {
-								ZipEntry inner = innerEn.nextElement();
-								String innerName = inner.getName();
-								if (innerName.endsWith("/") || innerName.startsWith("META-INF/")) {
-									continue;
-								}
-								innerCount++;
-								if (firstNames.size() < 3) {
-									firstNames.add(innerName);
-								}
-								if (!entries.containsKey(innerName)) {
-									entries.put(innerName, nested.getInputStream(inner).readAllBytes());
-									copiedResources++;
-									extracted++;
-								}
-							}
-						}
-					} finally {
-						if (tempFile != null) {
-							Files.deleteIfExists(tempFile);
-						}
+					String base = nestedBase(name);
+					if (base != null && keptLwjglBases.add(base)) {
+						entries.put(name, r.getValue());
+						copiedResources++;
+						System.out.println("[JarPacker] " + v + ": kept nested jar " + name);
+					} else if (base != null) {
+						System.out.println("[JarPacker] " + v + ": skipped older nested jar " + name);
 					}
-					System.out.println("[JarPacker] " + v + ": " + name + " -> " + innerCount
-						+ " inner entries, " + extracted + " new; first: " + firstNames);
 				} else if (name.equals("fabric.mod.json") || name.startsWith("META-INF/")
 						|| name.equals("gradle.properties") || name.endsWith(".accesswidener")
 						|| name.endsWith(".orig") || name.endsWith(".jar")) {
@@ -550,26 +503,38 @@ public final class JarPacker {
 			// universal jar would crash on every launch, so fail the build
 			// rather than ship it.  On failure the message lists what IS
 			// present, which lands in the DIAG commit.
-			String[] requiredLwjgl = {
-				"org/lwjgl/vulkan/Vulkan.class",
-				"org/lwjgl/util/vma/Vma.class",
-				"org/lwjgl/util/shaderc/Shaderc.class",
-				"org/lwjgl/util/spvc/Spvc.class",
-				"natives/linux/libshaderc.so",
-				"natives/windows/shaderc.dll",
-				"natives/macos/libshaderc.dylib",
-				"natives/macos-arm64/libshaderc.dylib",
+			// The LWJGL bindings and native libraries ship as nested jars
+			// under META-INF/jars/ (expanded by Fabric Loader at runtime),
+			// one set per artifact base, any version.
+			String[] requiredLwjglBases = {
+				"lwjgl-vulkan", "lwjgl-vma", "lwjgl-shaderc", "lwjgl-spvc",
+				"lwjgl-vulkan-natives-macos", "lwjgl-vulkan-natives-macos-arm64",
+				"lwjgl-vma-natives-linux", "lwjgl-vma-natives-windows",
+				"lwjgl-vma-natives-macos", "lwjgl-vma-natives-macos-arm64",
+				"lwjgl-shaderc-natives-linux", "lwjgl-shaderc-natives-windows",
+				"lwjgl-shaderc-natives-macos", "lwjgl-shaderc-natives-macos-arm64",
+				"lwjgl-spvc-natives-linux", "lwjgl-spvc-natives-windows",
+				"lwjgl-spvc-natives-macos", "lwjgl-spvc-natives-macos-arm64",
 			};
 			List<String> missing = new ArrayList<>();
-			for (String required : requiredLwjgl) {
-				if (jar.getJarEntry(required) == null) {
-					missing.add(required);
+			for (String base : requiredLwjglBases) {
+				boolean found = false;
+				var nestedEn = jar.entries();
+				while (nestedEn.hasMoreElements()) {
+					String nestedName = nestedEn.nextElement().getName();
+					if (nestedName.startsWith("META-INF/jars/")
+							&& base.equals(nestedBase(nestedName))) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					missing.add(base);
 				}
 			}
 			if (!missing.isEmpty()) {
-				throw new IllegalStateException("required LWJGL entries missing from universal jar: "
-					+ missing + " (org/lwjgl subpackages: " + listLwjglSubpackages(jar)
-					+ "; natives: " + listNativeEntries(jar) + ")");
+				throw new IllegalStateException("required LWJGL nested jars missing from universal jar: "
+					+ missing + " (present: " + listNestedLwjgl(jar) + ")");
 			}
 
 			JarEntry manifest = jar.getJarEntry("fabric.mod.json");
@@ -647,30 +612,31 @@ public final class JarPacker {
 				+ " version-prefixed/universal classes, " + natives + " native resource entries");
 	}
 
-	/** Distinct org/lwjgl/** subpackage directories (3 levels), for diagnostics. */
-	private static String listLwjglSubpackages(JarFile jar) throws IOException {
-		Set<String> subs = new LinkedHashSet<>();
-		var en = jar.entries();
-		while (en.hasMoreElements()) {
-			String name = en.nextElement().getName();
-			if (name.startsWith("org/lwjgl/")) {
-				String rest = name.substring("org/lwjgl/".length());
-				String[] parts = rest.split("/");
-				if (parts.length >= 2) {
-					subs.add(parts[0] + (parts.length >= 3 ? "/" + parts[1] : ""));
-				}
+	/** Artifact base of a nested jar file name: the file name without its
+	 * version segment, e.g. {@code lwjgl-shaderc-3.3.3-natives-linux.jar}
+	 * -> {@code lwjgl-shaderc-natives-linux}. */
+	private static String nestedBase(String entryName) {
+		String file = entryName.substring(entryName.lastIndexOf('/') + 1);
+		if (!file.endsWith(".jar")) {
+			return null;
+		}
+		file = file.substring(0, file.length() - 4);
+		List<String> kept = new ArrayList<>();
+		for (String part : file.split("-")) {
+			if (!part.matches("\\d+\\.\\d+\\.\\d+")) {
+				kept.add(part);
 			}
 		}
-		return subs.isEmpty() ? "none" : String.join(", ", subs);
+		return kept.isEmpty() ? null : String.join("-", kept);
 	}
 
-	/** natives/** entry names, for diagnostics. */
-	private static String listNativeEntries(JarFile jar) throws IOException {
+	/** META-INF/jars/lwjgl-*.jar entry names, for diagnostics. */
+	private static String listNestedLwjgl(JarFile jar) throws IOException {
 		List<String> found = new ArrayList<>();
 		var en = jar.entries();
 		while (en.hasMoreElements()) {
 			String name = en.nextElement().getName();
-			if (name.startsWith("natives/") || name.startsWith("natives-")) {
+			if (name.startsWith("META-INF/jars/") && name.contains("lwjgl")) {
 				found.add(name);
 			}
 		}
