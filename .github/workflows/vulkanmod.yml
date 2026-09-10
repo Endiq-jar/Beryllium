@@ -28,8 +28,6 @@ jobs:
           - mc: "1.20.4"
           - mc: "1.21"
           - mc: "1.21.1"
-          - mc: "1.21.3"
-          - mc: "1.21.4"
           - mc: "1.21.10"
           - mc: "1.21.11"
     steps:
@@ -82,7 +80,7 @@ jobs:
           chmod +x ./gradlew
           ARGS=""
           # Primary version first: it wins resource/native ties in the merge.
-          for v in 1.21.11 1.21.10 1.21.4 1.21.3 1.21.1 1.21 1.20.4; do
+          for v in 1.21.11 1.21.10 1.21.1 1.21 1.20.4; do
             jar=$(find ../../artifacts/vulkanmod-mc-$v -name '*.jar' ! -name '*-sources*' ! -name '*.orig' | head -n1)
             if [ -z "$jar" ]; then
               echo "missing per-version jar for $v" >&2

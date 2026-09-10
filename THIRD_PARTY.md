@@ -10,10 +10,10 @@ xCollateral.
 - Copyright (c) xCollateral, released under the **GNU Lesser General Public
   License, version 3** (LGPL-3.0). The full license text is kept in every
   `vulkanmod/mc-*/LICENSE` file and inside the built jars.
-- The per-version trees (`vulkanmod/mc-1.20.4` … `vulkanmod/mc-1.21.11`) are
-  upstream source snapshots (tags `0.4.7`, `0.5.3`, `0.5.5`, `0.6.6`, `dev`
-  HEAD, plus the untagged 1.21.3/1.21.4 port commits), kept complete so each
-  remains an independent, rebuildable Fabric Loom project.
+- The per-version trees (`vulkanmod/mc-1.20.4`, `mc-1.21`, `mc-1.21.1`,
+  `mc-1.21.10`, `mc-1.21.11`) are upstream source snapshots (tags `0.4.7`,
+  `0.5.3`, `0.5.5`, `0.6.6` and `dev` HEAD), kept complete so each remains an
+  independent, rebuildable Fabric Loom project.
 - The additions made for the Beryllium integration are: a version gate in
   each tree's `mixin/MixinPlugin` (removes all mixin targets when the running
   game version doesn't match the tree's compiled version, keeping the jar

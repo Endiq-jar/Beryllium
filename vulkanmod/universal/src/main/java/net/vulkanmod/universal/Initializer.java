@@ -37,8 +37,6 @@ public class Initializer implements ClientModInitializer {
 		VERSIONS.put("1.20.4", "net.vulkanmod.mc1204.Initializer");
 		VERSIONS.put("1.21", "net.vulkanmod.mc121.Initializer");
 		VERSIONS.put("1.21.1", "net.vulkanmod.mc1211.Initializer");
-		VERSIONS.put("1.21.3", "net.vulkanmod.mc1213.Initializer");
-		VERSIONS.put("1.21.4", "net.vulkanmod.mc1214.Initializer");
 		VERSIONS.put("1.21.10", "net.vulkanmod.mc12110.Initializer");
 		VERSIONS.put("1.21.11", "net.vulkanmod.mc12111.Initializer");
 	}

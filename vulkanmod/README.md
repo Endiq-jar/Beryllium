@@ -19,13 +19,16 @@ and packages it two ways:
 | 1.20.4    | `mc-1.20.4`    | tag `0.4.7`                | 17   |
 | 1.21      | `mc-1.21`      | tag `0.5.3`                | 21   |
 | 1.21.1    | `mc-1.21.1`    | tag `0.5.5`                | 21   |
-| 1.21.3    | `mc-1.21.3`    | commit `e55e432` (unreleased port) | 21 |
-| 1.21.4    | `mc-1.21.4`    | commit `3fa7807` (unreleased port) | 21 |
 | 1.21.10   | `mc-1.21.10`   | tag `0.6.6`                | 21   |
 | 1.21.11   | `mc-1.21.11`   | `dev` HEAD (0.6.8-dev)     | 21   |
 
-These are exactly the versions for which upstream VulkanMod ships source. No
-other version has a renderer code set; on those, the jar is inert (see below).
+These are the versions for which upstream VulkanMod ships **compilable**
+source (each verified by CI). Upstream also has untagged port commits for
+1.21.3 (`e55e432`) and 1.21.4 (`3fa7807`), but neither compiles at any commit
+(the 1.21.3 port was never completed on its own, and the 1.21.4 port carries
+upstream compile errors), so they are not included rather than shipped
+unverified. No other version has a renderer code set; on those, the jar is
+inert (see below).
 
 ## How the universal jar works
 
@@ -78,8 +81,8 @@ jar entries, and the access widener and entry point are present.
 
 - **Does:** one file, installable on every listed version, fully self-contained
   apart from Fabric API (install the Fabric API for your version alongside).
-- **Does not:** versions without an upstream code set (1.19.x, 1.21.2, 1.21.5–9,
-  25.x/26.x, snapshots) — the jar loads there and stays inert by design; it does
+- **Does not:** versions without an upstream code set (1.19.x, 1.21.2–9, 25.x/26.x,
+  snapshots) — the jar loads there and stays inert by design; it does
   not silently fake a renderer.
 
 ## Adding a version

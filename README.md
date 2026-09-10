@@ -396,8 +396,8 @@ chunk-building threads — as seven per-version Loom builds plus a
 
 - **Per-version jars** (`vulkanmod-mc-1.20.4` … `vulkanmod-mc-1.21.11` CI
   artifacts) are the upstream-style self-contained builds for exactly one
-  Minecraft version: 1.20.4, 1.21, 1.21.1, 1.21.3, 1.21.4, 1.21.10, 1.21.11 —
-  the versions for which upstream ships source.
+  Minecraft version: 1.20.4, 1.21, 1.21.1, 1.21.10, 1.21.11 — every version
+  for which upstream VulkanMod ships compilable source.
 - **The universal jar** (`vulkanmod-universal` CI artifact) merges all seven
   code sets into one file. Each code set is relocated into its own
   `net.vulkanmod.mc<version>` package, and every per-version mixin
