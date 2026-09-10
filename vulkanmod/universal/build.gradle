@@ -32,6 +32,11 @@ dependencies {
 	// entry point and the per-version mixin plugins.
 	implementation "net.fabricmc:fabric-loader:0.18.4"
 
+	// Logging for the entry point / packer. Declared explicitly rather than
+	// relying on fabric-loader's transitive exposure so the compile classpath
+	// is stable regardless of loader packaging.
+	implementation "org.apache.logging.log4j:log4j-api:2.21.1"
+
 	// Bytecode relocation of the per-version code sets.
 	implementation "org.ow2.asm:asm:9.7.1"
 	implementation "org.ow2.asm:asm-commons:9.7.1"

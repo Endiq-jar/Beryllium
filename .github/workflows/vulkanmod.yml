@@ -96,12 +96,11 @@ jobs:
           if ! ./gradlew --no-daemon assembleUniversal \
             --args="$ARGS --extra LICENSE_BERYLLIUM=../../LICENSE --out build/VulkanModUniversal.jar --version 1.0.0+universal" \
             > /tmp/universal-build.log 2>&1; then
-            # Log endpoints are unreliable from outside; surface the tail in the
-            # diagnostics issue (Endiq-jar/Beryllium#9) instead.
-            tail -c 7000 /tmp/universal-build.log > /tmp/universal-failure.txt
-            gh api --method POST /repos/Endiq-jar/Beryllium/issues/9/comments \
-              -f body="$(printf 'Universal build failed on %s\n\n```\n%s\n```\n' "${GITHUB_SHA::7}" "$(cat /tmp/universal-failure.txt)")" \
-              || true
+            # Log endpoints are unreliable from outside; surface the tail in
+            # the diagnostics issue (Endiq-jar/Beryllium#9) instead.
+            python3 ../../scripts/vulkanmod_post_failure.py || true
+            # Final lines to stderr so they also surface as the step annotation.
+            tail -n 25 /tmp/universal-build.log >&2 || true
             exit 1
           fi
 
