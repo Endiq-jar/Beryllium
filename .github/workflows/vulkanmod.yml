@@ -7,6 +7,9 @@ on:
 
 permissions:
   contents: read
+  # issues: write is only used to post failure details into the transient
+  # diagnostics issue (#9) while Actions log endpoints are unreachable.
+  issues: write
 concurrency:
   group: vulkanmod-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -90,8 +93,17 @@ jobs:
             aw=../../vulkanmod/mc-$v/src/main/resources/vulkanmod.accesswidener
             ARGS="$ARGS --in $v=$jar --aw $v=$aw"
           done
-          ./gradlew --no-daemon assembleUniversal \
-            --args="$ARGS --extra LICENSE_BERYLLIUM=../../LICENSE --out build/VulkanModUniversal.jar --version 1.0.0+universal"
+          if ! ./gradlew --no-daemon assembleUniversal \
+            --args="$ARGS --extra LICENSE_BERYLLIUM=../../LICENSE --out build/VulkanModUniversal.jar --version 1.0.0+universal" \
+            > /tmp/universal-build.log 2>&1; then
+            # Log endpoints are unreliable from outside; surface the tail in the
+            # diagnostics issue (Endiq-jar/Beryllium#9) instead.
+            tail -c 7000 /tmp/universal-build.log > /tmp/universal-failure.txt
+            gh api --method POST /repos/Endiq-jar/Beryllium/issues/9/comments \
+              -f body="$(printf 'Universal build failed on %s\n\n```\n%s\n```\n' "${GITHUB_SHA::7}" "$(cat /tmp/universal-failure.txt)")" \
+              || true
+            exit 1
+          fi
 
       - name: capture universal artifact
         uses: actions/upload-artifact@v7
