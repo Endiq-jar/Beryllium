@@ -10,7 +10,6 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -24,7 +23,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
@@ -236,23 +234,40 @@ public final class JarPacker {
 					// looks them up (natives/<os>/lib..., org/lwjgl/...).
 					// Fabric API module jars are left dropped (the universal
 					// build declares Fabric API as a runtime dependency).
+					int innerCount = 0;
 					int extracted = 0;
-					try (var nested = new JarInputStream(new ByteArrayInputStream(r.getValue()))) {
-						JarEntry inner;
-						while ((inner = nested.getNextJarEntry()) != null) {
-							String innerName = inner.getName();
-							if (innerName.endsWith("/") || innerName.startsWith("META-INF/")) {
-								continue;
-							}
-							if (!entries.containsKey(innerName)) {
-								entries.put(innerName, nested.readAllBytes());
-								copiedResources++;
-								extracted++;
+					List<String> firstNames = new ArrayList<>();
+					Path tempFile = null;
+					try {
+						byte[] nestedBytes = r.getValue();
+						tempFile = Files.createTempFile("nested", ".jar");
+						Files.write(tempFile, nestedBytes);
+						try (var nested = new java.util.zip.ZipFile(tempFile.toFile())) {
+							var innerEn = nested.entries();
+							while (innerEn.hasMoreElements()) {
+								ZipEntry inner = innerEn.nextElement();
+								String innerName = inner.getName();
+								if (innerName.endsWith("/") || innerName.startsWith("META-INF/")) {
+									continue;
+								}
+								innerCount++;
+								if (firstNames.size() < 3) {
+									firstNames.add(innerName);
+								}
+								if (!entries.containsKey(innerName)) {
+									entries.put(innerName, nested.getInputStream(inner).readAllBytes());
+									copiedResources++;
+									extracted++;
+								}
 							}
 						}
+					} finally {
+						if (tempFile != null) {
+							Files.deleteIfExists(tempFile);
+						}
 					}
-					System.out.println("[JarPacker] " + v + ": extracted " + extracted
-						+ " LWJGL entries from " + name);
+					System.out.println("[JarPacker] " + v + ": " + name + " -> " + innerCount
+						+ " inner entries, " + extracted + " new; first: " + firstNames);
 				} else if (name.equals("fabric.mod.json") || name.startsWith("META-INF/")
 						|| name.equals("gradle.properties") || name.endsWith(".accesswidener")
 						|| name.endsWith(".orig") || name.endsWith(".jar")) {
@@ -537,7 +552,7 @@ public final class JarPacker {
 			// present, which lands in the DIAG commit.
 			String[] requiredLwjgl = {
 				"org/lwjgl/vulkan/Vulkan.class",
-				"org/lwjgl/vma/Vma.class",
+				"org/lwjgl/util/vma/Vma.class",
 				"org/lwjgl/util/shaderc/Shaderc.class",
 				"org/lwjgl/util/spvc/Spvc.class",
 				"natives/linux/libshaderc.so",
