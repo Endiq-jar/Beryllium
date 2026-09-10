@@ -395,6 +395,12 @@ public final class JarPacker {
 		return sb.toString();
 	}
 
+
+	/** Convenience: read a jar entry as a UTF-8 string. */
+	private static String readString(JarFile jar, JarEntry entry) throws IOException {
+		return new String(read(jar, entry), StandardCharsets.UTF_8);
+	}
+
 	/* ------------------------------------------------------------------ */
 
 	/**
@@ -438,7 +444,7 @@ public final class JarPacker {
 			if (manifest == null) {
 				throw new IllegalStateException("fabric.mod.json missing");
 			}
-			JsonObject o = gson.fromJson(read(jar, manifest), JsonObject.class);
+			JsonObject o = gson.fromJson(readString(jar, manifest), JsonObject.class);
 			JsonArray mixinConfigs = o.getAsJsonArray("mixins");
 			for (JsonElement element : mixinConfigs) {
 				String configPath = element.getAsString();
@@ -446,7 +452,7 @@ public final class JarPacker {
 				if (configEntry == null) {
 					throw new IllegalStateException("mixin config missing from jar: " + configPath);
 				}
-				JsonObject config = gson.fromJson(read(jar, configEntry), JsonObject.class);
+				JsonObject config = gson.fromJson(readString(jar, configEntry), JsonObject.class);
 				String base = config.get("package").getAsString();
 				if (!base.startsWith(MOD_PACKAGE_DOTTED)) {
 					throw new IllegalStateException("mixin config package not relocated: " + configPath + " -> " + base);
@@ -479,7 +485,7 @@ public final class JarPacker {
 					if (refmapEntry == null) {
 						throw new IllegalStateException("refmap missing: " + refmap);
 					}
-					JsonObject refmapJson = gson.fromJson(read(jar, refmapEntry), JsonObject.class);
+					JsonObject refmapJson = gson.fromJson(readString(jar, refmapEntry), JsonObject.class);
 					JsonObject mappings = refmapJson.getAsJsonObject("mappings");
 					if (mappings != null) {
 						for (String key : mappings.keySet()) {
