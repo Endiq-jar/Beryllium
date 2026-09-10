@@ -391,14 +391,14 @@ With `compatibilityModeEnabled: true`, Beryllium defers automatically:
 [VulkanMod](https://github.com/xCollateral/VulkanMod) Vulkan rendering engine
 (LGPL-3.0, by xCollateral) — a full replacement of Minecraft's OpenGL renderer
 with optimized chunk meshing, section culling, entity rendering and
-chunk-building threads — as seven per-version Loom builds plus a
+chunk-building threads — as five per-version Loom builds plus a
 **universal single jar** covering all of them at once:
 
 - **Per-version jars** (`vulkanmod-mc-1.20.4` … `vulkanmod-mc-1.21.11` CI
   artifacts) are the upstream-style self-contained builds for exactly one
   Minecraft version: 1.20.4, 1.21, 1.21.1, 1.21.10, 1.21.11 — every version
   for which upstream VulkanMod ships compilable source.
-- **The universal jar** (`vulkanmod-universal` CI artifact) merges all seven
+- **The universal jar** (`vulkanmod-universal` CI artifact) merges all five
   code sets into one file. Each code set is relocated into its own
   `net.vulkanmod.mc<version>` package, and every per-version mixin
   configuration carries a version gate: on a game version that doesn't match,
