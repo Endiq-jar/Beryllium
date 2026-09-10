@@ -14,6 +14,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(CubePointRange.class)
 public abstract class CubePointRangeScaleMixin {
+
+	/**
+	 * Phase 13 — application marker. This mixin replaces vanilla methods with
+	 * {@code @Overwrite}, so there is no handler method for the runtime hook report to
+	 * find; a merged {@code @Unique} field is the reliable, behaviour-free evidence
+	 * that the mixin was actually applied to this Minecraft build. Never read by the
+	 * game itself.
+	 */
+	@org.spongepowered.asm.mixin.Unique
+	private static final boolean beryllium$hookMarker = true;
     @Shadow
     @Final
     private int parts;

@@ -5,9 +5,6 @@ import com.endiq.beryllium.config.BerylliumConfig;
 import com.endiq.beryllium.util.BerylliumLog;
 import net.minecraft.client.Minecraft;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
 /**
  * One-shot, opt-in application of a conservative video-settings preset on weak devices
  * (capability tier COMPATIBILITY or STANDARD — i.e. the mobile/low-end population this
@@ -145,55 +142,21 @@ public final class MobileTuner {
 
 	/**
 	 * Reads an option field off the options object and sets its value through the
-	 * option instance's {@code set(...)} method.
+	 * option instance's {@code set(...)} method. Delegates to {@link ClientOptions},
+	 * the project's single reflective options layer.
 	 */
 	private static boolean setOption(Object options, String fieldName, Object value) {
-		try {
-			Field field = options.getClass().getDeclaredField(fieldName);
-			field.setAccessible(true);
-			Object instance = field.get(options);
-			if (instance == null) {
-				return false;
-			}
-
-			Method set = findSingleArgMethod(instance.getClass(), "set");
-			if (set == null) {
-				return false;
-			}
-			set.invoke(instance, value);
-			return true;
-		} catch (Throwable t) {
+		// The options object is deliberately re-read by ClientOptions rather than used
+		// from this parameter: options is stable for the session, and routing every
+		// write through one place keeps the reflection and its failure behavior
+		// identical across the tuner, the max-FPS preset and Dynamic FPS.
+		if (options == null) {
 			return false;
 		}
-	}
-
-	private static Method findSingleArgMethod(Class<?> clazz, String name) {
-		for (Class<?> c = clazz; c != null && c != Object.class; c = c.getSuperclass()) {
-			for (Method method : c.getDeclaredMethods()) {
-				if (method.getName().equals(name) && method.getParameterCount() == 1) {
-					method.setAccessible(true);
-					return method;
-				}
-			}
-		}
-		return null;
+		return ClientOptions.set(fieldName, value);
 	}
 
 	private static void invokeNoArg(Object target, String name) {
-		try {
-			Class<?> clazz = target.getClass();
-			while (clazz != null && clazz != Object.class) {
-				try {
-					Method method = clazz.getDeclaredMethod(name);
-					method.setAccessible(true);
-					method.invoke(target);
-					return;
-				} catch (NoSuchMethodException e) {
-					clazz = clazz.getSuperclass();
-				}
-			}
-		} catch (Throwable t) {
-			BerylliumLog.warn("Could not call " + name + "() to persist options (" + t + "); changes still apply for this session.");
-		}
+		ClientOptions.invokeNoArg(target, name);
 	}
 }

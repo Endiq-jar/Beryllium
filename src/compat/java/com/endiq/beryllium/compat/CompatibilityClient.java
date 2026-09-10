@@ -46,5 +46,20 @@ public final class CompatibilityClient implements ClientModInitializer {
 
 		BerylliumLog.info("Loaded the mapping-free compatibility client for this Minecraft "
 			+ "release. It performs no native renderer work during startup.");
+
+		// Phase 13 — be blunt here, because this is the artifact most users will
+		// accidentally install and then report "the mod does nothing". The full
+		// renderer profile (voxel-shape suite, all culling, chunk rebuild
+		// prioritization, fog-wall/occlusion culling, Dynamic FPS, the max-FPS
+		// preset) is the 1.21.4 artifact only; every other release ships this
+		// launch-safe core by design, because guessing renderer internals on an
+		// unverified version is how a performance mod becomes a startup crash.
+		BerylliumLog.info("[BERYLLIUM-PROFILE] This artifact is the cross-version compatibility core:"
+			+ " it contains configuration, device detection, launch safety and the scheduling"
+			+ " primitives, but NO renderer hooks and NO culling. If you installed Beryllium for FPS,"
+			+ " install the 1.21.4 build (the fully verified renderer profile) or pair this version with"
+			+ " Sodium + Lithium + EntityCulling + FerriteCore + Dynamic FPS, which cover the same"
+			+ " ground per-version. Beryllium's own renderer features activate only where their hook"
+			+ " targets have been verified against that exact Minecraft version.");
 	}
 }

@@ -161,6 +161,64 @@ public class BerylliumConfig {
 	 *  configured — a close object is a large on-screen object and must never pop. */
 	public double fogCullSafeRadius = 12.0;
 
+	// --- Occlusion culling for entities (phase 13) ---
+
+	/** Traces each entity's silhouette against the voxel world and skips its render
+	 *  call when solid terrain fully hides it behind opaque blocks — the "hidden
+	 *  behind a mountain" class of entities vanilla's frustum-only check still draws
+	 *  every frame. Conservative by construction: all five rays must be blocked by a
+	 *  run of {@code BlockState#canOcclude} blocks, glass/leaves/water/partial blocks
+	 *  never count, glowing entities and the camera entity are never culled, and the
+	 *  per-frame raycast budget is bounded ({@code occlusionCullRaycastsPerFrame}).
+	 *  Purely a skip of invisible geometry: no visual setting is affected. */
+	public boolean cullOccludedEntities = true;
+
+	/** Occlusion culling never applies within this distance of the camera (near
+	 *  entities are cheap, important, and the ray is shortest — no point risking a
+	 *  visible pop on something the player is standing next to). */
+	public double occlusionCullMinDistance = 6.0;
+
+	/** Occlusion culling never applies beyond this distance; farther entities are
+	 *  already handled by frustum/fog culling. */
+	public double occlusionCullMaxDistance = 64.0;
+
+	/** Hard cap on silhouette raycasts per frame. Each candidate costs at most five
+	 *  voxel-march traces, and verdicts are cached for 100 ms, so this bounds the
+	 *  render thread's added work to a small, predictable amount per frame regardless
+	 *  of how many entities are in the world. Lower it if a very weak CPU shows the
+	 *  culling itself as a cost; raise it to cull large crowds sooner. */
+	public int occlusionCullRaycastsPerFrame = 16;
+
+	// --- Dynamic FPS (phase 13) ---
+
+	/** Lowers the client framerate limit while the game window is unfocused or
+	 *  minimized (the "Dynamic FPS" behaviour), then restores the player's own value
+	 *  the moment focus returns. The throttled value is never written to options.txt,
+	 *  and while the window is focused nothing is touched at all, so this is invisible
+	 *  during play. */
+	public boolean dynamicFps = true;
+
+	/** The framerate limit used while the window is backgrounded. Clamped up to
+	 *  vanilla's own minimum of 10 (the option's slider floor), so 10 is the lowest
+	 *  effective value — still a large saving over rendering at full speed for a
+	 *  window nobody is looking at. */
+	public int dynamicFpsUnfocusedLimit = 10;
+
+	// --- Max-FPS preset (phase 13) ---
+
+	/** One-shot preset that removes vanilla's non-visual frame costs while leaving
+	 *  every fancy visual setting exactly as the player configured it: VSync off,
+	 *  framerate limit unlocked, simulation distance at vanilla's minimum (terrain
+	 *  still renders at the full render distance; only distant simulation work
+	 *  drops). Unlike {@code autoTuneWeakDevices} this never changes particles,
+	 *  clouds, shadows, lighting, biome blending or graphics mode. Runs once;
+	 *  revert any individual setting in the video settings screen at any time. */
+	public boolean fancyMaxFpsPreset = true;
+
+	/** Internal bookkeeping: set to true once {@code fancyMaxFpsPreset} has run, so it
+	 *  is only ever applied once. Set false to re-apply. */
+	public boolean maxFpsPresetApplied = false;
+
 	// --- Leaves culling ---
 
 	/** Skips rendering the shared face between two adjacent leaves blocks (both sides are

@@ -80,6 +80,30 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
   hook points and pure distance math, so it cannot break a version at load. In
   normal play there is no visible difference (the fog already hid it); the debug
   overlay counts every skipped call per session.
+- **Occlusion culling for entities** — "hidden behind a mountain" entities are the one
+  class of invisible geometry vanilla's frustum-only check never catches. Beryllium
+  traces each entity's silhouette (center + four box corners) against the voxel world
+  and skips the render call when every ray passes through opaque blocks. Conservative
+  by construction: only `BlockState#canOcclude` full-solid blocks count (glass, leaves,
+  water, fences and partial shapes never hide anything), glowing entities and the
+  camera entity are never culled, near/far distance limits apply, at most
+  `occlusionCullRaycastsPerFrame` (default 16) silhouettes are traced per frame, and
+  verdicts are cached for 100 ms. Nothing visual is affected — only fully hidden
+  models are skipped.
+- **Dynamic FPS** — while the game window is unfocused or minimized, Beryllium lowers
+  the framerate limit (`dynamicFpsUnfocusedLimit`, default 10 — vanilla's floor),
+  restores the player's own value on focus, and never writes the throttled value to
+  `options.txt`. Invisible during play; large battery/heat savings in the background.
+- **Max-FPS preset** — a one-shot preset that removes vanilla's *non-visual* frame
+  costs while leaving every fancy visual setting exactly as configured: VSync off,
+  framerate limit unlocked, simulation distance at vanilla's minimum (terrain still
+  renders at the full render distance; only distant simulation work drops). It never
+  touches particles, clouds, shadows, lighting, biome blending or graphics mode.
+- **Runtime hook self-diagnosis** — every mixin hook is probed at client start and
+  logged as `[applied]`/`[MISSING]`, with a summary line in the debug overlay
+  (`Hooks: N/M applied`). This exists because `require = 0` hooks fail *silently* by
+  design; without the report, a user cannot tell "Beryllium is optimizing" from "every
+  hook drifted on this build".
 - **No-mercy defaults** — phase 12 posture is maximum FPS out of the box:
   `textShadowsEnabled` now defaults to `false` (removes the duplicate glyph shadow
   pass behind all text — the cheapest pure-overdraw win available), and the
@@ -199,6 +223,7 @@ optimization should never prevent Minecraft from reaching the title screen.
 | 10 — leaves internal-face culling | ✅ done |
 | 11 — text shadows toggle | ✅ done — `FontTextShadowMixin` suppresses the `dropShadow` argument of the `Font.drawInBatch` overloads |
 | 12 — fog-wall culling & max-FPS defaults | ✅ done — entities / block entities / name tags beyond the fog-wall plane are skipped on the existing verified hook surfaces (`FogCulling` + the phase 6/9/11 mixins); `textShadowsEnabled` defaults off; low-end auto-tune caps render distance per tier |
+| 13 — occlusion culling, Dynamic FPS, max-FPS preset, hook self-diagnosis | ✅ done — silhouette raymarch behind solid terrain, backgrounded-window framerate throttle, a non-visual max-FPS preset, and a startup `[applied]/[MISSING]` report for every mixin hook |
 
 > **Verification note (phases 4, 8, 11):** the mixins and hooks added in these phases
 > target 1.21.4 internals. Phase 12 deliberately adds **no new injection points**: its
@@ -207,7 +232,17 @@ optimization should never prevent Minecraft from reaching the title screen.
 > `Minecraft.options`) are members this codebase already used — the render-distance
 > value itself is captured reflectively by field name/type (`FogCulling`), so a
 > different option-system shape degrades to "culling off" instead of a wrong plane or
-> a crash. Phase 4's targets (`LevelRenderer.setSectionDirty(int,int,int)`
+> a crash.
+>
+> **Verification note (phase 13):** phase 13 also adds no new *injection points* — the
+> occlusion cull is evaluated inside the already-hooked `EntityRenderDispatcher#shouldRender`,
+> and Dynamic FPS / the max-FPS preset / the hook report are Fabric-event + reflection
+> code with no mixins at all. The four `@Overwrite`-style shape mixins gained a
+> behaviour-free `@Unique` marker field purely so the runtime hook report can prove they
+> applied (`@Overwrite` leaves no handler method to detect). `HookReport` prints
+> `[applied]/[MISSING]` per hook at client start: treat any `[MISSING]` line as "that
+> feature is inactive on this build, and needs re-verification against this exact
+> version's mappings before it can be trusted". Phase 4's targets (`LevelRenderer.setSectionDirty(int,int,int)`
 > and `(int,int,int,boolean)`, `ViewArea.setDirty(int,int,int,boolean)` — the
 > pre-1.21.2 `SectionRenderDispatcher.setSectionDirty(long,boolean)` no longer exists)
 > and phase 11's `Font.drawInBatch` overloads are verified against 1.21.4
@@ -302,6 +337,14 @@ transcribed constants nobody could check.
 | `fogCullFactor` | `0.9` | Fog-wall plane as a fraction of render distance; `>= 2.0` disables fog-wall culling |
 | `fogCullSafeRadius` | `12.0` | Fog-wall culling never applies inside this distance from the camera |
 | `textShadowsEnabled` | `false` | Text drop-shadow toggle — `false` (default) removes the shadow pass behind all text (GUI, name tags, signs, tooltips); set `true` for the vanilla look |
+| `cullOccludedEntities` | `true` | Skip entities whose silhouette is fully blocked by opaque blocks (phase 13) |
+| `occlusionCullMinDistance` | `6.0` | Occlusion culling never applies closer than this |
+| `occlusionCullMaxDistance` | `64.0` | Occlusion culling never applies farther than this |
+| `occlusionCullRaycastsPerFrame` | `16` | Hard cap on silhouette raycasts per frame (verdicts cached 100 ms) |
+| `dynamicFps` | `true` | Lower the framerate limit while the window is unfocused/minimized |
+| `dynamicFpsUnfocusedLimit` | `10` | Framerate limit used while backgrounded (vanilla floor) |
+| `fancyMaxFpsPreset` | `true` | One-shot non-visual preset: VSync off, FPS unlocked, simulation distance at minimum |
+| `maxFpsPresetApplied` | `false` | Internal: set once the max-FPS preset has run |
 | `chunkRebuildPrioritization` | `true` | Reorder chunk-section rebuilds by proximity + view alignment + urgency |
 | `chunkRebuildsPerFrame` | `3` | Prioritized rebuilds re-triggered per rendered frame |
 | `chunkRebuildQueueLimit` | `128` | Hard cap on the prioritization queue; past it, vanilla schedules directly (bounded staleness) |

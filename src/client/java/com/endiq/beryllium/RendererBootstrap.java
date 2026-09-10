@@ -4,6 +4,8 @@ import com.endiq.beryllium.capability.GraphicsCapabilityClassifier;
 import com.endiq.beryllium.capability.GraphicsCapabilityTier;
 import com.endiq.beryllium.chunk.ChunkRebuildManager;
 import com.endiq.beryllium.device.DeviceDetector;
+import com.endiq.beryllium.diagnostics.HookReport;
+import com.endiq.beryllium.performance.DynamicFpsController;
 import com.endiq.beryllium.device.GpuDetector;
 import com.endiq.beryllium.device.GpuInfo;
 import com.endiq.beryllium.performance.FrameMaintenanceScheduler;
@@ -11,6 +13,7 @@ import com.endiq.beryllium.performance.WorkPriority;
 import com.endiq.beryllium.profiler.DebugOverlay;
 import com.endiq.beryllium.profiler.FrameProfiler;
 import com.endiq.beryllium.shader.ShaderPreloader;
+import com.endiq.beryllium.tune.MaxFpsPreset;
 import com.endiq.beryllium.tune.MobileTuner;
 import com.endiq.beryllium.util.BerylliumLog;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
@@ -29,6 +32,10 @@ final class RendererBootstrap {
 		FrameProfiler profiler = new FrameProfiler();
 		profiler.register();
 		new DebugOverlay(profiler).register();
+
+		// Phase 13 — Dynamic FPS: drop the framerate limit while the window is in the
+		// background, restore it on focus. Pure option reflection; no hooks, no risk.
+		DynamicFpsController.register();
 
 		// Phase 4 — chunk rebuild prioritization, wired into the 1.21.4 section pipeline.
 		// The mixins (ViewAreaMixin/LevelRendererMixin) feed dirty sections into
@@ -87,6 +94,19 @@ final class RendererBootstrap {
 			// GPU-based tier decision both need. Running it here means the preset is in
 			// place before the first world is rendered.
 			MobileTuner.applyIfEligible(Beryllium.config(), tier);
+
+			// Phase 13 — max-FPS preset (non-visual options only). Runs after the
+			// weak-device tuner so the two presets compose: on a weak device the
+			// tuner's visual trade-offs apply first and this then removes the
+			// non-visual frame costs; on a strong device only this preset applies.
+			MaxFpsPreset.applyIfEligible(Beryllium.config());
+
+			// Phase 13 — hook self-diagnosis. Mixins are applied by now (the client is
+			// fully started), so this is the first point where "did Beryllium's hooks
+			// actually attach to this exact Minecraft build?" can be answered. Logged
+			// unconditionally: an inert hook set is the number-one cause of "the mod
+			// looks like it does nothing", and that must be visible in every log.
+			HookReport.runAndLog();
 
 			// Same timing argument: the GL context exists and no world is rendering yet,
 			// so any shader compile that happens here is earlier than vanilla's first use.

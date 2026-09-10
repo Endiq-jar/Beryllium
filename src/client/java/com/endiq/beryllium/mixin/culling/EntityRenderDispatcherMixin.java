@@ -4,6 +4,7 @@ import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
 import com.endiq.beryllium.culling.BehindCameraCulling;
 import com.endiq.beryllium.culling.FogCulling;
+import com.endiq.beryllium.culling.OcclusionCulling;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -69,6 +70,16 @@ public abstract class EntityRenderDispatcherMixin {
 		if (FogCulling.isBeyondFogWall(camPos.x, camPos.y, camPos.z, x, y, z,
 			config.fogCullSafeRadius)) {
 			FogCulling.noteHiddenEntity();
+			cir.setReturnValue(false);
+			return;
+		}
+
+		// Phase 13 — occlusion cull ("EntityCulling technology"): an entity behind
+		// solid terrain is still frustum-visible to vanilla. Trace the entity's
+		// silhouette against the voxel world and skip the render call when every ray
+		// is blocked by opaque blocks. Budgeted and cached inside OcclusionCulling;
+		// glowing entities, the camera entity and anything ambiguous are never culled.
+		if (OcclusionCulling.isOccluded(entity, camPos.x, camPos.y, camPos.z)) {
 			cir.setReturnValue(false);
 		}
 	}

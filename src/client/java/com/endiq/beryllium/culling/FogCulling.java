@@ -2,9 +2,7 @@ package com.endiq.beryllium.culling;
 
 import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
-import net.minecraft.client.Minecraft;
-
-import java.lang.reflect.Field;
+import com.endiq.beryllium.tune.ClientOptions;
 
 /**
  * Phase 12 — "fog-wall" culling: skip content that sits deep inside the
@@ -106,73 +104,20 @@ public final class FogCulling {
 	}
 
 	/**
-	 * Reads the client's render distance option without naming any version-specific
-	 * accessor: {@code Minecraft.options} (a stable public field across the covered
-	 * range) carries an option object whose {@code renderDistance} field is the
-	 * {@code OptionInstance}; that instance stores its current value in whichever
-	 * instance field currently holds an {@link Integer}. Walking fields by name and
-	 * type — the same reflective-capture style as {@code MobileTuner} and
-	 * {@code BlockEntityCulling} — keeps this compiling and working across the
-	 * option-system refactors; any miss returns -1 (cull disabled, never a crash).
+	 * Reads the client's render distance option through the shared reflective options
+	 * layer ({@link ClientOptions}). Any miss returns -1, which disables the cull for
+	 * that call — never a wrong plane, never a crash.
 	 */
 	private static int readRenderDistanceChunks() {
 		try {
-			Minecraft minecraft = Minecraft.getInstance();
-			if (minecraft == null || minecraft.options == null) {
-				return -1;
-			}
-			Object options = minecraft.options;
-			for (Class<?> c = options.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
-				Field optionField;
-				try {
-					optionField = c.getDeclaredField("renderDistance");
-				} catch (NoSuchFieldException e) {
-					continue;
-				}
-				optionField.setAccessible(true);
-				Object instance = optionField.get(options);
-				Integer chunks = findIntegerValue(instance);
-				if (chunks != null && chunks > 0) {
-					return chunks;
-				}
-			}
-			return -1;
-		} catch (Throwable t) {
-			// Unreadable options must never break a frame — cull nothing.
-			return -1;
-		}
-	}
-
-	private static Integer findIntegerValue(Object instance) {
-		if (instance == null) {
-			return null;
-		}
-		// The current value of an OptionInstance is its "value" field (Mojang's
-		// option-system shape across the covered range). Prefer that exact name:
-		// callback objects may hold OTHER Integers (min/max bounds), so a generic
-		// "any Integer field" scan could pick a bound and cull at the wrong plane.
-		try {
-			for (Class<?> c = instance.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
-				Field valueField;
-				try {
-					valueField = c.getDeclaredField("value");
-				} catch (NoSuchFieldException e) {
-					continue;
-				}
-				if (java.lang.reflect.Modifier.isStatic(valueField.getModifiers())) {
-					continue;
-				}
-				valueField.setAccessible(true);
-				Object value = valueField.get(instance);
-				if (value instanceof Integer integer) {
-					return integer;
-				}
+			Integer chunks = ClientOptions.readInt("renderDistance");
+			if (chunks != null && chunks > 0) {
+				return chunks;
 			}
 		} catch (Throwable ignored) {
-			// fall through to "unknown"
+			// unresolvable -> cull disabled
 		}
-		// Unknown layout: disable the cull rather than risk a wrong plane.
-		return null;
+		return -1;
 	}
 
 	/**
