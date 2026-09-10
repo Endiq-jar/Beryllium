@@ -130,6 +130,7 @@ public final class JarPacker {
 				}
 
 				boolean vulkanConfigHasRefmapKey = false;
+				String vulkanConfigRefmapName = null;
 				String vulkanConfigName = "vulkanmod.mixins.json";
 				if (!raw.containsKey(vulkanConfigName)) {
 					for (String candidate : raw.keySet()) {
@@ -143,6 +144,9 @@ public final class JarPacker {
 					JsonObject config = new Gson().fromJson(
 							new String(raw.get(vulkanConfigName), StandardCharsets.UTF_8), JsonObject.class);
 					vulkanConfigHasRefmapKey = config.has("refmap");
+					if (vulkanConfigHasRefmapKey) {
+						vulkanConfigRefmapName = config.get("refmap").getAsString();
+					}
 				}
 
 				for (Map.Entry<String, byte[]> r : raw.entrySet()) {
@@ -162,7 +166,9 @@ public final class JarPacker {
 						byte[] rewritten = rewriteMixinConfig(r.getValue(), prefixDotted, compact,
 								!vulkanConfigHasRefmapKey && raw.containsKey("vulkanmod.refmap.json"));
 						entries.put(prefix + "vulkanmod.mixins.json", rewritten);
-				} else if (name.equals("vulkanmod.refmap.json")) {
+				} else if (vulkanConfigRefmapName != null && name.equals(vulkanConfigRefmapName)) {
+					// The version's own refmap (path taken from its mixin
+					// config, not hard-coded).
 					entries.put("vulkanmod-mc" + compact + ".refmap.json",
 						rewriteRefmap(r.getValue(), prefix));
 					} else if (name.endsWith(".mixins.json") || name.endsWith(".refmap.json")) {
