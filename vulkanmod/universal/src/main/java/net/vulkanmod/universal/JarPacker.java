@@ -291,7 +291,10 @@ public final class JarPacker {
 		};
 		ClassReader reader = new ClassReader(classBytes);
 		ClassWriter writer = new ClassWriter(reader, 0);
-		new ClassRemapper(writer, remapper).accept(reader, 0);
+		// ClassRemapper is a ClassVisitor: drive it from the reader.  Frames
+		// stay valid without COMPUTE_FRAMES because only class names change
+		// (same hierarchy), so frame descriptors remap consistently.
+		reader.accept(new ClassRemapper(writer, remapper), 0);
 		return writer.toByteArray();
 	}
 
