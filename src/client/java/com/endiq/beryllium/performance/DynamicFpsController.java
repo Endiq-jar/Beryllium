@@ -34,9 +34,9 @@ import net.minecraft.client.Minecraft;
  *       rendering at all), the option value is irrelevant; we still restore correctly.</li>
  * </ul>
  *
- * <p>Window state is read through the mapped {@code Minecraft.getWindow()} API, which
- * is the one part of the window stack the renderer profile already uses elsewhere;
- * any failure leaves the throttle off.
+ * <p>Window state is read reflectively (see {@link #isBackgrounded()}), so a window API
+ * whose accessor names differ on a given build leaves the throttle off rather than
+ * failing to compile or throwing at runtime.
  */
 public final class DynamicFpsController {
 	private DynamicFpsController() {
@@ -112,17 +112,61 @@ public final class DynamicFpsController {
 		}
 	}
 
-	/** True when the game window is minimized or not the focused window. */
+	/**
+	 * True when the game window is minimized or not the focused window.
+	 *
+	 * <p>Read reflectively through {@code Minecraft.getWindow()} rather than against the
+	 * window class directly: the window/minimized/focused accessor names differ between
+	 * the Minecraft versions this profile targets (and a wrong name is a compile error,
+	 * not a runtime fallback). Several candidate method names are tried; any miss leaves
+	 * the throttle off, which is exactly the intended behavior — no window state, no
+	 * framerate change.
+	 */
 	private static boolean isBackgrounded() {
-		try {
-			Minecraft minecraft = Minecraft.getInstance();
-			if (minecraft == null || minecraft.getWindow() == null) {
-				return false;
-			}
-			var window = minecraft.getWindow();
-			return window.isIconified() || !window.isFocused();
-		} catch (Throwable t) {
+		Minecraft minecraft = Minecraft.getInstance();
+		if (minecraft == null) {
 			return false;
 		}
+		Object window = invokeObject(minecraft, "getWindow");
+		if (window == null) {
+			return false;
+		}
+		// Minimized (any of the known accessor names) or not the focused window.
+		if (invokeBoolean(window, "isIconified", "isMinimized")) {
+			return true;
+		}
+		return !invokeBoolean(window, "isFocused", "isActive");
+	}
+
+	/** Invokes the first matching no-arg method that returns a boolean; false on any miss. */
+	private static boolean invokeBoolean(Object target, String... names) {
+		Object result = invokeObject(target, names);
+		return result instanceof Boolean value && value;
+	}
+
+	/** Invokes the first matching no-arg method by name (walking superclasses); null on any miss. */
+	private static Object invokeObject(Object target, String... names) {
+		if (target == null || names == null) {
+			return null;
+		}
+		try {
+			for (Class<?> c = target.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+				for (String name : names) {
+					try {
+						java.lang.reflect.Method method = c.getDeclaredMethod(name);
+						if (method.getParameterCount() != 0) {
+							continue;
+						}
+						method.setAccessible(true);
+						return method.invoke(target);
+					} catch (NoSuchMethodException e) {
+						// try the next candidate name
+					}
+				}
+			}
+		} catch (Throwable ignored) {
+			// any reflection failure -> caller treats as "unknown"
+		}
+		return null;
 	}
 }
