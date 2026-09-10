@@ -1,5 +1,6 @@
 package com.endiq.beryllium.compat;
 
+import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
 import com.endiq.beryllium.device.DeviceDetector;
 import com.endiq.beryllium.device.DeviceInfo;
