@@ -538,18 +538,23 @@ public final class JarPacker {
 			String[] requiredLwjgl = {
 				"org/lwjgl/vulkan/Vulkan.class",
 				"org/lwjgl/vma/Vma.class",
-				"org/lwjgl/shaderc/Shaderc.class",
-				"org/lwjgl/spvc/Spvc.class",
+				"org/lwjgl/util/shaderc/Shaderc.class",
+				"org/lwjgl/util/spvc/Spvc.class",
 				"natives/linux/libshaderc.so",
 				"natives/windows/shaderc.dll",
 				"natives/macos/libshaderc.dylib",
 				"natives/macos-arm64/libshaderc.dylib",
 			};
+			List<String> missing = new ArrayList<>();
 			for (String required : requiredLwjgl) {
 				if (jar.getJarEntry(required) == null) {
-					throw new IllegalStateException("required LWJGL entry missing from universal jar: "
-						+ required + " (present: " + listLwjglEntries(jar) + ")");
+					missing.add(required);
 				}
+			}
+			if (!missing.isEmpty()) {
+				throw new IllegalStateException("required LWJGL entries missing from universal jar: "
+					+ missing + " (org/lwjgl subpackages: " + listLwjglSubpackages(jar)
+					+ "; natives: " + listNativeEntries(jar) + ")");
 			}
 
 			JarEntry manifest = jar.getJarEntry("fabric.mod.json");
@@ -627,22 +632,34 @@ public final class JarPacker {
 				+ " version-prefixed/universal classes, " + natives + " native resource entries");
 	}
 
-	/** Up to 20 LWJGL-related entry names, for diagnostics. */
-	private static String listLwjglEntries(JarFile jar) throws IOException {
+	/** Distinct org/lwjgl/** subpackage directories (3 levels), for diagnostics. */
+	private static String listLwjglSubpackages(JarFile jar) throws IOException {
+		Set<String> subs = new LinkedHashSet<>();
+		var en = jar.entries();
+		while (en.hasMoreElements()) {
+			String name = en.nextElement().getName();
+			if (name.startsWith("org/lwjgl/")) {
+				String rest = name.substring("org/lwjgl/".length());
+				String[] parts = rest.split("/");
+				if (parts.length >= 2) {
+					subs.add(parts[0] + (parts.length >= 3 ? "/" + parts[1] : ""));
+				}
+			}
+		}
+		return subs.isEmpty() ? "none" : String.join(", ", subs);
+	}
+
+	/** natives/** entry names, for diagnostics. */
+	private static String listNativeEntries(JarFile jar) throws IOException {
 		List<String> found = new ArrayList<>();
 		var en = jar.entries();
 		while (en.hasMoreElements()) {
 			String name = en.nextElement().getName();
-			if (name.startsWith("natives/") || name.startsWith("natives-")
-					|| name.startsWith("org/lwjgl/")
-					|| (name.endsWith(".jar") && name.contains("natives"))) {
+			if (name.startsWith("natives/") || name.startsWith("natives-")) {
 				found.add(name);
-				if (found.size() >= 20) {
-					break;
-				}
 			}
 		}
-		return found.isEmpty() ? "nothing LWJGL-related" : String.join(", ", found);
+		return found.isEmpty() ? "none" : String.join(", ", found);
 	}
 
 	private static boolean hasVersionPackage(String name, Set<String> versions) {
