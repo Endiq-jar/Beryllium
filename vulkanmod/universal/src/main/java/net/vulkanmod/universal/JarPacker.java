@@ -228,10 +228,14 @@ public final class JarPacker {
 					} else if (name.endsWith(".mixins.json") || name.endsWith(".refmap.json")) {
 						// Bundled Fabric API mixin configs / refmaps: dropped along
 						// with the API classes (the runtime API brings its own).
-				} else if (name.endsWith(".jar") && name.startsWith("lwjgl-") && name.contains("-natives-")) {
-					// LWJGL native bundles shipped jar-in-jar: extract their
-					// loose entries (natives/<os>/lib...) so LWJGL's classpath
-					// loader can find them inside the universal jar.
+				} else if (name.startsWith("META-INF/jars/") && name.contains("lwjgl")) {
+					// Loom's include() bundles dependencies as nested jars
+					// under META-INF/jars/.  The LWJGL ones (Java bindings
+					// plus native libraries) are version-agnostic, so extract
+					// their loose entries to the classpath root where LWJGL
+					// looks them up (natives/<os>/lib..., org/lwjgl/...).
+					// Fabric API module jars are left dropped (the universal
+					// build declares Fabric API as a runtime dependency).
 					int extracted = 0;
 					try (var nested = new JarInputStream(new ByteArrayInputStream(r.getValue()))) {
 						JarEntry inner;
@@ -248,7 +252,7 @@ public final class JarPacker {
 						}
 					}
 					System.out.println("[JarPacker] " + v + ": extracted " + extracted
-						+ " native entries from " + name);
+						+ " LWJGL entries from " + name);
 				} else if (name.equals("fabric.mod.json") || name.startsWith("META-INF/")
 						|| name.equals("gradle.properties") || name.endsWith(".accesswidener")
 						|| name.endsWith(".orig") || name.endsWith(".jar")) {
