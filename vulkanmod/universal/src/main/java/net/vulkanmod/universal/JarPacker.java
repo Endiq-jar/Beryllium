@@ -10,6 +10,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -23,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
@@ -155,14 +157,21 @@ public final class JarPacker {
 						entries.put(prefix + name.substring(MOD_PACKAGE.length()),
 								renameClassBytes(r.getValue(), prefix));
 						classes++;
-					} else if (name.startsWith("net/fabricmc/")) {
-						// Bundled Fabric API module classes: version-specific and
-						// colliding, so the universal build depends on the API at
-						// runtime instead.
-						api++;
-					} else if (name.endsWith(".class")) {
-						System.err.println("[JarPacker] WARNING: unexpected class from " + v + ": " + name);
-					} else if (name.equals(vulkanConfigName)) {
+				} else if (name.startsWith("net/fabricmc/")) {
+					// Bundled Fabric API module classes: version-specific and
+					// colliding, so the universal build depends on the API at
+					// runtime instead.
+					api++;
+				} else if (name.startsWith("org/lwjgl/") && name.endsWith(".class")) {
+					// LWJGL Java bindings bundled by upstream: version-agnostic,
+					// shared by every code set (first version wins).
+					if (!entries.containsKey(name)) {
+						entries.put(name, r.getValue());
+						copiedResources++;
+					}
+				} else if (name.endsWith(".class")) {
+					System.err.println("[JarPacker] WARNING: unexpected class from " + v + ": " + name);
+				} else if (name.equals(vulkanConfigName)) {
 						byte[] rewritten = rewriteMixinConfig(r.getValue(), prefixDotted, compact,
 								!vulkanConfigHasRefmapKey && raw.containsKey("vulkanmod.refmap.json"));
 						entries.put(prefix + "vulkanmod.mixins.json", rewritten);
@@ -174,11 +183,32 @@ public final class JarPacker {
 					} else if (name.endsWith(".mixins.json") || name.endsWith(".refmap.json")) {
 						// Bundled Fabric API mixin configs / refmaps: dropped along
 						// with the API classes (the runtime API brings its own).
-					} else if (name.equals("fabric.mod.json") || name.startsWith("META-INF/")
-							|| name.equals("gradle.properties") || name.endsWith(".accesswidener")
-							|| name.endsWith(".orig") || name.endsWith(".jar")) {
-						// replaced by the universal manifest or dropped
-					} else if (name.startsWith("LICENSE")) {
+				} else if (name.endsWith(".jar") && name.startsWith("lwjgl-") && name.contains("-natives-")) {
+					// LWJGL native bundles shipped jar-in-jar: extract their
+					// loose entries (natives/<os>/lib...) so LWJGL's classpath
+					// loader can find them inside the universal jar.
+					int extracted = 0;
+					try (var nested = new JarInputStream(new ByteArrayInputStream(r.getValue()))) {
+						JarEntry inner;
+						while ((inner = nested.getNextJarEntry()) != null) {
+							String innerName = inner.getName();
+							if (innerName.endsWith("/") || innerName.startsWith("META-INF/")) {
+								continue;
+							}
+							if (!entries.containsKey(innerName)) {
+								entries.put(innerName, nested.readAllBytes());
+								copiedResources++;
+								extracted++;
+							}
+						}
+					}
+					System.out.println("[JarPacker] " + v + ": extracted " + extracted
+						+ " native entries from " + name);
+				} else if (name.equals("fabric.mod.json") || name.startsWith("META-INF/")
+						|| name.equals("gradle.properties") || name.endsWith(".accesswidener")
+						|| name.endsWith(".orig") || name.endsWith(".jar")) {
+					// replaced by the universal manifest or dropped
+				} else if (name.startsWith("LICENSE")) {
 						// Each per-version jar carries its own LGPL copy (renamed by
 						// the upstream jar task); the universal jar keeps one.
 						if (!entries.containsKey("LICENSE")) {
@@ -452,6 +482,27 @@ public final class JarPacker {
 				}
 			}
 
+			// Hard gate: without the LWJGL bindings and native libraries the
+			// universal jar would crash on every launch, so fail the build
+			// rather than ship it.  On failure the message lists what IS
+			// present, which lands in the DIAG commit.
+			String[] requiredLwjgl = {
+				"org/lwjgl/vulkan/Vulkan.class",
+				"org/lwjgl/vma/Vma.class",
+				"org/lwjgl/shaderc/Shaderc.class",
+				"org/lwjgl/spvc/Spvc.class",
+				"natives/linux/libshaderc.so",
+				"natives/windows/shaderc.dll",
+				"natives/macos/libshaderc.dylib",
+				"natives/macos-arm64/libshaderc.dylib",
+			};
+			for (String required : requiredLwjgl) {
+				if (jar.getJarEntry(required) == null) {
+					throw new IllegalStateException("required LWJGL entry missing from universal jar: "
+						+ required + " (present: " + listLwjglEntries(jar) + ")");
+				}
+			}
+
 			JarEntry manifest = jar.getJarEntry("fabric.mod.json");
 			if (manifest == null) {
 				throw new IllegalStateException("fabric.mod.json missing");
@@ -525,6 +576,24 @@ public final class JarPacker {
 		}
 		System.out.println("[JarPacker] verification passed: " + classes
 				+ " version-prefixed/universal classes, " + natives + " native resource entries");
+	}
+
+	/** Up to 20 LWJGL-related entry names, for diagnostics. */
+	private static String listLwjglEntries(JarFile jar) throws IOException {
+		List<String> found = new ArrayList<>();
+		var en = jar.entries();
+		while (en.hasMoreElements()) {
+			String name = en.nextElement().getName();
+			if (name.startsWith("natives/") || name.startsWith("natives-")
+					|| name.startsWith("org/lwjgl/")
+					|| (name.endsWith(".jar") && name.contains("natives"))) {
+				found.add(name);
+				if (found.size() >= 20) {
+					break;
+				}
+			}
+		}
+		return found.isEmpty() ? "nothing LWJGL-related" : String.join(", ", found);
 	}
 
 	private static boolean hasVersionPackage(String name, Set<String> versions) {
