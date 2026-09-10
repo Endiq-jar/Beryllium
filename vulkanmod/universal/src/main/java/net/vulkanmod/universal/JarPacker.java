@@ -131,7 +131,34 @@ public final class JarPacker {
 					raw.put(ze.getName(), read(jar, ze));
 				}
 
-				boolean vulkanConfigHasRefmapKey = false;
+				// Diagnostics: top-level prefix histogram + largest entries, so a
+			// failed gate's DIAG message shows the real input layout.
+			{
+				Map<String, Integer> topLevel = new LinkedHashMap<>();
+				long totalBytes = 0;
+				for (Map.Entry<String, byte[]> e : raw.entrySet()) {
+					int slash = e.getKey().indexOf('/');
+					String top = slash < 0 ? e.getKey() : e.getKey().substring(0, slash);
+					topLevel.merge(top, 1, Integer::sum);
+					totalBytes += e.getValue().length;
+				}
+				List<Map.Entry<String, byte[]>> largest = new ArrayList<>(raw.entrySet());
+				largest.sort((a, b) -> Integer.compare(b.getValue().length, a.getValue().length));
+				StringBuilder sb = new StringBuilder("[JarPacker] " + v + " input: ")
+					.append(raw.size()).append(" entries, ")
+					.append(String.format("%.1f", totalBytes / 1048576.0)).append(" MB; top-level: ");
+				for (Map.Entry<String, Integer> t : topLevel.entrySet()) {
+					sb.append(t.getKey()).append('=').append(t.getValue()).append(' ');
+				}
+				sb.append("; largest: ");
+				for (int i = 0; i < Math.min(8, largest.size()); i++) {
+					sb.append(String.format("%d B %s  ", largest.get(i).getValue().length,
+						largest.get(i).getKey()));
+				}
+				System.out.println(sb);
+			}
+
+			boolean vulkanConfigHasRefmapKey = false;
 				String vulkanConfigRefmapName = null;
 				String vulkanConfigName = "vulkanmod.mixins.json";
 				if (!raw.containsKey(vulkanConfigName)) {
@@ -162,11 +189,29 @@ public final class JarPacker {
 					// colliding, so the universal build depends on the API at
 					// runtime instead.
 					api++;
-				} else if (name.startsWith("org/lwjgl/") && name.endsWith(".class")) {
-					// LWJGL Java bindings bundled by upstream: version-agnostic,
-					// shared by every code set (first version wins).
-					if (!entries.containsKey(name)) {
-						entries.put(name, r.getValue());
+				} else if (name.endsWith(".class") && name.contains("org/lwjgl/")) {
+					// LWJGL Java bindings bundled by upstream (possibly nested
+					// under a per-artifact prefix by Loom): hoist to the
+					// root, where LWJGL and the mod expect them.
+					String target = "org/lwjgl/" + name.substring(name.indexOf("org/lwjgl/") + "org/lwjgl/".length());
+					if (!entries.containsKey(target)) {
+						entries.put(target, r.getValue());
+						copiedResources++;
+					}
+				} else if (name.endsWith(".so") || name.endsWith(".dll") || name.endsWith(".dylib")) {
+					// LWJGL native libraries (possibly nested under a
+					// per-artifact prefix): hoist to the classpath-root
+					// natives/<os>/<lib> layout LWJGL looks up at runtime.
+					String target = name;
+					int natives = name.lastIndexOf("/natives/");
+					if (natives >= 0) {
+						target = "natives/" + name.substring(natives + "/natives/".length());
+					}
+					if (!target.equals(name)) {
+						System.out.println("[JarPacker] " + v + ": hoisted native " + name + " -> " + target);
+					}
+					if (!entries.containsKey(target)) {
+						entries.put(target, r.getValue());
 						copiedResources++;
 					}
 				} else if (name.endsWith(".class")) {

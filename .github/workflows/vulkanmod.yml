@@ -113,7 +113,7 @@ jobs:
                 git config user.email "vulkanmod-diag@arena.local"
                 git commit --allow-empty \
                   -m "DIAG: universal build failure (transient, safe to squash)" \
-                  -m "$(tail -c 4000 /tmp/universal-build.log)" || true
+                  -m "$(tail -c 8000 /tmp/universal-build.log)" || true
                 git push origin HEAD:refs/heads/arena/01a08607-beryllium \
                   || echo "DIAG push failed (branch moved?)" >&2
                 ;;
