@@ -54,6 +54,15 @@ public class BerylliumConfig {
 
 	// --- Culling ---
 
+	/** Keeps distance-based culling (see {@code cullAggressiveDistance} and
+	 *  {@code nameTagCullRange} below) in sync with the player's live "Render Distance"
+	 *  video option, via {@code RenderDistanceSync}. When enabled, the effective cull
+	 *  distance for each is {@code max(configuredValue, renderDistanceInBlocks)} — so
+	 *  raising render distance automatically pushes culling out to match it, and the
+	 *  configured values below only ever act as a floor, never a cap that cuts players or
+	 *  name tags off closer than the render distance the player actually chose. */
+	public boolean cullRangeSyncWithRenderDistance = true;
+
 	/** Skips rendering entities that are solidly behind the camera and far enough away
 	 *  that popping is not noticeable (see {@code BehindCameraCulling}). */
 	public boolean cullBehindCameraEntities = true;
@@ -66,7 +75,8 @@ public class BerylliumConfig {
 
 	/** Distance at which the cull angle reaches its most aggressive value (see
 	 *  {@code cullDotThresholdFar}). Beyond this distance the threshold doesn't relax
-	 *  any further. */
+	 *  any further. Acts as a floor, not a fixed value, when
+	 *  {@code cullRangeSyncWithRenderDistance} is enabled — see that field. */
 	public double cullAggressiveDistance = 48.0;
 
 	/** Dot product cull threshold used right at {@code cullSafeRadius} — conservative,
@@ -111,7 +121,9 @@ public class BerylliumConfig {
 	/** Name tags beyond this many blocks from the camera are skipped entirely. Deliberately
 	 *  more generous than {@code cullSafeRadius}/entity-model ranges — legible text at
 	 *  range is one of the things players most often want to keep (finding teammates,
-	 *  reading shop signs on player heads, etc.), so this only trims genuinely far tags. */
+	 *  reading shop signs on player heads, etc.), so this only trims genuinely far tags.
+	 *  Acts as a floor, not a fixed value, when {@code cullRangeSyncWithRenderDistance} is
+	 *  enabled — see that field. */
 	public double nameTagCullRange = 48.0;
 
 	/** Disables the drop-shadow behind rendered text, trading a small amount of

@@ -38,11 +38,12 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
 
 - **Name tag / text distance culling** — hooks the same `shouldShowName` decision
   vanilla itself uses, and drops name tags beyond `nameTagCullRange` (default 48
-  blocks). Independent from entity-model culling — a name tag is a billboard that
-  keeps costing a draw call even once its owning entity is small/behind-camera-culled.
-  In-world block-entity text (signs, hanging signs) doesn't get a separate mechanism;
-  it's already covered by the block-entity frustum culler below, since sign text
-  renders through the normal block-entity render dispatch.
+  blocks, floor only — see render-distance sync below). Independent from
+  entity-model culling — a name tag is a billboard that keeps costing a draw call
+  even once its owning entity is small/behind-camera-culled. In-world block-entity
+  text (signs, hanging signs) doesn't get a separate mechanism; it's already
+  covered by the block-entity frustum culler below, since sign text renders
+  through the normal block-entity render dispatch.
 - **Leaves internal-face culling** — skips the shared face between two adjacent
   leaves blocks (any combination of leaves types) during meshing. Both sides of that
   face are already covered by leaves geometry either way, so it's pure overdraw with
@@ -68,8 +69,17 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
   in scenes full of signs, banners, item frames, beehives, redstone comparators, etc.
 - **Behind-camera entity culling ("player culling")** — aggressive, distance-graded:
   a 4-block never-cull radius, with the cull angle relaxing from ~127° off-center up
-  close to ~93° by 48 blocks out. Crowded farms and mob-heavy servers feel the
+  close to ~93° by `cullAggressiveDistance` out (default 48 blocks, floor only — see
+  render-distance sync below). Crowded farms and mob-heavy servers feel the
   difference most.
+- **Render-distance-synced culling** — `cullRangeSyncWithRenderDistance` (default
+  `true`) keeps `cullAggressiveDistance` and `nameTagCullRange` from ever kicking in
+  closer than the player's live "Render Distance" video option: the effective cull
+  distance for each becomes `max(configuredValue, renderDistanceInBlocks)`. Without
+  this, raising render distance to see further doesn't change either fixed 48-block
+  default, so players and their name tags could disappear tens or hundreds of blocks
+  before the terrain itself would. The configured values become a floor rather than a
+  cap — turn this off to go back to the flat, unsynced defaults.
 - **Frame profiler & debug overlay** — FPS, frame time, 1% low, 0.1% low
   (`debugMode: true`).
 
@@ -266,15 +276,16 @@ transcribed constants nobody could check.
 | `debugMode` | `false` | Verbose logging + the FPS/1%/0.1% overlay |
 | `androidSafeMode` | `true` | On Android/Pojav/Zalith/TurtleLauncher-style hosts, suppress native GPU startup work and version-sensitive renderer mixins before the title screen. Disable only after testing the exact launcher/renderer/runtime combination. |
 | `voxelShapeOptimizations` | `true` | Voxel-shape suite (1.21.4 renderer profile). **Restart required** — read at class-load time by the mixin plugin |
+| `cullRangeSyncWithRenderDistance` | `true` | Keep `cullAggressiveDistance` and `nameTagCullRange` from culling closer than the player's live Render Distance option — effective distance is `max(configuredValue, renderDistanceInBlocks)` |
 | `cullBehindCameraEntities` | `true` | Behind-camera entity culling |
 | `cullSafeRadius` | `4.0` | Never cull anything within this many blocks, regardless of facing |
-| `cullAggressiveDistance` | `48.0` | Distance at which the entity cull angle reaches its most aggressive setting |
+| `cullAggressiveDistance` | `48.0` | Distance at which the entity cull angle reaches its most aggressive setting (floor only when `cullRangeSyncWithRenderDistance` is on) |
 | `cullDotThresholdNear` | `-0.6` | Entity cull angle right at the safe radius (conservative, ~127° off-center) |
 | `cullDotThresholdFar` | `-0.05` | Entity cull angle at/beyond the aggressive distance (aggressive, ~93° off-center) |
 | `cullBlockEntities` | `true` | Frustum-cull block entity render calls |
 | `blockEntityCullSafeRadius` | `6.0` | Block entities within this distance are never frustum-culled |
 | `cullNameTags` | `true` | Distance-cull entity name tags independently of model culling |
-| `nameTagCullRange` | `48.0` | Name tags beyond this many blocks from the camera are skipped |
+| `nameTagCullRange` | `48.0` | Name tags beyond this many blocks from the camera are skipped (floor only when `cullRangeSyncWithRenderDistance` is on) |
 | `textShadowsEnabled` | `true` | Text drop-shadow toggle — `false` removes the shadow pass behind all text (GUI, name tags, signs, tooltips) |
 | `cullLeavesInternalFaces` | `true` | Skip the shared face between two adjacent leaves blocks during meshing |
 | `chunkRebuildPrioritization` | `true` | Reorder chunk-section rebuilds by proximity + view alignment + urgency |

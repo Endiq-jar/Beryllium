@@ -2,6 +2,7 @@ package com.endiq.beryllium.mixin.culling;
 
 import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.culling.BehindCameraCulling;
+import com.endiq.beryllium.culling.RenderDistanceSync;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -40,12 +41,17 @@ public abstract class EntityRenderDispatcherMixin {
 		Vec3 camPos = camera.getPosition();
 		Vector3f forward = camera.getLookVector();
 
+		double aggressiveDistance = RenderDistanceSync.effectiveCullDistance(
+			Beryllium.config().cullAggressiveDistance,
+			Beryllium.config().cullRangeSyncWithRenderDistance
+		);
+
 		boolean behind = BehindCameraCulling.isBehindCamera(
 			camPos.x, camPos.y, camPos.z,
 			forward.x(), forward.y(), forward.z(),
 			x, y, z,
 			Beryllium.config().cullSafeRadius,
-			Beryllium.config().cullAggressiveDistance,
+			aggressiveDistance,
 			Beryllium.config().cullDotThresholdNear,
 			Beryllium.config().cullDotThresholdFar
 		);
