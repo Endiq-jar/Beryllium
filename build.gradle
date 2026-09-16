@@ -9,7 +9,9 @@ import org.gradle.api.tasks.compile.JavaCompile
  */
 def minecraftVersion = providers.gradleProperty("minecraft_version").getOrElse("26.2")
 def loaderVersion = providers.gradleProperty("loader_version").getOrElse("0.19.5")
-def fabricApiVersion = providers.gradleProperty("fabric_api_version").getOrElse("0.119.4+1.21.4")
+// Fabric API is deliberately not a dependency (see the dependency block); the property is
+// kept only so an existing local/CI override does not break the build.
+def fabricApiVersion = providers.gradleProperty("fabric_api_version").getOrElse("")
 def berylliumVersion = providers.gradleProperty("mod_version").getOrElse("0.2.0")
 
 /**
@@ -37,43 +39,63 @@ base {
 }
 
 /*
- * The original, verified renderer hooks are retained in the 1.21.4 profile.  Every
- * other release uses the mapping-free compatibility core: it has no game-class or
- * native-GL linkage, so it can load safely across API eras and on Android launchers.
- * This is intentionally a profile distinction, not a skipped version: CI builds an
- * artifact for every release and its fabric.mod.json pins that exact release.
+ * ONE source tree, one optimization set, every supported release.
+ *
+ * Beryllium used to ship a stripped "compatibility core" for every release except one,
+ * because Minecraft's renderer internals and mapping format have changed repeatedly
+ * between 1.19.4 and now. That split meant most artifacts carried almost none of the mod.
+ *
+ * The mixins are now written so the same file is safe everywhere instead: every injector
+ * declares an explicit descriptor with `require = 0` (a renamed target is skipped, never
+ * guessed), version-only classes are targeted by string so nothing has to link against
+ * them at compile time, and the two classes that genuinely only exist in part of the range
+ * are excluded per-release below. Anything that does not apply on a given version degrades
+ * to vanilla behaviour for that version -- it does not crash and it does not corrupt.
+ *
+ * Android safety is unaffected: `androidSafeMode` still suppresses every Beryllium mixin
+ * on Android/Pojav/Zalith/TurtleLauncher-style hosts before the title screen.
  */
-def fullRendererProfile = minecraftVersion == '1.21.4'
 
-if (!fullRendererProfile) {
-	sourceSets {
-		main {
-			java {
-				srcDir 'src/compat/java'
-				exclude 'com/endiq/beryllium/BerylliumMixinPlugin.java'
-				exclude 'com/endiq/beryllium/engine/voxelshape/**'
-				exclude 'com/endiq/beryllium/mixin/**'
+/** True when the selected release is at or newer than [major, minor, patch]. */
+def mcAtLeast = { int major, int minor, int patch ->
+	if (versionParts[0] != major) {
+		return versionParts[0] > major
+	}
+	if (versionParts[1] != minor) {
+		return versionParts[1] > minor
+	}
+	return versionParts[2] >= patch
+}
+
+// Font.DisplayMode replaced the `boolean seeThrough` argument of Font#drawInBatch in 1.20.
+def fontHasDisplayMode = mcAtLeast(1, 20, 0)
+// ViewArea replaced SectionRenderDispatcher in the 1.21.2 renderer refactor.
+def hasViewArea = mcAtLeast(1, 21, 2)
+
+sourceSets {
+	client {
+		java {
+			if (!fontHasDisplayMode) {
+				// Pre-1.20 releases pass a plain boolean instead of Font$DisplayMode.
+				exclude 'com/endiq/beryllium/mixin/text/FontSignTextMixin.java'
+			}
+			if (!hasViewArea) {
+				// ViewArea does not exist before 1.21.2; the LevelRenderer-level hook and
+				// SectionDirtyBridge (reflection) already cover those releases.
+				exclude 'com/endiq/beryllium/mixin/chunk/ViewAreaMixin.java'
 			}
 		}
 	}
 }
 
 loom {
-	if (fullRendererProfile) {
-		accessWidenerPath = file('src/main/resources/beryllium.accesswidener')
-		splitEnvironmentSourceSets()
+	accessWidenerPath = file('src/main/resources/beryllium.accesswidener')
+	splitEnvironmentSourceSets()
 
-		mods {
-			"beryllium" {
-				sourceSet sourceSets.main
-				sourceSet sourceSets.client
-			}
-		}
-	} else {
-		mods {
-			"beryllium" {
-				sourceSet sourceSets.main
-			}
+	mods {
+		"beryllium" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
 		}
 	}
 }
@@ -96,33 +118,31 @@ dependencies {
 		modImplementation "net.fabricmc:fabric-loader:${loaderVersion}"
 	}
 
-	// Only the 1.21.4 renderer profile uses Fabric API event callbacks. Keeping the
-	// compatibility core Loader-only is what makes it portable to every release in
-	// the coverage range (including versions Fabric API no longer actively targets).
-	if (fullRendererProfile) {
-		modImplementation "net.fabricmc.fabric-api:fabric-api:${fabricApiVersion}"
-	}
+	/*
+	 * No Fabric API dependency, on any release.
+	 *
+	 * Beryllium used to depend on Fabric API for three client events and the debug HUD.
+	 * Those APIs were renamed and reshaped inside the supported range, and Fabric API does
+	 * not publish a build for every release CI resolves from Mojang's manifest, so a hard
+	 * dependency would make "one artifact per release" impossible. Beryllium now gets its
+	 * per-frame clock from a mixin into Minecraft#runTick, world changes from
+	 * Minecraft#setLevel, and registers the debug HUD reflectively when Fabric API happens
+	 * to be installed (see HudOverlayBridge). Every artifact therefore needs Fabric Loader
+	 * only -- which is also what keeps Android launchers happy.
+	 */
 }
 
 processResources {
-	def accessWidenerDeclaration = fullRendererProfile
-		? '"accessWidener": "beryllium.accesswidener",'
-		: ''
-	def mixinDeclaration = fullRendererProfile
-		? '''"mixins": [
+	def accessWidenerDeclaration = '"accessWidener": "beryllium.accesswidener",'
+	def mixinDeclaration = '''"mixins": [
 		"beryllium.mixins.json",
 		{
 			"config": "beryllium.client.mixins.json",
 			"environment": "client"
 		}
 	],'''
-		: ''
-	def clientEntrypoint = fullRendererProfile
-		? 'com.endiq.beryllium.BerylliumClient'
-		: 'com.endiq.beryllium.compat.CompatibilityClient'
-	def fabricApiDependency = fullRendererProfile
-		? ',\n\t\t"fabric-api": ">=0.119.4"'
-		: ''
+	def clientEntrypoint = 'com.endiq.beryllium.BerylliumClient'
+	def fabricApiDependency = ''
 
 	inputs.properties([
 		version: project.version,
@@ -146,8 +166,8 @@ processResources {
 }
 
 /*
- * Beryllium's compatibility core deliberately stays at Java 17 bytecode.  That is
- * the runtime floor for 1.19.4 and the Android Java launchers this project targets;
+ * Beryllium deliberately stays at Java 17 bytecode.  That is the runtime floor for
+ * 1.19.4 and the Android Java launchers this project targets;
  * newer Minecraft versions can load Java-17 mod bytecode unchanged.  CI itself uses
  * Java 25 because 26.1+ requires it to prepare the development game jars.
  */
@@ -175,9 +195,9 @@ tasks.register('printBuildTarget') {
 	group = 'verification'
 	description = 'Prints the exact Minecraft target and Beryllium compatibility profile.'
 	doLast {
-		println "Beryllium target: Minecraft ${minecraftVersion}; " +
-			(fullRendererProfile ? '1.21.4 renderer hooks' : 'cross-version safe compatibility core') +
-			"; ${unobfuscatedGame ? 'unobfuscated' : 'remapped'} Loom pipeline"
+		println "Beryllium target: Minecraft ${minecraftVersion}; full optimization set" +
+			"; ${unobfuscatedGame ? 'unobfuscated' : 'remapped'} Loom pipeline" +
+			"; Font\$DisplayMode=${fontHasDisplayMode}, ViewArea=${hasViewArea}"
 	}
 }
 

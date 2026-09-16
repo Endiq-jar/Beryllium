@@ -38,4 +38,11 @@ public final class CompatibilityChecker {
 	public static boolean isChunkRendererReplaced(List<String> loadedOptimizationMods) {
 		return loadedOptimizationMods.contains("sodium");
 	}
+
+	/** Lithium ships its own (more thorough) hopper optimization; two mods independently
+	 *  deciding when a hopper should skip its tick is how a sorting system silently
+	 *  changes throughput. */
+	public static boolean shouldDeferHopperOptimizationTo(List<String> loadedOptimizationMods) {
+		return loadedOptimizationMods.contains("lithium");
+	}
 }

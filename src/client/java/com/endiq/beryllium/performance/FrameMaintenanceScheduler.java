@@ -3,7 +3,6 @@ package com.endiq.beryllium.performance;
 import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
 import com.endiq.beryllium.profiler.FrameProfiler;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,8 +10,8 @@ import java.util.List;
 /**
  * Phase 3 — gives {@link FrameBudgetScheduler} a live work source.
  *
- * <p>Every rendered frame ({@code WorldRenderEvents.START}, the same clock
- * {@link FrameProfiler} uses) the registered recurring tasks are submitted to the
+ * <p>Every client frame (the same clock {@link FrameProfiler} uses, driven by
+ * {@code ClientFrameHooks}) the registered recurring tasks are submitted to the
  * scheduler with their priorities, then the scheduler is given a millisecond budget and
  * runs tasks until it is spent. CRITICAL tasks always run in full (that is
  * {@link FrameBudgetScheduler}'s contract); everything else yields at the budget.
@@ -50,8 +49,15 @@ public final class FrameMaintenanceScheduler {
 		instance = scheduler;
 	}
 
-	public void register() {
-		WorldRenderEvents.START.register(context -> onFrameStart());
+	/** Driven once per client frame by {@code ClientFrameHooks}. */
+	public void onFrameStart() {
+		for (Runnable recurring : recurringTasks) {
+			recurring.run();
+		}
+		long budgetNanos = computeBudgetNanos();
+		if (budgetNanos > 0) {
+			scheduler.runFor(budgetNanos);
+		}
 	}
 
 	/** Registers a task that is (re)submitted every rendered frame and runs when the
@@ -71,16 +77,6 @@ public final class FrameMaintenanceScheduler {
 
 	public int pendingTotal() {
 		return scheduler.totalPending();
-	}
-
-	private void onFrameStart() {
-		for (Runnable recurring : recurringTasks) {
-			recurring.run();
-		}
-		long budgetNanos = computeBudgetNanos();
-		if (budgetNanos > 0) {
-			scheduler.runFor(budgetNanos);
-		}
 	}
 
 	private long computeBudgetNanos() {

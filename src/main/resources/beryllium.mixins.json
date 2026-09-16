@@ -12,7 +12,16 @@
 		"common.shapes.BlockShapeCacheMixin",
 		"common.shapes.ShapeMatchFastPathMixin",
 		"common.shapes.ShapeMergeFastPathMixin",
-		"common.shapes.EntityCollisionContextLazyMixin"
+		"common.shapes.EntityCollisionContextLazyMixin",
+		"tick.MinecraftServerTickMixin",
+		"tick.HopperTickMixin",
+		"tick.ItemEntityTickMixin",
+		"tick.DeferredWorldMutationMixin",
+		"tick.DeferredTickScheduleMixin",
+		"tick.AsyncRandomTickMixin",
+		"tick.AsyncRandomTickBatchMixin",
+		"tick.ServerLevelRandomRedirectMixin",
+		"tick.EntityTickBatchMixin"
 	],
 	"injectors": {
 		"defaultRequire": 0

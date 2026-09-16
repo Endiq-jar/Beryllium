@@ -2,18 +2,15 @@ package com.endiq.beryllium.mixin.chunk;
 
 import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.chunk.ChunkRebuildManager;
+import com.endiq.beryllium.chunk.SectionDirtyBridge;
 import com.endiq.beryllium.chunk.SectionPacking;
 import com.endiq.beryllium.config.BerylliumConfig;
-import com.endiq.beryllium.util.BerylliumLog;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ViewArea;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.lang.reflect.Method;
 
 /**
  * Phase 4 — the *dispatcher-level* dirty-mark interception of the chunk rebuild
@@ -62,68 +59,9 @@ public abstract class ViewAreaMixin {
 	 */
 	@Unique
 	public static boolean beryllium$rescheduleDirty(Object rendererRef, long sectionPos, boolean important) {
-		if (rendererRef == null) {
-			return false;
-		}
-		try {
-			int sx = SectionPacking.x(sectionPos);
-			int sy = SectionPacking.y(sectionPos);
-			int sz = SectionPacking.z(sectionPos);
-
-			if (tryInvoke(rendererRef, sx, sy, sz, important)) {
-				return true;
-			}
-			// The captured reference may be stale (e.g. a ViewArea from a previous
-			// renderer); always fall back to the live LevelRenderer.
-			Minecraft minecraft = Minecraft.getInstance();
-			if (minecraft != null && minecraft.levelRenderer != null) {
-				return tryInvoke(minecraft.levelRenderer, sx, sy, sz, important);
-			}
-			BerylliumLog.debug("[BERYLLIUM-CHUNK] no setDirty/setSectionDirty variant reachable; dropping re-trigger.");
-			return false;
-		} catch (ReflectiveOperationException | RuntimeException e) {
-			BerylliumLog.debug("[BERYLLIUM-CHUNK] dirty-mark re-trigger failed: " + e);
-			return false;
-		}
-	}
-
-	@Unique
-	private static boolean tryInvoke(Object target, int sx, int sy, int sz, boolean important)
-		throws ReflectiveOperationException {
-		// 1) ViewArea.setDirty(int, int, int, boolean) — the 1.21.4 delegate that
-		//    LevelRenderer.setSectionDirty funnels into.
-		Method m = findAny(target.getClass(), "setDirty", int.class, int.class, int.class, boolean.class);
-		if (m != null) {
-			m.invoke(target, sx, sy, sz, important);
-			return true;
-		}
-		// 2) LevelRenderer.setSectionDirty(int, int, int, boolean) — private.
-		m = findAny(target.getClass(), "setSectionDirty", int.class, int.class, int.class, boolean.class);
-		if (m != null) {
-			m.invoke(target, sx, sy, sz, important);
-			return true;
-		}
-		// 3) LevelRenderer.setSectionDirty(int, int, int) — public, non-urgent.
-		m = findAny(target.getClass(), "setSectionDirty", int.class, int.class, int.class);
-		if (m != null) {
-			m.invoke(target, sx, sy, sz);
-			return true;
-		}
-		return false;
-	}
-
-	@Unique
-	private static Method findAny(Class<?> clazz, String name, Class<?>... params) {
-		for (Class<?> c = clazz; c != null && c != Object.class; c = c.getSuperclass()) {
-			try {
-				Method m = c.getDeclaredMethod(name, params);
-				m.setAccessible(true);
-				return m;
-			} catch (NoSuchMethodException e) {
-				// keep walking up the hierarchy
-			}
-		}
-		return null;
+		// The reflection lives in SectionDirtyBridge so the prioritization queue keeps
+		// working on releases where this class (ViewArea, added in 1.21.2) does not exist.
+		return SectionDirtyBridge.rescheduleDirty(rendererRef, sectionPos, important);
 	}
 
 	@Inject(method = "setDirty(IIIZ)V", at = @At("HEAD"), cancellable = true)

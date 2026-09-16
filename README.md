@@ -21,6 +21,15 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
 
 ✦ Features
 
+> **Verification status of this release:** the sign, beacon, chest, particle, entity
+> render-distance, visibility, chunk pacing, tick-throttle and off-thread-ticking work was
+> written against Mojang-mapped 1.21.x signatures from a machine with no JDK and no
+> Maven/Gradle network access, so **none of it has been compiled or run** — the same caveat
+> the existing mixins carry in their javadoc. Every injector is `require = 0` and every
+> subsystem is wrapped, so a wrong guess degrades to vanilla behaviour for that feature.
+> The pure-Java pieces (throttle tables, tick governor, worker pool, chunk scheduling and
+> upload pacing, the colouring maths) carry no such caveat; read them as ordinary code.
+
 ### Performance engine
 
 - **Voxel shape specialization & caching** — the single biggest CPU consumer in
@@ -82,6 +91,97 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
   cap — turn this off to go back to the flat, unsynced defaults.
 - **Frame profiler & debug overlay** — FPS, frame time, 1% low, 0.1% low
   (`debugMode: true`).
+- **Entity render distance** — a hard ceiling (`entityRenderCullDistance`, default 64
+  blocks) on how far away an entity may be and still be rendered. Vanilla has no entity
+  render distance at all: it renders every entity in the loaded area, so crowded servers
+  keep paying for entities no player could pick out of the terrain. This is a cap, not the
+  floor-style ranges above, so it is deliberately *not* render-distance-synced by default.
+- **Particle culling** — particles that would be created beyond `particleCullDistance`
+  (default 32 blocks) are dropped at spawn, so they never tick, never sort into a buffer
+  and never reach the GPU. Culling at the door is the cheap kind; particles the player can
+  actually see are untouched.
+- **Chest render culling** — the chest and ender chest renderers are skipped beyond
+  `chestRenderCullDistance` (default 24 blocks). Storage rooms are the classic case:
+  hundreds of animated lids, none of them more than a few pixels tall, all costing a draw
+  call every frame.
+- **Visibility culling** — one shared frustum, and one answer per block per frame. Vanilla
+  asks "is this visible?" repeatedly for the same geometry inside a single frame, and the
+  invisible answer is the expensive one — it is exactly what makes a room full of chests
+  or signs cost real frame time. Beryllium memoises it (`visibilityCulling`), so that work
+  happens once.
+- **Chunk compilation scheduling** — how many queued section rebuilds are handed back to
+  vanilla in one frame is decided from live frame time, not a constant: a healthy frame
+  gets the configured allowance, an overrunning frame gets half, and a frame in trouble
+  gets one. The queue always keeps moving; it just refuses to make a slow frame worse, and
+  the frame spikes caused by rebuild bursts are spread out instead of landing at once.
+- **Chunk upload pacing** — GPU uploads of freshly compiled geometry are distributed
+  across frames (`chunkUploadsPerFrame`, default 2) instead of letting one frame drain the
+  whole queue after a flight, a world load or a redstone flood. Uploads are deferred, never
+  dropped, and the allowance shrinks automatically when frames are already expensive.
+
+### Sign optimization
+
+- **Sign text hidden at distance** — beyond `signTextCullDistance` (default 16 blocks) the
+  text is not drawn. The sign *board* still renders; only the illegible glyph passes go.
+- **Sign text out of view** — signs outside the camera frustum skip their text draws
+  (`signTextHideOutOfView`). The board is already handled by the block entity culler; the
+  text is dispatched separately and needed its own rule.
+- **Glow hidden at distance** — beyond `signTextGlowCullDistance` (default 24 blocks),
+  glowing sign text renders as ordinary text: no see-through layer, no outline. The text
+  itself still draws.
+- **Glowing-text outline → shadow** — vanilla draws glowing text many times per line to
+  build its outline. `signTextOutlineMode: NORMAL` keeps one pass per line (it reads as a
+  shadow, at a fraction of the cost); `FAST` drops the outline entirely. If Beryllium ever
+  observes a version where those passes *are* the text, it stops dropping them — see
+  [Experimental & self-checking behaviour](#experimental--self-checking-behaviour).
+- **Glow-effect optimization** — the glow layer is identified at the `Font#drawInBatch`
+  level, so every text path that renders through it is covered by the same rules rather
+  than needing a per-renderer patch.
+
+### Beacon optimization
+
+- **Beacon beams hidden at distance** — beyond `beaconBeamCullDistance` (default 64
+  blocks) the beam is not drawn. The beacon block itself is an ordinary block model, so
+  everything skipped here is beam.
+- **Beams out of view** — the beam is treated as the tall column it actually is (from the
+  beacon up to the world's build height) and tested against the frame's frustum
+  (`beaconBeamHideOutOfView`). Turning away from a beacon stops costing anything; looking
+  at one still shows the whole beam, including the part visible above a wall.
+- **Beacon beam optimization** — the beam is the single most expensive small thing in a
+  base: a tall translucent column with its own render type, drawn at any distance inside
+  the block entity radius. A ring of beacons pays for every beam every frame; these two
+  rules are what stop that.
+
+### Server / tick performance
+
+- **Improved TPS under entity load** — a tick-time governor (`tickGovernorEnabled`)
+  measures how long the server tick really takes and scales Beryllium's throttles with it,
+  so tick time stays stable instead of collapsing when a world fills up. Work is spaced
+  out and scaled back automatically when the server catches up; nothing is dropped.
+- **Hopper throttling** — hoppers that demonstrably have nothing to do stop running a full
+  transfer attempt every tick. Beryllium fingerprints a hopper's contents each time it is
+  allowed to run; when the fingerprint has not changed for `hopperIdleSamples` runs the
+  hopper is idle and runs once every `hopperThrottleInterval` ticks (default 4). A hopper
+  that is actually moving items is never throttled, and the worst case for an idle hopper
+  is one interval of extra latency before a newly arriving item is noticed.
+- **Item entity throttling** — stationary ground items tick once every
+  `itemEntityThrottleInterval` ticks (default 4) instead of every tick. Items that are
+  moving, burning, in a fluid or freshly spawned always tick at full rate. Because the
+  despawn counter only advances on ticks that run, an ignored item lives proportionally
+  longer — it is never permanent, and `1` turns the feature off.
+- **Multithreading** — a small worker pool (`BerylliumWorkers`, sized from the machine:
+  half the cores, at most 4) used for the parallel work below, with a saturation policy
+  that runs tasks on the server thread rather than queueing without bound.
+- **Async random ticks (experimental)** — vanilla's per-chunk random-tick pass runs on
+  worker threads. Random ticks are crop growth, saplings, grass, fire, ice and leaf decay,
+  and they are naturally chunk-shaped. See
+  [Experimental & self-checking behaviour](#experimental--self-checking-behaviour) for the
+  safety model — it is the reason this can be on by default.
+- **Parallel entity processing (experimental)** — one tick's entity work is spread across
+  the pool: entities are collected out of `Level#tickEntities`, grouped by a 3x3 chunk
+  colouring so no two groups can touch each other, ticked in parallel, and their world
+  mutations replayed by the server thread. Players, vehicles, passengers and anything whose
+  chunk neighbourhood is not fully loaded always stay on the server thread.
 
 ### Mobile performance
 
@@ -129,7 +229,8 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
 
 ## Version coverage
 
-Beryllium deliberately builds **one JAR per exact Minecraft release**. Its workflow asks
+Beryllium deliberately builds **one JAR per exact Minecraft release**, each carrying the
+full optimization set. Its workflow asks
 Mojang's version manifest for every stable numeric release from `1.19.4` through the
 manifest's `latest.release`, then compiles and validates the generated `fabric.mod.json`
 for each entry. It does not use a manually curated subset that can drift when Mojang ships
@@ -150,19 +251,29 @@ and renderer changes are not stable enough to make a launch-safety promise. When
 or a later **stable** release arrives, the CI resolver adds it automatically and the build
 must pass before it can be called covered.
 
-### Profiles
+### One source tree, every release
 
-| Artifact target | Profile | What loads |
-|---|---|---|
-| `1.21.4` | **Renderer profile** | The existing verified voxel-shape, culling, scheduler, shader and mobile-tuning hooks. Fabric API is required. |
-| Every other covered release | **Cross-version compatibility core** | Configuration, compatibility detection, frame/chunk primitives and Android launch safety, with no game-class, mixin, GLFW or OpenGL linkage during client startup. No Fabric API dependency. |
+Beryllium used to ship a stripped "compatibility core" to every release except one, which
+meant most artifacts carried almost none of the mod. That split is gone: **every covered
+release now builds the full optimization set from one source tree**, and it stays safe
+because of how the mixins are written rather than by withholding them:
 
-This split is intentional. Minecraft's rendering internals and mapping format changed
-repeatedly across this range (and 26.1 switched to unobfuscated game jars). Guessing a
-renderer descriptor on an unverified version is worse than a missing optimization: it can
-make a mobile launcher crash before the title screen. The compatibility-core artifact is a
-real, exact-version supported launch-safe baseline; version-specific renderer hooks are
-only included once they are verified for their profile.
+| Technique | Why |
+|---|---|
+| Every injector names its target descriptor explicitly with `require = 0` | A renamed or reshaped method is *skipped*, never guessed. No bad descriptor can crash a launch. |
+| Version-only classes are targeted by string (`@Mixin(targets = "...")`) | `ViewArea`, `HangingSignRenderer` and friends never have to link at compile time. |
+| Two era-specific files are swapped by `build.gradle` | `Font$DisplayMode` (1.20+) vs the pre-1.20 `boolean seeThrough`; `ViewArea` (1.21.2+) vs `LevelRenderer`. |
+| Reflection for vanilla bodies and cross-class state | `VanillaBridges`, `SectionDirtyBridge` — a drift in a private method disables one feature instead of failing class transformation. |
+| Containment everywhere | Every new hook is wrapped so a throw is logged and vanilla behaviour continues. |
+
+What this means per release:
+
+| Artifact target | What loads |
+|---|---|
+| Every covered release | The full optimization set. Anything whose hook does not match that exact release degrades to vanilla behaviour *for that feature* — visibly, in the log, rather than silently. |
+| Any release on an Android/Pojav/Zalith/TurtleLauncher host | Still governed by `androidSafeMode`, which suppresses Beryllium's mixins entirely before the title screen. |
+
+No artifact depends on Fabric API on any release (see below).
 
 ### Android / TurtleLauncher crash guard
 
@@ -170,7 +281,7 @@ only included once they are verified for their profile.
 safe JVM properties, environment markers, and standard Android filesystem hints to detect
 Android/Pojav/Zalith/TurtleLauncher-style hosts. On a match it suppresses Beryllium's
 version-sensitive mixins; the client entry point also returns before creating GPU probes,
-shader preloads, or Fabric render callbacks. This avoids both early native GLFW/OpenGL
+shader preloads, or renderer hooks. This avoids both early native GLFW/OpenGL
 linkage and renderer-class transformation — the common causes of startup crashes on GL4ES
 and other launcher render bridges.
 
@@ -193,6 +304,69 @@ optimization should never prevent Minecraft from reaching the title screen.
 | 9 — name tag / text distance culling | ✅ done |
 | 10 — leaves internal-face culling | ✅ done |
 | 11 — text shadows toggle | ✅ done — `FontTextShadowMixin` suppresses the `dropShadow` argument of the `Font.drawInBatch` overloads |
+| 12 — sign optimization | ✅ done — text hidden at distance / out of view; glow hidden at distance; outline → shadow (`NORMAL`/`FAST`) |
+| 13 — beacon optimization | ✅ done — beams hidden at distance and out of view, column-shaped frustum test |
+| 14 — chest render culling | ✅ done — chest + ender chest renderer skipped beyond 24 blocks |
+| 15 — particle & entity render distance culling | ✅ done — spawn-distance particle culling; hard entity render-distance ceiling |
+| 16 — visibility culling | ✅ done — one shared frustum, one visibility answer per block per frame |
+| 17 — chunk compilation scheduling & upload pacing | ✅ done — frame-time-driven rebuild allowance and per-frame GPU upload budget |
+| 18 — hopper & item entity throttling | ✅ done — idle hoppers and stationary ground items tick less often |
+| 19 — tick-time governor ("improved TPS") | ✅ done — measured tick time scales every throttle, nothing is dropped |
+| 20 — worker pool / parallel entity processing | ✅ done — real, but experimental; see below |
+| 21 — async random ticks | ✅ done — real, but experimental; see below |
+
+## Experimental & self-checking behaviour
+
+Two features on the list are genuinely risky, and they are the reason this section exists:
+**async random ticks** and **parallel entity processing** move world work onto other CPU
+cores. Minecraft's world was written for one thread. Doing this naively does not crash — it
+produces a subtly wrong world, and occasionally a corrupt one. Beryllium does it like this
+instead:
+
+1. **Read-only snapshot.** While a worker runs vanilla code, every world mutation it
+   attempts is *recorded*, not performed (`DeferredWorldActions`). Workers see one
+   consistent snapshot for the whole task; the server thread replays the recorded mutations
+   when the batch joins. Cross-thread reads are never torn.
+2. **Per-thread RNG.** Vanilla draws random-tick positions from one shared
+   `Level#random`; two threads tearing at one `RandomSource` can produce out-of-range
+   values, in the worst case a position in an unloaded chunk. Reads of that field are
+   redirected to a per-thread source while a worker is inside `tickChunk` — and only then,
+   so a vanilla-shaped random sequence is preserved for every chunk that is not async.
+3. **Chunk colouring.** Entities are grouped by `(chunkX mod 3, chunkZ mod 3)`, so two
+   chunks in the same round are at least three chunks apart on both axes and their 3x3
+   neighbourhoods are disjoint. No entity in one group can touch an entity in another.
+4. **Eligibility.** Players, vehicles, passengers, already-removed entities and anything
+   whose 3x3 chunk neighbourhood is not fully loaded always stay on the server thread, as
+   does every chunk in a world that is raining or thundering (that path can strike
+   lightning and spawn entities, not just tick blocks).
+5. **Calibration before concurrency.** The first eligible chunk/entity of the session runs
+   **on the server thread** with deferral active, while Beryllium performs one deliberately
+   harmless mutation (writing a block to the state it already has, with no update flags — a
+   no-op either way) and checks whether its hooks actually fired. If the deferral hook or
+   the RNG redirect is missing on that Minecraft version, the features disable themselves
+   for the session and say so in the log. **Not one concurrent task ever runs un-certified.**
+6. **Self-disabling.** Any throw inside a worker permanently turns both features off for the
+   session (`DeferredWorldActions#noteFailure`) and logs why. A wrong optimisation must
+   never get a second attempt.
+
+The same idea protects the sign outline: if Beryllium ever observes a glowing sign pass
+that contains *only* see-through draws — meaning the outline passes **are** the text — it
+stops cancelling them, permanently, for that session.
+
+Behavioural differences you can actually observe, stated plainly:
+
+- Mutations made during an async batch become visible to the rest of the game when that
+  batch completes, so the exact order in which two distant chunks grow or burn can differ
+  from a strictly sequential tick. Nothing is lost or duplicated.
+- Parallel-ticked entities are ticked after the rest of the level's entity loop rather than
+  in their vanilla position within it.
+- A stationary item's despawn timer advances only on ticks that run, so ignored items live
+  proportionally longer. They are never permanent.
+- An idle hopper that receives an item notices it within one `hopperThrottleInterval`.
+
+If you want the conservative build, set `asyncRandomTicks: false` and
+`parallelEntityTicking: false` in `config/beryllium.json` (restart required — they are
+applied at class-load time).
 
 > **Verification note (phases 4, 8, 11):** the mixins and hooks added in these phases
 > target 1.21.4 internals. Phase 4's targets (`LevelRenderer.setSectionDirty(int,int,int)`
@@ -231,13 +405,16 @@ bytecode, the floor needed by Minecraft 1.19.4 and Android Java launchers.
 ```
 
 Each output JAR includes that exact version in both its filename and `fabric.mod.json`;
-do not install a JAR made for one target into a different Minecraft version. The `1.21.4`
-renderer profile uses Fabric API 0.119.4+1.21.4. Compatibility-core artifacts deliberately
-need Fabric Loader only.
+do not install a JAR made for one target into a different Minecraft version. **Every
+artifact needs Fabric Loader only** — Beryllium has no Fabric API dependency on any
+release (its per-frame clock comes from a mixin into `Minecraft#runTick`, world changes
+from `Minecraft#setLevel`, and the debug HUD is registered reflectively when Fabric API
+happens to be installed).
 
 ```bash
-# Runs the development client for the selected target (use 1.21.4 for the renderer profile)
+# Runs the development client for the selected target
 ./gradlew runClient -Pminecraft_version=1.21.4
+./gradlew runClient -Pminecraft_version=26.2
 ```
 
 CI runs the equivalent build for every release resolved from Mojang's manifest and verifies
@@ -275,7 +452,8 @@ transcribed constants nobody could check.
 | `enabled` | `true` | Master switch |
 | `debugMode` | `false` | Verbose logging + the FPS/1%/0.1% overlay |
 | `androidSafeMode` | `true` | On Android/Pojav/Zalith/TurtleLauncher-style hosts, suppress native GPU startup work and version-sensitive renderer mixins before the title screen. Disable only after testing the exact launcher/renderer/runtime combination. |
-| `voxelShapeOptimizations` | `true` | Voxel-shape suite (1.21.4 renderer profile). **Restart required** — read at class-load time by the mixin plugin |
+| `voxelShapeOptimizations` | `true` | Voxel-shape suite. **Restart required** — read at class-load time by the mixin plugin |
+| `tickOptimizations` | `true` | Tick-side suite: hopper/item throttling, tick governor, async random ticks, parallel entity ticking. **Restart required** — read at class-load time by the mixin plugin |
 | `cullRangeSyncWithRenderDistance` | `true` | Keep `cullAggressiveDistance` and `nameTagCullRange` from culling closer than the player's live Render Distance option — effective distance is `max(configuredValue, renderDistanceInBlocks)` |
 | `cullBehindCameraEntities` | `true` | Behind-camera entity culling |
 | `cullSafeRadius` | `4.0` | Never cull anything within this many blocks, regardless of facing |
@@ -288,6 +466,41 @@ transcribed constants nobody could check.
 | `nameTagCullRange` | `48.0` | Name tags beyond this many blocks from the camera are skipped (floor only when `cullRangeSyncWithRenderDistance` is on) |
 | `textShadowsEnabled` | `true` | Text drop-shadow toggle — `false` removes the shadow pass behind all text (GUI, name tags, signs, tooltips) |
 | `cullLeavesInternalFaces` | `true` | Skip the shared face between two adjacent leaves blocks during meshing |
+| `signOptimization` | `true` | Master switch for sign text/glow optimization |
+| `signTextCullDistance` | `16.0` | Sign text beyond this many blocks is not drawn (`0` = always draw) |
+| `signTextHideOutOfView` | `true` | Skip sign text for signs outside the camera frustum |
+| `signTextGlowOptimization` | `true` | Master switch for the glowing-text optimizations |
+| `signTextHideGlowOutline` | `true` | Drop vanilla's multi-pass glowing outline behind sign text |
+| `signTextOutlineMode` | `FAST` | `NORMAL` = keep one outline pass per line (reads as a shadow); `FAST` = drop all of them |
+| `signTextGlowCullDistance` | `24.0` | Beyond this distance, glowing sign text renders as ordinary text |
+| `beaconOptimization` | `true` | Master switch for beacon beam work |
+| `beaconBeamHideAtDistance` | `true` | Stop drawing beams beyond `beaconBeamCullDistance` |
+| `beaconBeamCullDistance` | `64.0` | Beams further than this many blocks are not drawn |
+| `beaconBeamHideOutOfView` | `true` | Stop drawing a beam when no part of its column is on screen |
+| `chestRenderCulling` | `true` | Skip the chest/ender chest renderer at distance |
+| `chestRenderCullDistance` | `24.0` | Chests further than this many blocks are not rendered (`0` = off) |
+| `particleCulling` | `true` | Drop particles created beyond `particleCullDistance` |
+| `particleCullDistance` | `32.0` | Particles spawned beyond this many blocks are discarded (`0` = off) |
+| `entityRenderCulling` | `true` | Hard ceiling on how far away an entity may be and still render |
+| `entityRenderCullDistance` | `64.0` | Entities beyond this distance are not rendered (`0` = off) |
+| `entityRenderCullSyncWithRenderDistance` | `false` | Treat the above as a floor as well, so it never culls closer than the live Render Distance option |
+| `visibilityCulling` | `true` | Reuse one visibility answer per block per frame instead of re-testing geometry |
+| `chunkUploadPacing` | `true` | Spread GPU uploads of compiled chunk geometry across frames |
+| `chunkUploadsPerFrame` | `2` | Uploads allowed per frame (`0` = let vanilla drain freely); shrinks automatically on slow frames |
+| `hopperThrottling` | `true` | Idle hoppers skip their transfer attempt on most ticks |
+| `hopperThrottleInterval` | `4` | Run an idle hopper once every this many ticks (`1` = off) |
+| `hopperIdleSamples` | `3` | Unchanged-content fingerprints before a hopper counts as idle |
+| `itemEntityThrottling` | `true` | Stationary ground items tick less often |
+| `itemEntityThrottleInterval` | `4` | Tick a stationary item once every this many ticks (`1` = off) |
+| `tickGovernorEnabled` | `true` | Measure server tick time and scale throttles to keep it stable |
+| `targetTickTimeMillis` | `45.0` | Tick time considered healthy (vanilla's budget is 50 ms) |
+| `tickGovernorMaxScale` | `4.0` | How far the governor may stretch a throttle interval under full load |
+| `asyncRandomTicks` | `true` | Experimental: run per-chunk random ticks on worker threads (see the experimental section) |
+| `asyncRandomTickThreads` | `0` | Worker threads for async random ticks (`0` = auto: half the cores, max 4) |
+| `parallelEntityTicking` | `true` | Experimental: spread one tick's entity work across workers |
+| `parallelEntityTickThreads` | `0` | Worker threads for parallel entity ticking (`0` = auto) |
+| `parallelEntityTickMinEntities` | `32` | Below this many eligible entities, entity work stays sequential |
+| `parallelEntityTickChunkSize` | `8` | Entities per worker task |
 | `chunkRebuildPrioritization` | `true` | Reorder chunk-section rebuilds by proximity + view alignment + urgency |
 | `chunkRebuildsPerFrame` | `3` | Prioritized rebuilds re-triggered per rendered frame |
 | `chunkRebuildQueueLimit` | `128` | Hard cap on the prioritization queue; past it, vanilla schedules directly (bounded staleness) |
@@ -307,6 +520,7 @@ With `compatibilityModeEnabled: true`, Beryllium defers automatically:
   mesh pipeline). Shape caching and culling remain active (complementary).
 - **EntityCulling** loaded → Beryllium's behind-camera entity culling and block
   entity frustum culling are disabled for the session.
+- **Lithium** loaded → Beryllium's hopper throttling stands down (Lithium ships its own).
 - **Lithium** loaded → the voxel-shape suite is kept active unless you disable it in
   the config; the two cache layers are compatible (Beryllium's cache sits in front of
   the same vanilla entry points). If you see odd behavior with both installed, set

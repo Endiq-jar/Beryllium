@@ -13,55 +13,67 @@ import com.endiq.beryllium.profiler.FrameProfiler;
 import com.endiq.beryllium.shader.ShaderPreloader;
 import com.endiq.beryllium.tune.MobileTuner;
 import com.endiq.beryllium.util.BerylliumLog;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 
 /**
- * The 1.21.4-only renderer bootstrap, deliberately isolated from
- * {@link BerylliumClient}'s Android-safe entry point.
+ * Wires Beryllium's client-side subsystems, isolated from {@link BerylliumClient}'s
+ * Android-safe entry point.
+ *
+ * <p>Deliberately free of any modding-API dependency. Beryllium builds one source tree for
+ * every Minecraft release it supports, and the APIs that would otherwise be used here
+ * (client lifecycle events, world render events, HUD callbacks) have all been renamed or
+ * reshaped somewhere inside that range. Instead:
+ * <ul>
+ *   <li>"a frame happened" comes from {@code ClientFrameHooks} (a mixin into
+ *       {@code Minecraft#runTick});</li>
+ *   <li>"the world changed" comes from {@code MinecraftSetLevelMixin};</li>
+ *   <li>"the game has started" is the first rendered frame, which is the earliest point
+ *       where the window and GL context exist on every launcher;</li>
+ *   <li>the debug overlay is registered through Fabric API at runtime if Fabric API happens
+ *       to be installed ({@link com.endiq.beryllium.debug.HudOverlayBridge}).</li>
+ * </ul>
  */
 final class RendererBootstrap {
+	private static volatile ShaderPreloader shaderPreloader;
+
 	private RendererBootstrap() {
 	}
 
 	static void initialize() {
-		// Profiler + overlay only need Fabric API's event bus, which is available
-		// immediately — no need to wait for CLIENT_STARTED.
+		// The profiler has no game-class dependencies, so it can be created immediately.
 		FrameProfiler profiler = new FrameProfiler();
-		profiler.register();
-		new DebugOverlay(profiler).register();
+		ClientFrameHooks.setProfiler(profiler);
+		ClientFrameHooks.registerHudOverlay(new DebugOverlay(profiler));
 
-		// Phase 4 — chunk rebuild prioritization, wired into the 1.21.4 section pipeline.
-		// The mixins (ViewAreaMixin/LevelRendererMixin) feed dirty sections into
-		// ChunkRebuildQueue; this manager drains a prioritized batch every rendered
-		// frame and re-triggers them through vanilla. Cleared on world unload so stale
-		// sections never cross into the next world. Set the singleton before the frame
-		// scheduler below binds its telemetry task.
+		// Phase 4 — chunk rebuild prioritization. The mixins feed dirty sections into
+		// ChunkRebuildQueue; this manager drains a prioritized batch every frame and
+		// re-triggers them through vanilla. Cleared on world unload so stale sections
+		// never cross into the next world.
 		ChunkRebuildManager chunkManager = new ChunkRebuildManager();
 		ChunkRebuildManager.setInstance(chunkManager);
-		chunkManager.register();
 
-		// Phase 8 — shader preload + versioned shader-state cache. init() itself runs at
-		// CLIENT_STARTED (GL context exists by then); the background scan task below runs
+		// Phase 8 — shader preload + versioned shader-state cache. init() runs on the first
+		// rendered frame (GL context exists by then); the background scan task below runs
 		// inside the frame budget.
-		ShaderPreloader shaderPreloader = new ShaderPreloader();
-		ShaderPreloader.setInstance(shaderPreloader);
+		ShaderPreloader preloader = new ShaderPreloader();
+		ShaderPreloader.setInstance(preloader);
+		shaderPreloader = preloader;
 
 		// Phase 3 — frame-budgeted deferred work. Gives FrameBudgetScheduler a live work
-		// source: recurring maintenance tasks are submitted every rendered frame and run
-		// within a budget derived from the profiler's frame-time stats.
+		// source: recurring maintenance tasks are submitted every frame and run within a
+		// budget derived from the profiler's frame-time stats.
 		FrameMaintenanceScheduler maintenance = new FrameMaintenanceScheduler(profiler);
 		FrameMaintenanceScheduler.setInstance(maintenance);
-		maintenance.register();
+		ClientFrameHooks.setMaintenance(maintenance);
 		maintenance.addRecurringTask(WorkPriority.LOW, chunkManager::logTelemetryIfDue);
-		maintenance.addRecurringTask(WorkPriority.BACKGROUND, shaderPreloader::backgroundScanIfDue);
-
-		// onInitializeClient() runs before the window/GL context exists, so GPU queries
-		// cannot happen there. CLIENT_STARTED fires once the client has fully started
-		// (window created, GL context current), which is the earliest safe point.
-		ClientLifecycleEvents.CLIENT_STARTED.register(client -> onClientStarted(shaderPreloader));
+		maintenance.addRecurringTask(WorkPriority.BACKGROUND, preloader::backgroundScanIfDue);
 	}
 
-	private static void onClientStarted(ShaderPreloader shaderPreloader) {
+	/**
+	 * Runs once, on the first rendered frame, when the window and GL context are guaranteed
+	 * to exist. Called from {@link ClientFrameHooks}.
+	 */
+	static void onClientStarted() {
+		ShaderPreloader preloader = shaderPreloader;
 		try {
 			GpuInfo gpu = GpuDetector.detect();
 
@@ -82,19 +94,19 @@ final class RendererBootstrap {
 			);
 			BerylliumLog.gpu("Capability Tier: " + tier);
 
-			// CLIENT_STARTED is the first point at which the client is fully up (options
-			// loaded, camera/game renderer exist), which is what the auto-tuner and the
-			// GPU-based tier decision both need. Running it here means the preset is in
-			// place before the first world is rendered.
+			// Options are loaded and the camera/game renderer exist by the time a frame has
+			// been rendered, which is what the auto-tuner needs. Running it here puts the
+			// preset in place before the first world is actually played.
 			MobileTuner.applyIfEligible(Beryllium.config(), tier);
 
-			// Same timing argument: the GL context exists and no world is rendering yet,
-			// so any shader compile that happens here is earlier than vanilla's first use.
-			shaderPreloader.init();
+			// The GL context is current, so any shader compile done here is earlier than
+			// vanilla's first use of the shader.
+			if (preloader != null) {
+				preloader.init();
+			}
 		} catch (LinkageError | RuntimeException failure) {
-			// The callback runs after the normal entry point has returned, so it needs its
-			// own containment boundary. A renderer bridge that rejects a native call must
-			// leave vanilla's startup alive rather than propagating into Fabric's event bus.
+			// A renderer bridge that rejects a native call must leave vanilla's startup
+			// alive rather than propagating into the frame.
 			BerylliumLog.error("Optional client-start renderer work failed; vanilla rendering "
 				+ "continues without Beryllium GPU/shader tuning for this session.", failure);
 		}

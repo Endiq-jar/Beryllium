@@ -41,6 +41,29 @@ public abstract class EntityRenderDispatcherMixin {
 		Vec3 camPos = camera.getPosition();
 		Vector3f forward = camera.getLookVector();
 
+		// --- Entity render distance -------------------------------------------------
+		// A hard ceiling on how far away an entity may be and still be drawn. Vanilla has
+		// no such limit: it renders every entity inside the loaded chunk area, so a
+		// crowded server keeps paying for entities the player could never pick out of the
+		// terrain. Unlike the cull ranges above this is a cap, not a floor, so it is not
+		// render-distance-synced by default.
+		BerylliumConfig config = Beryllium.config();
+		if (config == null) {
+			return;
+		}
+		if (config.entityRenderCulling && config.entityRenderCullDistance > 0.0) {
+			double maxDistance = config.entityRenderCullSyncWithRenderDistance
+				? RenderDistanceSync.effectiveCullDistance(config.entityRenderCullDistance, true)
+				: config.entityRenderCullDistance;
+			double dx = x - camPos.x;
+			double dy = y - camPos.y;
+			double dz = z - camPos.z;
+			if (dx * dx + dy * dy + dz * dz > maxDistance * maxDistance) {
+				cir.setReturnValue(false);
+				return;
+			}
+		}
+
 		double aggressiveDistance = RenderDistanceSync.effectiveCullDistance(
 			Beryllium.config().cullAggressiveDistance,
 			Beryllium.config().cullRangeSyncWithRenderDistance
