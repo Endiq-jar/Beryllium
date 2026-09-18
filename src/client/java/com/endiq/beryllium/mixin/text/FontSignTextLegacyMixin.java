@@ -5,7 +5,6 @@ import org.joml.Matrix4f;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.FormattedText;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -32,20 +31,6 @@ public abstract class FontSignTextLegacyMixin {
 	)
 	private void beryllium$signTextComponentLegacy(
 		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
-		MultiBufferSource bufferSource, boolean seeThrough, int backgroundColor,
-		int packedLightCoords, CallbackInfoReturnable<Integer> cir
-	) {
-		beryllium$decideLegacy(seeThrough, cir);
-	}
-
-	@Inject(
-		method = "drawInBatch(Lnet/minecraft/util/FormattedText;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)I",
-		at = @At("HEAD"),
-		cancellable = true,
-		require = 0
-	)
-	private void beryllium$signTextFormattedLegacy(
-		FormattedText text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
 		MultiBufferSource bufferSource, boolean seeThrough, int backgroundColor,
 		int packedLightCoords, CallbackInfoReturnable<Integer> cir
 	) {

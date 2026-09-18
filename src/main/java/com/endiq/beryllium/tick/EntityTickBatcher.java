@@ -1,5 +1,6 @@
 package com.endiq.beryllium.tick;
 
+import com.endiq.beryllium.tick.VanillaBridges;
 import com.endiq.beryllium.util.BerylliumLog;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -113,7 +114,7 @@ public final class EntityTickBatcher {
 		if (!collecting || entity == null || tick == null || !isEligible(entity)) {
 			return false;
 		}
-		Level level = entity.getCommandSenderWorld();
+		Level level = VanillaBridges.entityLevel(entity);
 		int cx = ((int) Math.floor(entity.getX())) >> 4;
 		int cz = ((int) Math.floor(entity.getZ())) >> 4;
 		int colour = Math.floorMod(cx, 3) * 3 + Math.floorMod(cz, 3);
@@ -245,7 +246,7 @@ public final class EntityTickBatcher {
 		if (entity.isVehicle() || entity.isPassenger()) {
 			return false;
 		}
-		Level level = entity.getCommandSenderWorld();
+		Level level = VanillaBridges.entityLevel(entity);
 		if (level == null || level.isClientSide()) {
 			return false;
 		}

@@ -2,7 +2,9 @@ package com.endiq.beryllium.mixin.tick;
 
 import com.endiq.beryllium.tick.BerylliumConfigCache;
 import com.endiq.beryllium.tick.ItemEntityThrottle;
+import com.endiq.beryllium.tick.VanillaBridges;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -49,7 +51,8 @@ public abstract class ItemEntityTickMixin {
 		}
 
 		ItemEntity self = (ItemEntity) (Object) this;
-		if (self.getCommandSenderWorld() == null || self.getCommandSenderWorld().isClientSide()) {
+		Level world = VanillaBridges.entityLevel(self);
+		if (world == null || world.isClientSide()) {
 			return;
 		}
 

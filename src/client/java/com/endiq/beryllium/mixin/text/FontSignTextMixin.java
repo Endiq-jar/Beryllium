@@ -5,7 +5,6 @@ import org.joml.Matrix4f;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.FormattedText;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -30,7 +29,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  *       reads as a shadow), FAST mode keeps none.</li>
  * </ul>
  *
- * <p>All three {@code drawInBatch} overloads that carry a display mode are targeted with
+ * <p>The {@code drawInBatch} overloads that carry a display mode are targeted with
  * {@code require = 0}: a signature that does not exist on the running version is skipped,
  * and the ones that do survive still get the optimisation.
  *
@@ -49,20 +48,6 @@ public abstract class FontSignTextMixin {
 	)
 	private void beryllium$signTextComponent(
 		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
-		MultiBufferSource bufferSource, Font.DisplayMode displayMode, int backgroundColor,
-		int packedLightCoords, CallbackInfoReturnable<Integer> cir
-	) {
-		beryllium$decide(displayMode, cir);
-	}
-
-	@Inject(
-		method = "drawInBatch(Lnet/minecraft/util/FormattedText;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I",
-		at = @At("HEAD"),
-		cancellable = true,
-		require = 0
-	)
-	private void beryllium$signTextFormatted(
-		FormattedText text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
 		MultiBufferSource bufferSource, Font.DisplayMode displayMode, int backgroundColor,
 		int packedLightCoords, CallbackInfoReturnable<Integer> cir
 	) {

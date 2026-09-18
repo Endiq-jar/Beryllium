@@ -71,9 +71,25 @@ def mcAtLeast = { int major, int minor, int patch ->
 def fontHasDisplayMode = mcAtLeast(1, 20, 0)
 // ViewArea replaced SectionRenderDispatcher in the 1.21.2 renderer refactor.
 def hasViewArea = mcAtLeast(1, 21, 2)
+// The voxel-shape specialization engine reaches into shape internals (package-private
+// VoxelShape/CubePointRange constructors, protected VoxelShape#getCoords, the IndexMerger
+// merge path) whose shape changed both before 1.21 and again in the unobfuscated 26.x
+// pipeline. It ships where it compiles and is proven — 1.21.1 through the last remapped
+// release — and stays vanilla everywhere else (exactly the old compatibility-core split,
+// just over the narrow range where the specialization is valid).
+def hasShapeEngine = mcAtLeast(1, 21, 0) && !unobfuscatedGame
+// EnderChestRenderer was folded away when ChestRenderer became generic in 1.21; the
+// chest mixin keeps running there, the ender-chest-specific one degrades to vanilla.
+def hasEnderChestRenderer = !mcAtLeast(1, 21, 0)
 
 loom {
-	accessWidenerPath = file('src/main/resources/beryllium.accesswidener')
+	if (!unobfuscatedGame) {
+		// The remap pipeline widens remapped (Mojang-mapped) members, so the widener is
+		// in the named namespace. The 26.x pipeline ships unobfuscated: its widener would
+		// have to be in the official namespace, and nothing Beryllium ships there needs
+		// one (the shape engine above is not part of those releases).
+		accessWidenerPath = file('src/main/resources/beryllium.accesswidener')
+	}
 	splitEnvironmentSourceSets()
 
 	mods {
@@ -93,6 +109,14 @@ loom {
  * release, before any compilation starts.
  */
 sourceSets {
+	main {
+		java {
+			if (!hasShapeEngine) {
+				exclude 'com/endiq/beryllium/engine/voxelshape/**'
+				exclude 'com/endiq/beryllium/mixin/common/**'
+			}
+		}
+	}
 	client {
 		java {
 			if (!fontHasDisplayMode) {
@@ -103,6 +127,9 @@ sourceSets {
 				// ViewArea does not exist before 1.21.2; the LevelRenderer-level hook and
 				// SectionDirtyBridge (reflection) already cover those releases.
 				exclude 'com/endiq/beryllium/mixin/chunk/ViewAreaMixin.java'
+			}
+			if (!hasEnderChestRenderer) {
+				exclude 'com/endiq/beryllium/mixin/render/EnderChestRenderCullMixin.java'
 			}
 		}
 	}
@@ -141,7 +168,11 @@ dependencies {
 }
 
 processResources {
-	def accessWidenerDeclaration = '"accessWidener": "beryllium.accesswidener",'
+	// 26.x artifacts declare no access widener: they ship no shape engine (see
+	// hasShapeEngine above) and the named-namespace widener file would not apply there.
+	def accessWidenerDeclaration = unobfuscatedGame
+		? ''
+		: '"accessWidener": "beryllium.accesswidener",'
 	def mixinDeclaration = '''"mixins": [
 		"beryllium.mixins.json",
 		{
@@ -205,7 +236,8 @@ tasks.register('printBuildTarget') {
 	doLast {
 		println "Beryllium target: Minecraft ${minecraftVersion}; full optimization set" +
 			"; ${unobfuscatedGame ? 'unobfuscated' : 'remapped'} Loom pipeline" +
-			"; Font\$DisplayMode=${fontHasDisplayMode}, ViewArea=${hasViewArea}"
+			"; Font\$DisplayMode=${fontHasDisplayMode}, ViewArea=${hasViewArea}, " +
+			"shapeEngine=${hasShapeEngine}, enderChestRenderer=${hasEnderChestRenderer}"
 	}
 }
 

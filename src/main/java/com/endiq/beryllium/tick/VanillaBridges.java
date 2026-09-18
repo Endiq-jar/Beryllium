@@ -25,8 +25,10 @@ import java.lang.reflect.Method;
 public final class VanillaBridges {
 	private static volatile Method tickChunkMethod;
 	private static volatile Method tickNonPassengerMethod;
+	private static volatile Method entityLevelMethod;
 	private static volatile boolean resolvedTickChunk;
 	private static volatile boolean resolvedTickNonPassenger;
+	private static volatile boolean resolvedEntityLevel;
 
 	private VanillaBridges() {
 	}
@@ -70,6 +72,37 @@ public final class VanillaBridges {
 		} catch (Throwable t) {
 			DeferredWorldActions.noteFailure(t);
 			return false;
+		}
+	}
+
+	/**
+	 * The world an entity is in, or {@code null} when it cannot be determined.
+	 *
+	 * <p>Resolved reflectively because the accessor was renamed in the middle of the
+	 * supported range ({@code getCommandSenderWorld} on older releases, {@code level} on
+	 * 1.21.6+), and Beryllium compiles one source tree for all of them.
+	 */
+	public static Level entityLevel(Entity entity) {
+		if (entity == null) {
+			return null;
+		}
+		try {
+			if (!resolvedEntityLevel) {
+				synchronized (VanillaBridges.class) {
+					if (!resolvedEntityLevel) {
+						entityLevelMethod = findNoArg(entity.getClass(), "level", "getCommandSenderWorld");
+						resolvedEntityLevel = true;
+					}
+				}
+			}
+			Method method = entityLevelMethod;
+			if (method == null) {
+				return null;
+			}
+			Object world = method.invoke(entity);
+			return world instanceof Level level ? level : null;
+		} catch (Throwable t) {
+			return null;
 		}
 	}
 
@@ -118,6 +151,17 @@ public final class VanillaBridges {
 				return method;
 			} catch (NoSuchMethodException ignored) {
 				// keep walking the hierarchy
+			}
+		}
+		return null;
+	}
+
+	/** First declared no-arg method matching one of the names anywhere up the hierarchy. */
+	private static Method findNoArg(Class<?> clazz, String... names) {
+		for (String name : names) {
+			Method method = find(clazz, name);
+			if (method != null) {
+				return method;
 			}
 		}
 		return null;
