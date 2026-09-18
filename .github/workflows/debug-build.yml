@@ -26,7 +26,7 @@ env:
 
 jobs:
   debug:
-    name: debug ${{ env.DEBUG_MINECRAFT }}
+    name: debug build
     runs-on: ubuntu-24.04
     steps:
       - name: checkout repository
