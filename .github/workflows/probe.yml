@@ -95,8 +95,8 @@ jobs:
         continue-on-error: true
         run: |
           CP="$(cat probe-cp.txt)"
-          mkdir -p .ci-probe
-          OUT=".ci-probe/signatures-${{ matrix.minecraft }}.txt"
+          mkdir -p ci-probe
+          OUT="ci-probe/signatures-${{ matrix.minecraft }}.txt"
           {
             echo "## minecraft ${{ matrix.minecraft }}"
             echo "## classpath: $CP"
@@ -135,17 +135,17 @@ jobs:
           ./gradlew --no-daemon --console=plain compileJava compileClientJava \
             -Pminecraft_version=${{ matrix.minecraft }} > gradle-out.txt 2>&1
           echo "gradle_exit=$?"
-          mkdir -p .ci-probe
+          mkdir -p ci-probe
           { echo "## minecraft ${{ matrix.minecraft }}"
             echo
-            tail -c 120000 gradle-out.txt; } > ".ci-probe/compile-${{ matrix.minecraft }}.log"
+            tail -c 120000 gradle-out.txt; } > "ci-probe/compile-${{ matrix.minecraft }}.log"
           rm -f gradle-out.txt probe-cp.txt
 
       - name: upload the probe output
         uses: actions/upload-artifact@v4
         with:
           name: probe-${{ matrix.minecraft }}
-          path: .ci-probe/
+          path: ci-probe
           if-no-files-found: ignore
 
   publish:
@@ -160,14 +160,15 @@ jobs:
       - name: download every probe artifact
         uses: actions/download-artifact@v4
         with:
-          path: .ci-probe
+          path: ci-probe
+          pattern: probe-*
           merge-multiple: true
 
       - name: commit the probe output
         run: |
           git config user.name "beryllium-ci-debug"
           git config user.email "ci-debug@users.noreply.github.com"
-          git add .ci-probe
+          git add ci-probe
           if git diff --cached --quiet; then
             echo "nothing to commit"
           else

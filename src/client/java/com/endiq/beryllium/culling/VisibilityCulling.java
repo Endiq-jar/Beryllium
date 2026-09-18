@@ -11,6 +11,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -158,13 +159,49 @@ public final class VisibilityCulling {
 	/** @return the world's build height, used to size beam columns. */
 	public static double ceilingOf(Level level, BlockPos pos) {
 		if (level != null) {
-			try {
-				return level.getMaxBuildHeight();
-			} catch (Throwable ignored) {
-				// fall through to the conservative default
+			int height = buildHeightOf(level);
+			if (height > 0) {
+				return height;
 			}
 		}
 		return pos == null ? 256.0 : pos.getY() + 256.0;
+	}
+
+	/**
+	 * The build-height accessor has been renamed more than once across the releases
+	 * Beryllium ships on, so it is resolved reflectively: whichever of the known names
+	 * this version carries wins, and if none of them exist the caller falls back to a
+	 * conservative default. That keeps beam columns sized correctly everywhere without
+	 * pinning the build to one release's mapping.
+	 */
+	private static Method buildHeightMethod;
+	private static boolean buildHeightMethodResolved;
+
+	private static int buildHeightOf(Level level) {
+		if (!buildHeightMethodResolved) {
+			buildHeightMethodResolved = true;
+			for (String name : new String[] {"getMaxBuildHeight", "getMaxY"}) {
+				try {
+					Method method = Level.class.getMethod(name);
+					if (method.getReturnType() == int.class) {
+						buildHeightMethod = method;
+						break;
+					}
+				} catch (Throwable ignored) {
+					// try the next name this release might use
+				}
+			}
+		}
+		if (buildHeightMethod != null) {
+			try {
+				int value = (Integer) buildHeightMethod.invoke(level);
+				// getMaxY() returns the topmost *inhabitable* Y, one below the ceiling.
+				return "getMaxY".equals(buildHeightMethod.getName()) ? value + 1 : value;
+			} catch (Throwable ignored) {
+				// fall through to the default
+			}
+		}
+		return 0;
 	}
 
 	/** The per-frame memo is a pure optimisation; it can be switched off without changing
