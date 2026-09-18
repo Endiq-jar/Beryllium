@@ -52,6 +52,15 @@ public class BerylliumConfig {
 	 *  take effect. */
 	public boolean voxelShapeOptimizations = true;
 
+	/** Enables the tick-side optimization suite: hopper throttling, item entity throttling,
+	 *  the tick-time governor, and the experimental off-thread ticking
+	 *  (async random ticks / parallel entity ticking).
+	 *
+	 *  <p>Like {@code voxelShapeOptimizations}, this is read at class-load time by
+	 *  {@code BerylliumMixinPlugin}, because these features inject into vanilla tick
+	 *  methods — a restart is required for changes here to take effect. */
+	public boolean tickOptimizations = true;
+
 	// --- Culling ---
 
 	/** Keeps distance-based culling (see {@code cullAggressiveDistance} and
@@ -223,6 +232,191 @@ public class BerylliumConfig {
 	 *  its own overlapping features to them rather than assuming safe coexistence
 	 *  (currently: disables behind-camera entity culling if EntityCulling is loaded). */
 	public boolean compatibilityModeEnabled = true;
+
+	// --- Sign optimization ---
+
+	/** Master switch for Beryllium's sign work: hiding sign text at distance, hiding it
+	 *  when the sign is off-screen, and the glowing-text optimizations below. The sign
+	 *  board always renders; only the text passes are affected. */
+	public boolean signOptimization = true;
+
+	/** Sign text beyond this many blocks is not drawn at all. Text is illegible long
+	 *  before this range, while each line is still a full glyph pass with its own
+	 *  transform. Set to 0 to always draw sign text. */
+	public double signTextCullDistance = 16.0;
+
+	/** Skips sign text for signs that are outside the camera frustum. Off-screen signs
+	 *  already skip their board through {@code cullBlockEntities}; this covers the text
+	 *  draws, which are dispatched separately from the board model. */
+	public boolean signTextHideOutOfView = true;
+
+	/** Enables the glowing-text optimizations below (outline reduction and distance-based
+	 *  glow removal). Glowing text is the most expensive text in the game: vanilla draws it
+	 *  many times per line to build the outline. */
+	public boolean signTextGlowOptimization = true;
+
+	/** Drops the multi-direction outline vanilla draws behind glowing sign text. In
+	 *  NORMAL mode one pass per line is kept (it reads as a shadow); in FAST mode the
+	 *  outline is removed entirely and the text renders flat. If Beryllium ever observes a
+	 *  version where those outline passes *are* the text, it stops dropping them. */
+	public boolean signTextHideGlowOutline = true;
+
+	/** {@code NORMAL} = keep one outline pass per line (looks like a shadow, costs one draw
+	 *  instead of eight). {@code FAST} = drop every outline pass. */
+	public String signTextOutlineMode = "FAST";
+
+	/** Beyond this distance, glowing sign text renders as ordinary (non-glowing) text: no
+	 *  outline, no see-through layer. The text itself still draws. */
+	public double signTextGlowCullDistance = 24.0;
+
+	// --- Beacon optimization ---
+
+	/** Master switch for beacon beam work. The beacon block itself is a normal block model,
+	 *  so everything Beryllium skips here is beam. */
+	public boolean beaconOptimization = true;
+
+	/** Stops drawing beacon beams beyond {@code beaconBeamCullDistance}. */
+	public boolean beaconBeamHideAtDistance = true;
+
+	/** Beacon beams further than this many blocks from the camera are not drawn. A beam is a
+	 *  large soft shape; past a few dozen blocks it contributes almost nothing. */
+	public double beaconBeamCullDistance = 64.0;
+
+	/** Stops drawing a beacon beam when no part of its column is on screen. The test covers
+	 *  the full height the beam can reach (up to the world's build height), so a beam that
+	 *  is visible above a wall still renders. */
+	public boolean beaconBeamHideOutOfView = true;
+
+	// --- Chest render culling ---
+
+	/** Skips the chest/ender chest renderer beyond {@code chestRenderCullDistance}. Storage
+	 *  rooms are the classic case: hundreds of animated lids, none of them more than a few
+	 *  pixels tall, all of them costing a draw call every frame. */
+	public boolean chestRenderCulling = true;
+
+	/** Chests (and ender chests) further than this many blocks from the camera are not
+	 *  rendered. 0 disables the distance rule. */
+	public double chestRenderCullDistance = 24.0;
+
+	// --- Particle culling ---
+
+	/** Drops particles that would be created further than {@code particleCullDistance} from
+	 *  the camera. Culling at spawn is the cheap kind: the particle never ticks, never sorts
+	 *  into a buffer and never reaches the GPU. */
+	public boolean particleCulling = true;
+
+	/** Particles spawned beyond this many blocks from the camera are discarded. 0 disables
+	 *  particle culling. */
+	public double particleCullDistance = 32.0;
+
+	// --- Entity render distance ---
+
+	/** Hard ceiling on how far away an entity may be and still be rendered. Vanilla has no
+	 *  entity render distance at all — it renders every entity in the loaded area. */
+	public boolean entityRenderCulling = true;
+
+	/** Entities further than this many blocks from the camera are not rendered. This is a
+	 *  cap, not a floor: it is deliberately *not* render-distance-synced by default. 0
+	 *  disables the rule. */
+	public double entityRenderCullDistance = 64.0;
+
+	/** When true, the entity render distance acts as a floor as well (it can never be closer
+	 *  than the player's live Render Distance option). Off by default, because the point of
+	 *  this setting is to cap how far out entities are drawn. */
+	public boolean entityRenderCullSyncWithRenderDistance = false;
+
+	// --- Visibility culling ---
+
+	/** Remembers, for the duration of one frame, whether a piece of geometry was already
+	 *  found to be invisible, so the same question is only answered once. The invisible case
+	 *  is the expensive one — it is what makes a room full of chests or signs cost real
+	 *  frame time — and it is exactly where repeated processing is pure waste. */
+	public boolean visibilityCulling = true;
+
+	// --- Chunk compilation scheduling & upload pacing ---
+
+	/** Spreads GPU uploads of freshly compiled chunk geometry across frames instead of
+	 *  letting one frame drain the whole queue. Uploads are deferred, never dropped. */
+	public boolean chunkUploadPacing = true;
+
+	/** How many chunk-geometry uploads a single frame may perform (0 = let vanilla drain the
+	 *  queue whenever it likes). Halved automatically when the previous frame overran its
+	 *  target, and reduced to 1 when a frame was in real trouble. */
+	public int chunkUploadsPerFrame = 2;
+
+	// --- Hopper throttling ---
+
+	/** Idle hoppers stop running their full transfer attempt every tick. A hopper counts as
+	 *  idle when its contents have not changed across {@code hopperIdleSamples} runs, so
+	 *  hoppers that are actually moving items are never throttled. Worst case is one
+	 *  interval of extra latency before a newly arriving item is noticed. */
+	public boolean hopperThrottling = true;
+
+	/** Run an idle hopper once every this many ticks. 4 (default) means an idle hopper
+	 *  attempts a transfer every ~32 ticks instead of every 8; set 1 to disable throttling.
+	 *  The tick governor widens this further while the server is behind. */
+	public int hopperThrottleInterval = 4;
+
+	/** How many consecutive identical content fingerprints mark a hopper as idle. Raise it to
+	 *  be more conservative about throttling, lower it to throttle sooner. */
+	public int hopperIdleSamples = 3;
+
+	// --- Item entity throttling ---
+
+	/** Items lying still on the ground tick less often. Items that are moving, burning, in a
+	 *  fluid or freshly spawned always tick at full rate. Note that a stationary item's
+	 *  despawn timer only advances on ticks that run, so ignored items live proportionally
+	 *  longer; set {@code itemEntityThrottleInterval} to 1 to turn this off. */
+	public boolean itemEntityThrottling = true;
+
+	/** Tick a stationary ground item once every this many ticks (1 = off). 4 is the default. */
+	public int itemEntityThrottleInterval = 4;
+
+	// --- Tick-time governor ("improved TPS") ---
+
+	/** Measures server tick time and scales Beryllium's throttles with it, so tick time stays
+	 *  stable instead of collapsing under entity load. Nothing is ever dropped — work is
+	 *  spaced out, and it returns to the configured baseline when the server catches up. */
+	public boolean tickGovernorEnabled = true;
+
+	/** Tick time (ms) considered healthy; vanilla's own budget is 50 ms. */
+	public double targetTickTimeMillis = 45.0;
+
+	/** Upper bound on how far the governor may stretch a throttle interval under full load
+	 *  (4.0 = up to 4x the configured interval). */
+	public double tickGovernorMaxScale = 4.0;
+
+	// --- Experimental off-thread ticking ---
+	//
+	// These are the two features that move world work onto other CPU cores. They are on by
+	// default, but they are guarded, not hoped-for: before any concurrency happens Beryllium
+	// runs a calibration pass on the server thread and proves that its deferred-mutation and
+	// per-thread-RNG hooks are live on this Minecraft version. If it cannot prove it, or if
+	// a worker ever throws, the features switch themselves off for the session and say so in
+	// the log. See README "Experimental off-thread ticking".
+
+	/** Runs vanilla's per-chunk random-tick pass (crop growth, fire, leaf decay, ...) on
+	 *  worker threads. Requires the calibration above to succeed; otherwise it stays off. */
+	public boolean asyncRandomTicks = true;
+
+	/** Worker threads for async random ticks. 0 = auto (half the cores, at most 4). */
+	public int asyncRandomTickThreads = 0;
+
+	/** Spreads one tick's entity work across worker threads: entities are grouped by a 3x3
+	 *  chunk colouring so no two groups can touch each other, and every world mutation is
+	 *  deferred to the server thread. Requires the calibration above to succeed. */
+	public boolean parallelEntityTicking = true;
+
+	/** Worker threads for parallel entity ticking. 0 = auto (half the cores, at most 4). */
+	public int parallelEntityTickThreads = 0;
+
+	/** Below this many eligible entities in a tick, entity work stays sequential —
+	 *  parallelism that small costs more than it saves. */
+	public int parallelEntityTickMinEntities = 32;
+
+	/** How many entities a worker takes per task. Larger = less scheduling overhead, smaller
+	 *  = better load balancing. */
+	public int parallelEntityTickChunkSize = 8;
 
 	public static BerylliumConfig load() {
 		if (Files.exists(CONFIG_PATH)) {

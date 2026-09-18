@@ -2,12 +2,7 @@ package com.endiq.beryllium.chunk;
 
 import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
-import com.endiq.beryllium.mixin.chunk.ViewAreaMixin;
 import com.endiq.beryllium.util.BerylliumLog;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.world.phys.Vec3;
-import org.joml.Vector3f;
 
 import java.util.List;
 
@@ -73,15 +68,12 @@ public final class ChunkRebuildManager {
 		instance = manager;
 	}
 
-	public void register() {
-		WorldRenderEvents.START.register(context -> {
-			Vec3 camPos = context.camera().getPosition();
-			Vector3f look = context.camera().getLookVector();
-			onFrameStart(camPos.x, camPos.y, camPos.z, look.x(), look.y(), look.z());
-		});
-		// Fires whenever the client world instance changes (including leaving to the
-		// menu) — the point at which queued section keys for the old world go stale.
-		ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register((client, level) -> onWorldUnload());
+	/** Kept for callers that just want the camera-driven drain with no frame timing. */
+	public void onFrameStart(
+		double camX, double camY, double camZ,
+		double forwardX, double forwardY, double forwardZ
+	) {
+		onFrameStart(camX, camY, camZ, forwardX, forwardY, forwardZ, -1L);
 	}
 
 	/**
@@ -143,10 +135,20 @@ public final class ChunkRebuildManager {
 		return bypassing;
 	}
 
-	/** Per-rendered-frame drain: re-trigger the highest-priority requests via vanilla. */
+	/**
+	 * Per-rendered-frame drain: re-trigger the highest-priority requests via vanilla.
+	 *
+	 * <p>How many are started in one frame is decided by
+	 * {@link ChunkCompilationScheduler}, which tightens the allowance when the previous
+	 * frame was already expensive — the queue keeps making progress, it just refuses to
+	 * make a slow frame worse.
+	 *
+	 * @param lastFrameNanos previous frame duration, or a negative value when unknown
+	 */
 	public void onFrameStart(
 		double camX, double camY, double camZ,
-		double forwardX, double forwardY, double forwardZ
+		double forwardX, double forwardY, double forwardZ,
+		long lastFrameNanos
 	) {
 		BerylliumConfig config = Beryllium.config();
 		if (config == null || !config.enabled || !config.chunkRebuildPrioritization) {
@@ -156,12 +158,12 @@ public final class ChunkRebuildManager {
 			return;
 		}
 
-		int budget = Math.max(1, config.chunkRebuildsPerFrame);
+		int budget = ChunkCompilationScheduler.rebuildsThisFrame(config.chunkRebuildsPerFrame, lastFrameNanos);
 		List<ChunkRebuildRequest> next = queue.drain(budget, camX, camY, camZ, forwardX, forwardY, forwardZ);
 		for (ChunkRebuildRequest request : next) {
 			bypassing = true;
 			try {
-				if (ViewAreaMixin.beryllium$rescheduleDirty(rendererRef, request.key(), request.urgent())) {
+				if (SectionDirtyBridge.rescheduleDirty(rendererRef, request.key(), request.urgent())) {
 					drainedTotal++;
 				} else {
 					// Re-trigger failed (vanilla method not reachable) — the request is

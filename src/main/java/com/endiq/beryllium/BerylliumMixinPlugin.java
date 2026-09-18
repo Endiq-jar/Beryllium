@@ -33,10 +33,12 @@ import java.util.Set;
  */
 public class BerylliumMixinPlugin implements IMixinConfigPlugin {
     private static final Logger LOGGER = LoggerFactory.getLogger("Beryllium");
-    private static final String MIXIN_PACKAGE_ROOT = "com.endiq.beryllium.mixin.common.";
+    private static final String SHAPE_MIXIN_PACKAGE_ROOT = "com.endiq.beryllium.mixin.common.";
+    private static final String TICK_MIXIN_PACKAGE_ROOT = "com.endiq.beryllium.mixin.tick.";
 
     private boolean masterEnabled = true;
     private boolean voxelShapeOptimizations = true;
+    private boolean tickOptimizations = true;
     private boolean androidSafeMode = true;
     private boolean configLoadAttempted = false;
     private boolean androidSafetyLogged = false;
@@ -64,9 +66,12 @@ public class BerylliumMixinPlugin implements IMixinConfigPlugin {
                 if (snapshot != null) {
                     this.masterEnabled = snapshot.enabled;
                     this.voxelShapeOptimizations = snapshot.voxelShapeOptimizations;
+                    this.tickOptimizations = snapshot.tickOptimizations;
                     this.androidSafeMode = snapshot.androidSafeMode;
-                    LOGGER.info("[BERYLLIUM] Mixin config loaded from {}: master={}, voxelShapeOptimizations={}, androidSafeMode={}",
-                            configPath, this.masterEnabled, this.voxelShapeOptimizations, this.androidSafeMode);
+                    LOGGER.info("[BERYLLIUM] Mixin config loaded from {}: master={}, voxelShapeOptimizations={}, "
+                                    + "tickOptimizations={}, androidSafeMode={}",
+                            configPath, this.masterEnabled, this.voxelShapeOptimizations,
+                            this.tickOptimizations, this.androidSafeMode);
                     return;
                 }
             } catch (IOException | JsonSyntaxException e) {
@@ -80,6 +85,7 @@ public class BerylliumMixinPlugin implements IMixinConfigPlugin {
     private static class MixinConfigSnapshot {
         public boolean enabled = true;
         public boolean voxelShapeOptimizations = true;
+        public boolean tickOptimizations = true;
         public boolean androidSafeMode = true;
     }
 
@@ -105,13 +111,24 @@ public class BerylliumMixinPlugin implements IMixinConfigPlugin {
             return false;
         }
 
-        if (mixinClassName.startsWith(MIXIN_PACKAGE_ROOT)) {
+        // Voxel-shape specialization: read at class-load time, so toggling it needs a
+        // restart. It replaces core collision/interaction types, which cannot be undone
+        // once classes have been transformed.
+        if (mixinClassName.startsWith(SHAPE_MIXIN_PACKAGE_ROOT)) {
             return this.masterEnabled && this.voxelShapeOptimizations;
         }
 
-        // The plugin is also used by the 1.21.4 client mixin config. Never block a
-        // mixin we do not own so other configs retain their normal behavior.
-        return true;
+        // Tick-side optimizations: hopper/item throttling, the tick-time governor, and the
+        // experimental off-thread ticking. Also a class-load-time gate (they inject into
+        // vanilla tick methods), so toggling needs a restart too.
+        if (mixinClassName.startsWith(TICK_MIXIN_PACKAGE_ROOT)) {
+            return this.masterEnabled && this.tickOptimizations;
+        }
+
+        // Client mixins (culling, chunk scheduling, text, particles, signs, beacons). They
+        // re-read the live config at injection time, so the master switch is the only thing
+        // that has to be decided here.
+        return this.masterEnabled;
     }
 
     @Override

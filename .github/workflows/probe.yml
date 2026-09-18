@@ -1,0 +1,88 @@
+name: probe
+
+# Dumps the mapped Minecraft class members for the selected release into the check-run
+# summary. The mapped jar only exists where Mojang's servers are reachable (CI), so this
+# is the way to answer "what does class X look like on version Y" without guessing
+# during cross-version maintenance.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Minecraft version (e.g. 1.21.11 or 26.2)"
+        required: true
+      classes:
+        description: "Fully-qualified classes to inspect, comma-separated"
+        required: true
+        default: "net.minecraft.client.Camera"
+
+permissions:
+  contents: read
+  checks: write
+
+concurrency:
+  group: beryllium-probe-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    name: Probe Minecraft ${{ inputs.version }} API
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+
+      - name: setup JDK 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: "25"
+          distribution: microsoft
+          cache: gradle
+
+      - name: make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: resolve mapped Minecraft jar
+        run: |
+          set -x
+          ./gradlew --no-daemon -Pminecraft_version="${{ inputs.version }}" \
+            dependencies --configuration compileClasspath > gradle-resolve.log 2>&1 || true
+          tail -5 gradle-resolve.log
+
+      - name: inspect classes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          jar=$(find ~/.gradle/caches/fabric-loom -name "*.jar" \
+            -path "*minecraft*" ! -name "*sources*" ! -name "*mappings*" \
+            | sort | tail -5)
+          echo "candidate jars:" | tee probe-output.txt
+          echo "$jar" | tee -a probe-output.txt
+          mapped=""
+          for j in $jar; do
+            if unzip -l "$j" 'net/minecraft/client/Camera.class' > /dev/null 2>&1; then
+              mapped="$j"; break
+            fi
+          done
+          echo "mapped jar: $mapped" | tee -a probe-output.txt
+          if [ -z "$mapped" ]; then
+            echo "no mapped jar found" | tee -a probe-output.txt
+            echo "--- gradle-resolve.log tail ---" | tee -a probe-output.txt
+            tail -c 4000 gradle-resolve.log | tee -a probe-output.txt || true
+          else
+            echo "$inputs.classes" | tr ',' '\n' | tr -d ' ' | while read -r cls; do
+              [ -z "$cls" ] && continue
+              echo "" | tee -a probe-output.txt
+              echo "=== $cls" | tee -a probe-output.txt
+              "$JAVA_HOME/bin/javap" -classpath "$mapped" "$cls" 2>&1 | tee -a probe-output.txt
+            done
+          fi
+
+          # Publish through the Checks API so the output is readable without log access.
+          summary=$(head -c 55000 probe-output.txt)
+          job_id=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs?per_page=100" \
+            --jq '.jobs[] | [.id, .name] | @tsv' \
+            | awk -F'\t' -v target="Probe Minecraft ${{ inputs.version }} API" '$2 == target {print $1; exit}')
+          gh api "repos/${{ github.repository }}/check-runs/$job_id" -X PATCH \
+            -f "output[title]=Minecraft ${{ inputs.version }} API probe" \
+            -f "output[summary]=$(printf '%s' "$summary")" || true

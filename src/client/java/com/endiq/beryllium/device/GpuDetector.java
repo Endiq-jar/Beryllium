@@ -1,7 +1,5 @@
 package com.endiq.beryllium.device;
 
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
@@ -14,6 +12,10 @@ import org.lwjgl.opengl.GL20;
  * from a listener on {@code ClientLifecycleEvents.CLIENT_STARTED} or later. Calling this
  * before the window is created will not crash (every lookup is wrapped), but will just
  * return "unknown"/-1 placeholders, since there's nothing to query yet.
+ *
+ * <p>The monitor refresh rate is looked up reflectively because the windowing library
+ * that provides it left the classpath during the supported range (26.3 dropped GLFW); a
+ * missing library costs the refresh-rate input to the tier decision, never the frame.
  */
 public final class GpuDetector {
 	private GpuDetector() {
@@ -41,12 +43,20 @@ public final class GpuDetector {
 
 	private static int safeGetRefreshRate() {
 		try {
-			long monitor = GLFW.glfwGetPrimaryMonitor();
-			if (monitor == 0L) {
+			Class<?> glfw = Class.forName("org.lwjgl.glfw.GLFW");
+			Object monitor = glfw.getMethod("glfwGetPrimaryMonitor").invoke(null);
+			if (!(monitor instanceof Number number) || number.longValue() == 0L) {
 				return -1;
 			}
-			GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
-			return mode == null ? -1 : mode.refreshRate();
+			Object mode = glfw.getMethod("glfwGetVideoMode", long.class).invoke(null, number.longValue());
+			if (mode == null) {
+				return -1;
+			}
+			Object rate = mode.getClass().getMethod("refreshRate").invoke(mode);
+			return rate instanceof Number n ? n.intValue() : -1;
+		} catch (ClassNotFoundException missing) {
+			// No windowing library on this release (26.3+); the refresh rate stays unknown.
+			return -1;
 		} catch (Throwable t) {
 			return -1;
 		}

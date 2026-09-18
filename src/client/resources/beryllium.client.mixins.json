@@ -5,13 +5,22 @@
 	"compatibilityLevel": "JAVA_17",
 	"plugin": "com.endiq.beryllium.BerylliumMixinPlugin",
 	"client": [
+		"lifecycle.MinecraftRunTickMixin",
+		"lifecycle.MinecraftSetLevelMixin",
 		"culling.EntityRenderDispatcherMixin",
 		"render.BlockEntityCullMixin",
 		"text.NameTagCullMixin",
 		"render.LeavesCullMixin",
 		"chunk.ViewAreaMixin",
 		"chunk.LevelRendererMixin",
-		"text.FontTextShadowMixin"
+		"chunk.ChunkUploadPacingMixin",
+		"text.FontTextShadowMixin",
+		"text.SignTextScopeMixin",
+		"text.FontSignTextMixin",
+		"text.FontSignTextLegacyMixin",
+		"render.BeaconBeamCullMixin",
+		"render.ChestRenderCullMixin",
+		"particle.ParticleCullMixin"
 	],
 	"injectors": {
 		"defaultRequire": 0

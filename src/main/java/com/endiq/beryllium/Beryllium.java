@@ -21,6 +21,7 @@ public class Beryllium implements ModInitializer {
 	private static volatile boolean deferCullingToOtherMod = false;
 	private static volatile boolean deferBlockEntityCullingToOtherMod = false;
 	private static volatile boolean deferChunkOptimizationsToOtherMod = false;
+	private static volatile boolean deferHopperOptimizationsToOtherMod = false;
 
 	@Override
 	public void onInitialize() {
@@ -52,6 +53,10 @@ public class Beryllium implements ModInitializer {
 		return deferChunkOptimizationsToOtherMod;
 	}
 
+	public static boolean isHopperOptimizationDeferredToOtherMod() {
+		return deferHopperOptimizationsToOtherMod;
+	}
+
 	private void checkCompatibility() {
 		if (!config.compatibilityModeEnabled) {
 			return;
@@ -76,6 +81,12 @@ public class Beryllium implements ModInitializer {
 			BerylliumLog.compat("EntityCulling is loaded — deferring to it for block entity culling; "
 				+ "Beryllium's frustum culling of block entity render calls is disabled for this "
 				+ "session to avoid two mods independently skipping the same render.");
+		}
+
+		if (CompatibilityChecker.shouldDeferHopperOptimizationTo(loaded)) {
+			deferHopperOptimizationsToOtherMod = true;
+			BerylliumLog.compat("Lithium is loaded — it ships its own hopper optimization, so "
+					+ "Beryllium's hopper throttling is disabled for this session.");
 		}
 
 		if (CompatibilityChecker.isChunkRendererReplaced(loaded)) {
