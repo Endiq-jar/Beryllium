@@ -71,6 +71,155 @@ public class net.minecraft.client.renderer.blockentity.SignRenderer extends net.
   static {};
 }
 
+=== net.minecraft.client.renderer.blockentity.AbstractSignRenderer
+Compiled from "AbstractSignRenderer.java"
+public abstract class net.minecraft.client.renderer.blockentity.AbstractSignRenderer<S extends net.minecraft.client.renderer.blockentity.state.SignRenderState> implements net.minecraft.client.renderer.blockentity.BlockEntityRenderer<net.minecraft.world.level.block.entity.SignBlockEntity, S> {
+  private static final int BLACK_TEXT_OUTLINE_COLOR;
+  private static final int OUTLINE_RENDER_DISTANCE;
+  private final net.minecraft.client.gui.Font font;
+  public net.minecraft.client.renderer.blockentity.AbstractSignRenderer(net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider$Context);
+  public void submit(S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
+  private void submitSignText(S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.world.level.block.entity.SignText);
+  private static boolean isOutlineVisible(net.minecraft.core.BlockPos);
+  public static int getDarkColor(net.minecraft.world.level.block.entity.SignText);
+  public void extractRenderState(net.minecraft.world.level.block.entity.SignBlockEntity, S, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
+  public void submit(net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
+  public void extractRenderState(net.minecraft.world.level.block.entity.BlockEntity, net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
+  private net.minecraft.util.FormattedCharSequence lambda$submitSignText$0(net.minecraft.client.renderer.blockentity.state.SignRenderState, net.minecraft.network.chat.Component);
+  static {};
+}
+
+=== net.minecraft.client.renderer.blockentity.HangingSignRenderer
+Compiled from "HangingSignRenderer.java"
+public class net.minecraft.client.renderer.blockentity.HangingSignRenderer extends net.minecraft.client.renderer.blockentity.AbstractSignRenderer<net.minecraft.client.renderer.blockentity.state.HangingSignRenderState> {
+  private static final float TEXT_RENDER_SCALE;
+  private static final org.joml.Vector3fc TEXT_OFFSET;
+  public static final net.minecraft.client.renderer.blockentity.WallAndGroundTransformations<net.minecraft.client.renderer.blockentity.state.SignRenderState$SignTransformations> TRANSFORMATIONS;
+  public net.minecraft.client.renderer.blockentity.HangingSignRenderer(net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider$Context);
+  public net.minecraft.client.renderer.blockentity.state.HangingSignRenderState createRenderState();
+  public void extractRenderState(net.minecraft.world.level.block.entity.SignBlockEntity, net.minecraft.client.renderer.blockentity.state.HangingSignRenderState, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
+  private static com.mojang.math.Transformation textTransformation(float, boolean);
+  private static net.minecraft.client.renderer.blockentity.state.SignRenderState$SignTransformations createTransformations(float);
+  private static net.minecraft.client.renderer.blockentity.state.SignRenderState$SignTransformations createGroundTransformation(int);
+  private static net.minecraft.client.renderer.blockentity.state.SignRenderState$SignTransformations createWallTransformation(net.minecraft.core.Direction);
+  public void extractRenderState(net.minecraft.world.level.block.entity.SignBlockEntity, net.minecraft.client.renderer.blockentity.state.SignRenderState, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
+  public void extractRenderState(net.minecraft.world.level.block.entity.BlockEntity, net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
+  public net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState createRenderState();
+  static {};
+}
+
+=== net.minecraft.client.gui.Font$PreparedText
+Compiled from "Font.java"
+public interface net.minecraft.client.gui.Font$PreparedText {
+  public abstract void visit(net.minecraft.client.gui.Font$GlyphVisitor);
+  public abstract net.minecraft.client.gui.navigation.ScreenRectangle bounds();
+}
+
+=== net.minecraft.client.gui.font.TextRenderable
+Compiled from "TextRenderable.java"
+public interface net.minecraft.client.gui.font.TextRenderable {
+  public abstract void render(org.joml.Matrix4fc, com.mojang.blaze3d.vertex.VertexConsumer, int, boolean);
+  public abstract net.minecraft.client.renderer.rendertype.RenderType renderType(net.minecraft.client.gui.Font$DisplayMode);
+  public abstract com.mojang.renderpearl.api.textures.GpuTextureView textureView();
+  public abstract com.mojang.renderpearl.api.pipeline.RenderPipeline guiPipeline();
+  public abstract float left();
+  public abstract float top();
+  public abstract float right();
+  public abstract float bottom();
+}
+
+=== net.minecraft.client.renderer.blockentity.state.ChestRenderState
+Compiled from "ChestRenderState.java"
+public class net.minecraft.client.renderer.blockentity.state.ChestRenderState extends net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState {
+  public net.minecraft.world.level.block.state.properties.ChestType type;
+  public float open;
+  public net.minecraft.core.Direction facing;
+  public net.minecraft.client.renderer.blockentity.state.ChestRenderState$ChestMaterialType material;
+  public net.minecraft.client.renderer.blockentity.state.ChestRenderState();
+}
+
+=== net.minecraft.client.Camera
+Compiled from "Camera.java"
+public class net.minecraft.client.Camera implements net.minecraft.world.waypoints.TrackedWaypoint$Camera {
+  public static final float PROJECTION_Z_NEAR;
+  private static final float DEFAULT_CAMERA_DISTANCE;
+  private static final org.joml.Vector3fc FORWARDS;
+  private static final org.joml.Vector3fc UP;
+  private static final org.joml.Vector3fc LEFT;
+  public static final float BASE_HUD_FOV;
+  private boolean initialized;
+  private net.minecraft.world.level.Level level;
+  private net.minecraft.world.entity.Entity entity;
+  private net.minecraft.world.phys.Vec3 position;
+  private final net.minecraft.core.BlockPos$MutableBlockPos blockPosition;
+  private final org.joml.Vector3f forwards;
+  private final org.joml.Vector3f panoramicForwards;
+  private final org.joml.Vector3f up;
+  private final org.joml.Vector3f left;
+  private float xRot;
+  private float yRot;
+  private final org.joml.Quaternionf rotation;
+  private boolean detached;
+  private float eyeHeight;
+  private float eyeHeightOld;
+  private final net.minecraft.client.renderer.Projection projection;
+  private net.minecraft.client.renderer.culling.Frustum cullFrustum;
+  private net.minecraft.client.renderer.culling.Frustum capturedFrustum;
+  private boolean captureFrustum;
+  private final org.joml.Matrix4f cachedViewRotMatrix;
+  private final org.joml.Matrix4f cachedViewRotProjMatrix;
+  private long lastProjectionVersion;
+  private int matrixPropertiesDirty;
+  private static final int DIRTY_VIEW_ROT;
+  private static final int DIRTY_VIEW_ROT_PROJ;
+  private float fovModifier;
+  private float oldFovModifier;
+  private float fov;
+  private float hudFov;
+  private float depthFar;
+  private boolean isPanoramicMode;
+  private final net.minecraft.world.attribute.EnvironmentAttributeProbe attributeProbe;
+  private final net.minecraft.client.Minecraft minecraft;
+  public net.minecraft.client.Camera();
+  public void tick();
+  public void update(net.minecraft.client.DeltaTracker);
+  public float getCameraEntityPartialTicks(net.minecraft.client.DeltaTracker);
+  public void extractRenderState(net.minecraft.client.renderer.state.level.CameraRenderState, net.minecraft.client.DeltaTracker);
+  private void tickFov();
+  private org.joml.Matrix4f createProjectionMatrixForCulling();
+  public net.minecraft.client.renderer.culling.Frustum getCullFrustum();
+  private void prepareCullFrustum(org.joml.Matrix4fc, org.joml.Matrix4f, net.minecraft.world.phys.Vec3);
+  public net.minecraft.client.renderer.culling.Frustum getCapturedFrustum();
+  public void captureFrustum();
+  public void killFrustum();
+  private float calculateFov(float);
+  private float calculateHudFov(float);
+  private float modifyFovBasedOnDeathOrFluid(float, float);
+  private void alignWithEntity(float);
+  private float getMaxZoom(float);
+  public boolean isPanoramicMode();
+  public float getFov();
+  private void setupPerspective(float, float, float, float, float);
+  private void setupOrtho(float, float, float, float, boolean);
+  protected void move(float, float, float);
+  protected void setRotation(float, float);
+  protected void setPosition(double, double, double);
+  protected void setPosition(net.minecraft.world.phys.Vec3);
+  public net.minecraft.world.phys.Vec3 position();
+  public net.minecraft.core.BlockPos blockPosition();
+  public float xRot();
+  public float yRot();
+  public float yaw();
+  public org.joml.Quaternionf rotation();
+  public org.joml.Matrix4f getViewRotationMatrix(org.joml.Matrix4f);
+  public org.joml.Matrix4f getViewRotationProjectionMatrix(org.joml.Matrix4f);
+  public net.minecraft.world.entity.Entity entity();
+  public void setEntity(net.minecraft.world.entity.Entity);
+  public boolean isInitialized();
+  public boolean isDetached();
+  public net.minecraft.world.attribute.EnvironmentAttributeProbe attributeProbe();
+  public net.minecraft.client.Camera$NearPlane getNearPlane(float);
+
 === net.minecraft.client.renderer.blockentity.ChestRenderer
 Compiled from "ChestRenderer.java"
 public class net.minecraft.client.renderer.blockentity.ChestRenderer<T extends net.minecraft.world.level.block.entity.BlockEntity & net.minecraft.world.level.block.entity.LidBlockEntity> implements net.minecraft.client.renderer.blockentity.BlockEntityRenderer<T, net.minecraft.client.renderer.blockentity.state.ChestRenderState> {

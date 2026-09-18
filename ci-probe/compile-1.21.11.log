@@ -1,0 +1,70 @@
+## minecraft 1.21.11
+## gradle exit: 1
+
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Fabric Loom: 1.17.21
+Failed to parse fabric.mod.json: /home/runner/work/Beryllium/Beryllium/src/main/resources/fabric.mod.json
+
+> Task :compileJava
+/home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/mixin/tick/ItemEntityTickMixin.java:52: error: cannot find symbol
+		if (self.getCommandSenderWorld() == null || self.getCommandSenderWorld().isClientSide()) {
+		        ^
+  symbol:   method getCommandSenderWorld()
+  location: variable self of type ItemEntity
+/home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/mixin/tick/ItemEntityTickMixin.java:52: error: cannot find symbol
+		if (self.getCommandSenderWorld() == null || self.getCommandSenderWorld().isClientSide()) {
+		                                                ^
+  symbol:   method getCommandSenderWorld()
+  location: variable self of type ItemEntity
+/home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/tick/EntityTickBatcher.java:116: error: cannot find symbol
+		Level level = entity.getCommandSenderWorld();
+		                    ^
+  symbol:   method getCommandSenderWorld()
+  location: variable entity of type Entity
+/home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/tick/EntityTickBatcher.java:248: error: cannot find symbol
+		Level level = entity.getCommandSenderWorld();
+		                    ^
+  symbol:   method getCommandSenderWorld()
+  location: variable entity of type Entity
+4 errors
+
+> Task :compileJava FAILED
+
+[Incubating] Problems report is available at: file:///home/runner/work/Beryllium/Beryllium/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
+> Compilation failed; see the compiler output below.
+  /home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/mixin/tick/ItemEntityTickMixin.java:52: error: cannot find symbol
+  		if (self.getCommandSenderWorld() == null || self.getCommandSenderWorld().isClientSide()) {
+  		        ^
+    symbol:   method getCommandSenderWorld()
+    location: variable self of type ItemEntity
+  /home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/mixin/tick/ItemEntityTickMixin.java:52: error: cannot find symbol
+  		if (self.getCommandSenderWorld() == null || self.getCommandSenderWorld().isClientSide()) {
+  		                                                ^
+    symbol:   method getCommandSenderWorld()
+    location: variable self of type ItemEntity
+  /home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/tick/EntityTickBatcher.java:116: error: cannot find symbol
+  		Level level = entity.getCommandSenderWorld();
+  		                    ^
+    symbol:   method getCommandSenderWorld()
+    location: variable entity of type Entity
+  /home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/tick/EntityTickBatcher.java:248: error: cannot find symbol
+  		Level level = entity.getCommandSenderWorld();
+  		                    ^
+    symbol:   method getCommandSenderWorld()
+    location: variable entity of type Entity
+  4 errors
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 11s
+1 actionable task: 1 executed

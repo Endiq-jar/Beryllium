@@ -1,0 +1,176 @@
+## minecraft 1.21.4
+## gradle exit: 1
+
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Fabric Loom: 1.17.21
+Failed to parse fabric.mod.json: /home/runner/work/Beryllium/Beryllium/src/main/resources/fabric.mod.json
+
+> Task :compileJava
+> Task :processResources
+> Task :classes
+
+> Task :compileClientJava FAILED
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/render/EnderChestRenderCullMixin.java:6: error: cannot find symbol
+import net.minecraft.client.renderer.blockentity.EnderChestRenderer;
+                                                ^
+  symbol:   class EnderChestRenderer
+  location: package net.minecraft.client.renderer.blockentity
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:4: error: cannot find symbol
+import com.mojang.blaze3d.vertex.Matrix4f;
+                                ^
+  symbol:   class Matrix4f
+  location: package com.mojang.blaze3d.vertex
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:8: error: cannot find symbol
+import net.minecraft.util.FormattedText;
+                         ^
+  symbol:   class FormattedText
+  location: package net.minecraft.util
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:34: error: cannot find symbol
+		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+		                                                                 ^
+  symbol:   class Matrix4f
+  location: class FontSignTextLegacyMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:48: error: cannot find symbol
+		FormattedText text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+		^
+  symbol:   class FormattedText
+  location: class FontSignTextLegacyMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:48: error: cannot find symbol
+		FormattedText text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+		                                                                     ^
+  symbol:   class Matrix4f
+  location: class FontSignTextLegacyMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:62: error: cannot find symbol
+		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+		                                                              ^
+  symbol:   class Matrix4f
+  location: class FontSignTextLegacyMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:4: error: cannot find symbol
+import com.mojang.blaze3d.vertex.Matrix4f;
+                                ^
+  symbol:   class Matrix4f
+  location: package com.mojang.blaze3d.vertex
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:8: error: cannot find symbol
+import net.minecraft.util.FormattedText;
+                         ^
+  symbol:   class FormattedText
+  location: package net.minecraft.util
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:51: error: cannot find symbol
+		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+		                                                                 ^
+  symbol:   class Matrix4f
+  location: class FontSignTextMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:65: error: cannot find symbol
+		FormattedText text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+		^
+  symbol:   class FormattedText
+  location: class FontSignTextMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:65: error: cannot find symbol
+		FormattedText text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+		                                                                     ^
+  symbol:   class Matrix4f
+  location: class FontSignTextMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:79: error: cannot find symbol
+		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+		                                                              ^
+  symbol:   class Matrix4f
+  location: class FontSignTextMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/render/EnderChestRenderCullMixin.java:18: error: cannot find symbol
+@Mixin(EnderChestRenderer.class)
+       ^
+  symbol: class EnderChestRenderer
+14 errors
+
+[Incubating] Problems report is available at: file:///home/runner/work/Beryllium/Beryllium/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileClientJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
+> Compilation failed; see the compiler output below.
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/render/EnderChestRenderCullMixin.java:6: error: cannot find symbol
+  import net.minecraft.client.renderer.blockentity.EnderChestRenderer;
+                                                  ^
+    symbol:   class EnderChestRenderer
+    location: package net.minecraft.client.renderer.blockentity
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:4: error: cannot find symbol
+  import com.mojang.blaze3d.vertex.Matrix4f;
+                                  ^
+    symbol:   class Matrix4f
+    location: package com.mojang.blaze3d.vertex
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:8: error: cannot find symbol
+  import net.minecraft.util.FormattedText;
+                           ^
+    symbol:   class FormattedText
+    location: package net.minecraft.util
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:34: error: cannot find symbol
+  		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+  		                                                                 ^
+    symbol:   class Matrix4f
+    location: class FontSignTextLegacyMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:48: error: cannot find symbol
+  		FormattedText text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+  		^
+    symbol:   class FormattedText
+    location: class FontSignTextLegacyMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:48: error: cannot find symbol
+  		FormattedText text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+  		                                                                     ^
+    symbol:   class Matrix4f
+    location: class FontSignTextLegacyMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:62: error: cannot find symbol
+  		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+  		                                                              ^
+    symbol:   class Matrix4f
+    location: class FontSignTextLegacyMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:4: error: cannot find symbol
+  import com.mojang.blaze3d.vertex.Matrix4f;
+                                  ^
+    symbol:   class Matrix4f
+    location: package com.mojang.blaze3d.vertex
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:8: error: cannot find symbol
+  import net.minecraft.util.FormattedText;
+                           ^
+    symbol:   class FormattedText
+    location: package net.minecraft.util
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:51: error: cannot find symbol
+  		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+  		                                                                 ^
+    symbol:   class Matrix4f
+    location: class FontSignTextMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:65: error: cannot find symbol
+  		FormattedText text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+  		^
+    symbol:   class FormattedText
+    location: class FontSignTextMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:65: error: cannot find symbol
+  		FormattedText text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+  		                                                                     ^
+    symbol:   class Matrix4f
+    location: class FontSignTextMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:79: error: cannot find symbol
+  		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+  		                                                              ^
+    symbol:   class Matrix4f
+    location: class FontSignTextMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/render/EnderChestRenderCullMixin.java:18: error: cannot find symbol
+  @Mixin(EnderChestRenderer.class)
+         ^
+    symbol: class EnderChestRenderer
+  14 errors
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 11s
+3 actionable tasks: 3 executed
