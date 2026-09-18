@@ -101,6 +101,7 @@ jobs:
           OUT="ci-probe/signatures-${{ matrix.minecraft }}.txt"
           {
             echo "## minecraft ${{ matrix.minecraft }}"
+            echo "## run ${{ github.run_id }} attempt ${{ github.run_attempt }}"
             echo "## classpath: $CP"
             echo
             for cls in \
@@ -137,20 +138,25 @@ jobs:
           javap -p -cp "$CP" net.minecraft.world.level.Level 2>&1 \
             | grep -i "height\|MaxY\|MinY\|Beam" >> "$OUT" || echo "(none)" >> "$OUT"
 
-      - name: compile and capture the output
+      - name: build exactly like CI does, and capture everything
         continue-on-error: true
         run: |
           set +e
-          ./gradlew --no-daemon --console=plain compileJava compileClientJava \
+          ./gradlew --no-daemon --console=plain clean build \
             -Pminecraft_version=${{ matrix.minecraft }} > gradle-out.txt 2>&1
           GRADLE_EXIT=$?
+          python3 scripts/validate_built_mod.py build/libs '${{ matrix.minecraft }}' >> gradle-out.txt 2>&1
+          VALIDATE_EXIT=$?
           set -e
-          echo "gradle_exit=$GRADLE_EXIT"
+          echo "gradle_exit=$GRADLE_EXIT validate_exit=$VALIDATE_EXIT"
           mkdir -p ci-probe
           { echo "## minecraft ${{ matrix.minecraft }}"
-            echo "## gradle exit: $GRADLE_EXIT"
+            echo "## run ${{ github.run_id }} attempt ${{ github.run_attempt }}"
+            echo "## gradle exit: $GRADLE_EXIT, validate exit: $VALIDATE_EXIT"
+            echo "## generated access widener header: $(head -1 build/generated/beryllium-access-widener/beryllium.accesswidener 2>/dev/null || echo MISSING)"
+            echo "## packaged access widener header: $(unzip -p build/libs/*.jar beryllium.accesswidener 2>/dev/null | head -1 || echo MISSING)"
             echo
-            tail -c 120000 gradle-out.txt; } > "ci-probe/compile-${{ matrix.minecraft }}.log"
+            tail -c 150000 gradle-out.txt; } > "ci-probe/compile-${{ matrix.minecraft }}.log"
           rm -f gradle-out.txt probe-cp.txt
 
       - name: upload the probe output
