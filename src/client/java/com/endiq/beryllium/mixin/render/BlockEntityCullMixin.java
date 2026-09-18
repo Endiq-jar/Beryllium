@@ -3,6 +3,7 @@ package com.endiq.beryllium.mixin.render;
 import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
 import com.endiq.beryllium.culling.BlockEntityCulling;
+import com.endiq.beryllium.render.ChestRenderCulling;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
@@ -36,6 +37,13 @@ public abstract class BlockEntityCullMixin {
 		BlockEntity blockEntity, float tickDelta, PoseStack poseStack,
 		MultiBufferSource bufferSource, CallbackInfo ci
 	) {
+		// Chest render culling (24 blocks by default) is unconditional and comes first: it
+		// is a different rule from the frustum test below and each decides independently.
+		if (ChestRenderCulling.shouldCullChest(blockEntity)) {
+			ci.cancel();
+			return;
+		}
+
 		BerylliumConfig config = Beryllium.config();
 		if (config == null || !config.enabled || !config.cullBlockEntities) {
 			return;

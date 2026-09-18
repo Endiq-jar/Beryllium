@@ -25,8 +25,10 @@ import java.lang.reflect.Method;
 public final class VanillaBridges {
 	private static volatile Method tickChunkMethod;
 	private static volatile Method tickNonPassengerMethod;
+	private static volatile Method entityLevelMethod;
 	private static volatile boolean resolvedTickChunk;
 	private static volatile boolean resolvedTickNonPassenger;
+	private static volatile boolean resolvedEntityLevel;
 
 	private VanillaBridges() {
 	}
@@ -70,6 +72,58 @@ public final class VanillaBridges {
 		} catch (Throwable t) {
 			DeferredWorldActions.noteFailure(t);
 			return false;
+		}
+	}
+
+	/**
+	 * The entity's own level.
+	 *
+	 * <p>{@code Entity#getCommandSenderWorld()} is the name this was written against, but the
+	 * getter Mojang uses for "the level I am in" has been renamed since, and Beryllium is
+	 * compiled against one release at a time while shipping every release. The accessor is
+	 * therefore resolved once by name against whichever of the known spellings the running
+	 * version carries, and cached; if none of them exist the caller treats the entity as
+	 * "no level" and leaves it to vanilla.
+	 */
+	public static Level levelOf(Entity entity) {
+		if (entity == null) {
+			return null;
+		}
+		Method method = resolveEntityLevel(entity.getClass());
+		if (method == null) {
+			return null;
+		}
+		try {
+			return (Level) method.invoke(entity);
+		} catch (Throwable t) {
+			return null;
+		}
+	}
+
+	private static final String[] LEVEL_ACCESSORS = {
+		"getCommandSenderWorld", "level", "getLevel", "getWorld", "commandSenderWorld"
+	};
+
+	private static Method resolveEntityLevel(Class<?> type) {
+		if (resolvedEntityLevel) {
+			return entityLevelMethod;
+		}
+		synchronized (VanillaBridges.class) {
+			if (!resolvedEntityLevel) {
+				for (String name : LEVEL_ACCESSORS) {
+					Method candidate = find(type, name);
+					if (candidate != null && Level.class.isAssignableFrom(candidate.getReturnType())) {
+						entityLevelMethod = candidate;
+						break;
+					}
+				}
+				resolvedEntityLevel = true;
+				if (entityLevelMethod == null) {
+					BerylliumLog.warn("[BERYLLIUM-TICK] no Entity level accessor found; "
+							+ "parallel entity ticking and item throttling stay disabled for this session.");
+				}
+			}
+			return entityLevelMethod;
 		}
 	}
 

@@ -17,10 +17,7 @@
 		"text.FontTextShadowMixin",
 		"text.SignTextScopeMixin",
 		"text.FontSignTextMixin",
-		"text.FontSignTextLegacyMixin",
 		"render.BeaconBeamCullMixin",
-		"render.ChestRenderCullMixin",
-		"render.EnderChestRenderCullMixin",
 		"particle.ParticleCullMixin"
 	],
 	"injectors": {

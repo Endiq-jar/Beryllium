@@ -67,13 +67,39 @@ def mcAtLeast = { int major, int minor, int patch ->
 	return versionParts[2] >= patch
 }
 
-// Font.DisplayMode replaced the `boolean seeThrough` argument of Font#drawInBatch in 1.20.
-def fontHasDisplayMode = mcAtLeast(1, 20, 0)
 // ViewArea replaced SectionRenderDispatcher in the 1.21.2 renderer refactor.
 def hasViewArea = mcAtLeast(1, 21, 2)
+// Font#drawInBatch and org.joml.Matrix4f exist from 1.19.4 to 26.1; 26.2 replaced them with
+// Font#prepareText and Font$PreparedText, so the mixins that hook them are excluded there.
+def textUsesDrawInBatch = !mcAtLeast(1, 26, 2)
+
+/*
+ * The access widener is generated, not shipped as a literal resource, because the namespace
+ * on its first line depends on the release being built: Mojang stopped obfuscating the game
+ * jar in 26.1, and from there Loom (and Fabric Loader) require the widener to be written in
+ * the *official* namespace rather than the named one. The entries themselves are Mojang
+ * names on every release, so only the header changes.
+ *
+ * Beryllium's voxel-shape engine subclasses vanilla shapes and needs three members that are
+ * package-private or protected on the older releases (public on newer ones); widening them
+ * is what lets one source tree compile for 1.19.4 through current.
+ */
+def accessWidenerSource = file('src/main/accesswidener/beryllium.accesswidener')
+def accessWidenerDir = file("${layout.buildDirectory.get().asFile}/generated/beryllium-access-widener")
+def accessWidenerFile = new File(accessWidenerDir, 'beryllium.accesswidener')
+
+def accessWidenerLines = accessWidenerSource.readLines()
+def accessWidenerHeader = accessWidenerLines.find { it.startsWith('accessWidener') }
+def accessWidenerVersion = (accessWidenerHeader =~ /v(\d+)/)[0][1]
+// v2 is the first format Fabric allows an "official" namespace in.
+def accessWidenerNamespace = unobfuscatedGame ? 'official' : 'named'
+def accessWidenerFormatVersion = unobfuscatedGame ? '2' : accessWidenerVersion
+accessWidenerDir.mkdirs()
+accessWidenerFile.text = (["accessWidener v${accessWidenerFormatVersion} ${accessWidenerNamespace}"]
+		+ accessWidenerLines.drop(1)).join('\n') + '\n'
 
 loom {
-	accessWidenerPath = file('src/main/resources/beryllium.accesswidener')
+	accessWidenerPath = accessWidenerFile
 	splitEnvironmentSourceSets()
 
 	mods {
@@ -91,10 +117,17 @@ loom {
  * split fail), so the same tree compiles everywhere without pre-processor tricks.
  */
 sourceSets {
+	main {
+		resources {
+			// The generated widener, namespace-correct for this release, is what ships.
+			srcDir accessWidenerDir
+		}
+	}
 	client {
 		java {
-			if (!fontHasDisplayMode) {
-				// Pre-1.20 releases pass a plain boolean instead of Font$DisplayMode.
+			if (!textUsesDrawInBatch) {
+				// 26.2+ prepares text once and submits it later; the per-draw hooks that make
+				// sign text cheap no longer exist, so these files are only built below it.
 				exclude 'com/endiq/beryllium/mixin/text/FontSignTextMixin.java'
 			}
 			if (!hasViewArea) {
@@ -203,7 +236,7 @@ tasks.register('printBuildTarget') {
 	doLast {
 		println "Beryllium target: Minecraft ${minecraftVersion}; full optimization set" +
 			"; ${unobfuscatedGame ? 'unobfuscated' : 'remapped'} Loom pipeline" +
-			"; Font\$DisplayMode=${fontHasDisplayMode}, ViewArea=${hasViewArea}"
+			"; ViewArea=${hasViewArea}, drawInBatch text hooks=${textUsesDrawInBatch}"
 	}
 }
 
