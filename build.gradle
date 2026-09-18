@@ -72,6 +72,24 @@ def fontHasDisplayMode = mcAtLeast(1, 20, 0)
 // ViewArea replaced SectionRenderDispatcher in the 1.21.2 renderer refactor.
 def hasViewArea = mcAtLeast(1, 21, 2)
 
+loom {
+	accessWidenerPath = file('src/main/resources/beryllium.accesswidener')
+	splitEnvironmentSourceSets()
+
+	mods {
+		"beryllium" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+}
+
+/*
+ * Two files only exist on part of the supported range. They are excluded by release AFTER
+ * Loom has created the split source sets (referencing `sourceSets.client` before
+ * `splitEnvironmentSourceSets()` would create an unmanaged source set and make Loom's own
+ * split fail), so the same tree compiles everywhere without pre-processor tricks.
+ */
 sourceSets {
 	client {
 		java {
@@ -84,18 +102,6 @@ sourceSets {
 				// SectionDirtyBridge (reflection) already cover those releases.
 				exclude 'com/endiq/beryllium/mixin/chunk/ViewAreaMixin.java'
 			}
-		}
-	}
-}
-
-loom {
-	accessWidenerPath = file('src/main/resources/beryllium.accesswidener')
-	splitEnvironmentSourceSets()
-
-	mods {
-		"beryllium" {
-			sourceSet sourceSets.main
-			sourceSet sourceSets.client
 		}
 	}
 }
