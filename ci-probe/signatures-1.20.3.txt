@@ -1,5 +1,5 @@
-## minecraft 1.19.4
-## classpath: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/26.0.2/c7ce3cdeda3d18909368dfe5977332dfad326c6d/annotations-26.0.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm/9.10.1/ada2141c0cc52ee8f5c48cd5fa4ce0e794f22236/asm-9.10.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-analysis/9.10.1/8d49f14d51f632cb1d87c88d1ceaf50db0d8af1b/asm-analysis-9.10.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-commons/9.10.1/4229e4c55fd8e01c23f9fe9884075cc628aacc50/asm-commons-9.10.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-tree/9.10.1/e244332a17564c1d1572449399a842de35881be2/asm-tree-9.10.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-util/9.10.1/7bb9d450e8d4cbf9f9e04096c44bbfe7fba80b15/asm-util-9.10.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.17.4+mixin.0.8.7/5f66cc9f59b8efaa942155a3d5a30599bf6640dd/sponge-mixin-0.17.4+mixin.0.8.7.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.github.llamalad7/mixinextras-fabric/0.5.5/d1055b99c0ab08a8403fe2da3d79ca28e6340a76/mixinextras-fabric-0.5.5.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.github.oshi/oshi-core/6.2.2/54f5efc19bca95d709d9a37d19ffcbba3d21c1a6/oshi-core-6.2.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.google.code.gson/gson/2.10/dd9b193aef96e973d5a11ab13cd17430c2e4306b/gson-2.10.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.google.guava/failureaccess/1.0.1/1dcf1de382a0bf95a3d8b0849546c88bac1292c9/failureaccess-1.0.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.google.guava/guava/31.1-jre/60458f877d055d0c9114d9e1a2efb737b4bc282c/guava-31.1-jre.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.ibm.icu/icu4j/71.1/9e7d3304c23f9ba5cb71915f7cce23231a57a445/icu4j-71.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/authlib/3.18.38/16106b26bce62bda55bab42785b999e44d77ecb/authlib-3.18.38.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/blocklist/1.0.10/5c685c5ffa94c4cd39496c7184c1d122e515ecef/blocklist-1.0.10.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/brigadier/1.0.18/c1ef1234282716483c92183f49bef47b1a89bfa9/brigadier-1.0.18.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/datafixerupper/6.0.6/e38e20946530646e866db03b2b192883d0ea6e84/datafixerupper-6.0.6.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/logging/1.1.1/832b8e6674a9b325a5175a3a6267dfaf34c85139/logging-1.1.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/patchy/2.2.10/da05971b07cbb379d002cf7eaec6a2048211fefc/patchy-2.2.10.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/text2speech/1.16.7/ee4095669061d1fe4bce5fea23d69d1520bc2d58/text2speech-1.16.7.jar:/home/runner/.gradle/caches/modules-2/files-2.1/commons-codec/commons-codec/1.15/49d94806b6e3dc933dacbd8acb0fdbab8ebd1e5d/commons-codec-1.15.jar:/home/runner/.gradle/caches/modules-2/files-2.1/commons-io/commons-io/2.11.0/a2503f302b11ebde7ebc3df41daebe0e4eea3689/commons-io-2.11.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/commons-logging/commons-logging/1.2/4bfc12adfe4842bf07b657f0369c4cb522955686/commons-logging-1.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-buffer/4.1.82.Final/a544270cf1ae8b8077082f5036436a9a9971ea71/netty-buffer-4.1.82.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec/4.1.82.Final/b77200379acb345a9ffdece1c605e591ac3e4e0a/netty-codec-4.1.82.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-common/4.1.82.Final/22d148e85c3f5ebdacc0ce1f5aabb1d420f73f3/netty-common-4.1.82.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-handler/4.1.82.Final/644041d1fa96a5d3130a29e8978630d716d76e38/netty-handler-4.1.82.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-resolver/4.1.82.Final/38f665ae8dcd29032eea31245ba7806bed2e0fa8/netty-resolver-4.1.82.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-classes-epoll/4.1.82.Final/e7c7dd18deac93105797f30057c912651ea76521/netty-transport-classes-epoll-4.1.82.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-epoll/4.1.82.Final/476409d6255001ca53a55f65b01c13822f8dc93a/netty-transport-native-epoll-4.1.82.Final-linux-aarch_64.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-epoll/4.1.82.Final/c7350a71920f3ae9142945e25fed4846cce53374/netty-transport-native-epoll-4.1.82.Final-linux-x86_64.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-unix-common/4.1.82.Final/3e895b35ca1b8a0eca56cacff4c2dde5d2c6abce/netty-transport-native-unix-common-4.1.82.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport/4.1.82.Final/e431a218d91acb6476ccad5f5aafde50aa3945ca/netty-transport-4.1.82.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/it.unimi.dsi/fastutil/8.5.9/bb7ea75ecdb216654237830b3a96d87ad91f8cc5/fastutil-8.5.9.jar:/home/runner/.gradle/caches/modules-2/files-2.1/net.java.dev.jna/jna-platform/5.12.1/97406a297c852f4a41e688a176ec675f72e8329/jna-platform-5.12.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/net.java.dev.jna/jna/5.12.1/b1e93a735caea94f503e95e6fe79bf9cdc1e985d/jna-5.12.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/net.sf.jopt-simple/jopt-simple/5.0.4/4fdac2fbe92dfad86aa6e9301736f6b4342a3f5c/jopt-simple-5.0.4.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-compress/1.21/4ec95b60d4e86b5c95a0e919cb172a0af98011ef/commons-compress-1.21.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-lang3/3.12.0/c6842c86792ff03b9f1d1fe2aab8dc23aa6c6f0e/commons-lang3-3.12.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.httpcomponents/httpclient/4.5.13/e5f6cae5ca7ecaac1ec2827a9e2d65ae2869cada/httpclient-4.5.13.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.httpcomponents/httpcore/4.4.15/7f2e0c573eaa7a74bac2e89b359e1f73d92a0a1d/httpcore-4.4.15.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.logging.log4j/log4j-api/2.19.0/ea1b37f38c327596b216542bc636cfdc0b8036fa/log4j-api-2.19.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.logging.log4j/log4j-core/2.19.0/3b6eeb4de4c49c0fe38a4ee27188ff5fee44d0bb/log4j-core-2.19.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.logging.log4j/log4j-slf4j2-impl/2.19.0/5c04bfdd63ce9dceb2e284b81e96b6a70010ee10/log4j-slf4j2-impl-2.19.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.joml/joml/1.10.5/22566d58af70ad3d72308bab63b8339906deb649/joml-1.10.5.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-glfw/3.3.1/cbac1b8d30cb4795149c1ef540f912671a8616d0/lwjgl-glfw-3.3.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-jemalloc/3.3.1/a817bcf213db49f710603677457567c37d53e103/lwjgl-jemalloc-3.3.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-openal/3.3.1/2623a6b8ae1dfcd880738656a9f0243d2e6840bd/lwjgl-openal-3.3.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-opengl/3.3.1/831a5533a21a5f4f81bbc51bb13e9899319b5411/lwjgl-opengl-3.3.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-stb/3.3.1/b119297cf8ed01f247abe8685857f8e7fcf5980f/lwjgl-stb-3.3.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-tinyfd/3.3.1/ff1914111ef2e3e0110ef2dabc8d8cdaad82347/lwjgl-tinyfd-3.3.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl/3.3.1/ae58664f88e18a9bb2c77b063833ca7aaec484cb/lwjgl-3.3.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/2.0.1/f48d81adce2abf5ad3cfe463df517952749e03bc/slf4j-api-2.0.1.jar:/home/runner/work/Beryllium/Beryllium/.gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-common-8e3a36b6c6/1.19.4-loom.mappings.1_19_4.layered+hash.2198-v2/minecraft-common-8e3a36b6c6-1.19.4-loom.mappings.1_19_4.layered+hash.2198-v2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc/fabric-loader/0.19.5/ff9e65cffca4a67f31523e1807fe0855940fcbfa/fabric-loader-0.19.5.jar:/home/runner/work/Beryllium/Beryllium/.gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-clientOnly-8e3a36b6c6/1.19.4-loom.mappings.1_19_4.layered+hash.2198-v2/minecraft-clientOnly-8e3a36b6c6-1.19.4-loom.mappings.1_19_4.layered+hash.2198-v2.jar
+## minecraft 1.20.3
+## classpath: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/26.0.2/c7ce3cdeda3d18909368dfe5977332dfad326c6d/annotations-26.0.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm/9.10.1/ada2141c0cc52ee8f5c48cd5fa4ce0e794f22236/asm-9.10.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-analysis/9.10.1/8d49f14d51f632cb1d87c88d1ceaf50db0d8af1b/asm-analysis-9.10.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-commons/9.10.1/4229e4c55fd8e01c23f9fe9884075cc628aacc50/asm-commons-9.10.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-tree/9.10.1/e244332a17564c1d1572449399a842de35881be2/asm-tree-9.10.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-util/9.10.1/7bb9d450e8d4cbf9f9e04096c44bbfe7fba80b15/asm-util-9.10.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.17.4+mixin.0.8.7/5f66cc9f59b8efaa942155a3d5a30599bf6640dd/sponge-mixin-0.17.4+mixin.0.8.7.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.github.llamalad7/mixinextras-fabric/0.5.5/d1055b99c0ab08a8403fe2da3d79ca28e6340a76/mixinextras-fabric-0.5.5.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.github.oshi/oshi-core/6.4.5/943ba26de047eb6b28fff47f5ee939a34eb5fc8e/oshi-core-6.4.5.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.google.code.gson/gson/2.10.1/b3add478d4382b78ea20b1671390a858002feb6c/gson-2.10.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.google.guava/failureaccess/1.0.1/1dcf1de382a0bf95a3d8b0849546c88bac1292c9/failureaccess-1.0.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.google.guava/guava/32.1.2-jre/5e64ec7e056456bef3a4bc4c6fdaef71e8ab6318/guava-32.1.2-jre.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.ibm.icu/icu4j/73.2/61ad4ef7f9131fcf6d25c34b817f90d6da06c9e9/icu4j-73.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/authlib/6.0.52/65085e2eb921c4a3ebdde3d248637f1776e6d80d/authlib-6.0.52.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/blocklist/1.0.10/5c685c5ffa94c4cd39496c7184c1d122e515ecef/blocklist-1.0.10.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/brigadier/1.2.9/73e324f2ee541493a5179abf367237faa782ed21/brigadier-1.2.9.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/datafixerupper/6.0.8/3ba4a30557a9b057760af4011f909ba619fc5125/datafixerupper-6.0.8.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/logging/1.1.1/832b8e6674a9b325a5175a3a6267dfaf34c85139/logging-1.1.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/patchy/2.2.10/da05971b07cbb379d002cf7eaec6a2048211fefc/patchy-2.2.10.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/text2speech/1.17.9/3cad216e3a7f0c19b4b394388bc9ffc446f13b14/text2speech-1.17.9.jar:/home/runner/.gradle/caches/modules-2/files-2.1/commons-codec/commons-codec/1.16.0/4e3eb3d79888d76b54e28b350915b5dc3919c9de/commons-codec-1.16.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/commons-io/commons-io/2.13.0/8bb2bc9b4df17e2411533a0708a69f983bf5e83b/commons-io-2.13.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/commons-logging/commons-logging/1.2/4bfc12adfe4842bf07b657f0369c4cb522955686/commons-logging-1.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-buffer/4.1.97.Final/f8f3d8644afa5e6e1a40a3a6aeb9d9aa970ecb4f/netty-buffer-4.1.97.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec/4.1.97.Final/384ba4d75670befbedb45c4d3b497a93639c206d/netty-codec-4.1.97.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-common/4.1.97.Final/7cceacaf11df8dc63f23d0fb58e9d4640fc88404/netty-common-4.1.97.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-handler/4.1.97.Final/abb86c6906bf512bf2b797a41cd7d2e8d3cd7c36/netty-handler-4.1.97.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-resolver/4.1.97.Final/cec8348108dc76c47cf87c669d514be52c922144/netty-resolver-4.1.97.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-classes-epoll/4.1.97.Final/795da37ded759e862457a82d9d92c4d39ce8ecee/netty-transport-classes-epoll-4.1.97.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-epoll/4.1.97.Final/5514744c588190ffda076b35a9b8c9f24946a960/netty-transport-native-epoll-4.1.97.Final-linux-aarch_64.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-epoll/4.1.97.Final/54188f271e388e7f313aea995e82f58ce2cdb809/netty-transport-native-epoll-4.1.97.Final-linux-x86_64.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-unix-common/4.1.97.Final/d469d84265ab70095b01b40886cabdd433b6e664/netty-transport-native-unix-common-4.1.97.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport/4.1.97.Final/f37380d23c9bb079bc702910833b2fd532c9abd0/netty-transport-4.1.97.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/it.unimi.dsi/fastutil/8.5.12/c24946d46824bd528054bface3231d2ecb7e95e8/fastutil-8.5.12.jar:/home/runner/.gradle/caches/modules-2/files-2.1/net.java.dev.jna/jna-platform/5.13.0/88e9a306715e9379f3122415ef4ae759a352640d/jna-platform-5.13.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/net.java.dev.jna/jna/5.13.0/1200e7ebeedbe0d10062093f32925a912020e747/jna-5.13.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/net.sf.jopt-simple/jopt-simple/5.0.4/4fdac2fbe92dfad86aa6e9301736f6b4342a3f5c/jopt-simple-5.0.4.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-compress/1.22/691a8b4e6cf4248c3bc72c8b719337d5cb7359fa/commons-compress-1.22.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-lang3/3.13.0/b7263237aa89c1f99b327197c41d0669707a462e/commons-lang3-3.13.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.httpcomponents/httpclient/4.5.13/e5f6cae5ca7ecaac1ec2827a9e2d65ae2869cada/httpclient-4.5.13.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.httpcomponents/httpcore/4.4.16/51cf043c87253c9f58b539c9f7e44c8894223850/httpcore-4.4.16.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.logging.log4j/log4j-api/2.19.0/ea1b37f38c327596b216542bc636cfdc0b8036fa/log4j-api-2.19.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.logging.log4j/log4j-core/2.19.0/3b6eeb4de4c49c0fe38a4ee27188ff5fee44d0bb/log4j-core-2.19.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.logging.log4j/log4j-slf4j2-impl/2.19.0/5c04bfdd63ce9dceb2e284b81e96b6a70010ee10/log4j-slf4j2-impl-2.19.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.joml/joml/1.10.5/22566d58af70ad3d72308bab63b8339906deb649/joml-1.10.5.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-glfw/3.3.2/757920418805fb90bfebb3d46b1d9e7669fca2eb/lwjgl-glfw-3.3.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-jemalloc/3.3.2/877e17e39ebcd58a9c956dc3b5b777813de0873a/lwjgl-jemalloc-3.3.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-openal/3.3.2/ae5357ed6d934546d3533993ea84c0cfb75eed95/lwjgl-openal-3.3.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-opengl/3.3.2/ee8e95be0b438602038bc1f02dc5e3d011b1b216/lwjgl-opengl-3.3.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-stb/3.3.2/a2550795014d622b686e9caac50b14baa87d2c70/lwjgl-stb-3.3.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-tinyfd/3.3.2/9f65c248dd77934105274fcf8351abb75b34327c/lwjgl-tinyfd-3.3.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl/3.3.2/4421d94af68e35dcaa31737a6fc59136a1e61b94/lwjgl-3.3.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/2.0.7/41eb7184ea9d556f23e18b5cb99cad1f8581fc00/slf4j-api-2.0.7.jar:/home/runner/work/Beryllium/Beryllium/.gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-common-cc1ccd8d12/1.20.3-loom.mappings.1_20_3.layered+hash.2198-v2/minecraft-common-cc1ccd8d12-1.20.3-loom.mappings.1_20_3.layered+hash.2198-v2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc/fabric-loader/0.19.5/ff9e65cffca4a67f31523e1807fe0855940fcbfa/fabric-loader-0.19.5.jar:/home/runner/work/Beryllium/Beryllium/.gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-clientOnly-cc1ccd8d12/1.20.3-loom.mappings.1_20_3.layered+hash.2198-v2/minecraft-clientOnly-cc1ccd8d12-1.20.3-loom.mappings.1_20_3.layered+hash.2198-v2.jar
 
 === net.minecraft.client.gui.Font
 Compiled from "Font.java"
@@ -14,16 +14,7 @@ public class net.minecraft.client.gui.Font {
   private final net.minecraft.client.StringSplitter splitter;
   public net.minecraft.client.gui.Font(java.util.function.Function<net.minecraft.resources.ResourceLocation, net.minecraft.client.gui.font.FontSet>, boolean);
   net.minecraft.client.gui.font.FontSet getFontSet(net.minecraft.resources.ResourceLocation);
-  public int drawShadow(com.mojang.blaze3d.vertex.PoseStack, java.lang.String, float, float, int);
-  public int drawShadow(com.mojang.blaze3d.vertex.PoseStack, java.lang.String, float, float, int, boolean);
-  public int draw(com.mojang.blaze3d.vertex.PoseStack, java.lang.String, float, float, int);
-  public int drawShadow(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.util.FormattedCharSequence, float, float, int);
-  public int drawShadow(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.network.chat.Component, float, float, int);
-  public int draw(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.util.FormattedCharSequence, float, float, int);
-  public int draw(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.network.chat.Component, float, float, int);
   public java.lang.String bidirectionalShaping(java.lang.String);
-  private int drawInternal(java.lang.String, float, float, int, org.joml.Matrix4f, boolean, boolean);
-  private int drawInternal(net.minecraft.util.FormattedCharSequence, float, float, int, org.joml.Matrix4f, boolean);
   public int drawInBatch(java.lang.String, float, float, int, boolean, org.joml.Matrix4f, net.minecraft.client.renderer.MultiBufferSource, net.minecraft.client.gui.Font$DisplayMode, int, int);
   public int drawInBatch(java.lang.String, float, float, int, boolean, org.joml.Matrix4f, net.minecraft.client.renderer.MultiBufferSource, net.minecraft.client.gui.Font$DisplayMode, int, int, boolean);
   public int drawInBatch(net.minecraft.network.chat.Component, float, float, int, boolean, org.joml.Matrix4f, net.minecraft.client.renderer.MultiBufferSource, net.minecraft.client.gui.Font$DisplayMode, int, int);
@@ -41,7 +32,6 @@ public class net.minecraft.client.gui.Font {
   public java.lang.String plainSubstrByWidth(java.lang.String, int, boolean);
   public java.lang.String plainSubstrByWidth(java.lang.String, int);
   public net.minecraft.network.chat.FormattedText substrByWidth(net.minecraft.network.chat.FormattedText, int);
-  public void drawWordWrap(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.network.chat.FormattedText, int, int, int, int);
   public int wordWrapHeight(java.lang.String, int);
   public int wordWrapHeight(net.minecraft.network.chat.FormattedText, int);
   public java.util.List<net.minecraft.util.FormattedCharSequence> split(net.minecraft.network.chat.FormattedText, int);
@@ -72,21 +62,28 @@ public class net.minecraft.client.renderer.blockentity.SignRenderer implements n
   private static final java.lang.String STICK;
   private static final int BLACK_TEXT_OUTLINE_COLOR;
   private static final int OUTLINE_RENDER_DISTANCE;
+  private static final float RENDER_SCALE;
+  private static final net.minecraft.world.phys.Vec3 TEXT_OFFSET;
   private final java.util.Map<net.minecraft.world.level.block.state.properties.WoodType, net.minecraft.client.renderer.blockentity.SignRenderer$SignModel> signModels;
   private final net.minecraft.client.gui.Font font;
   public net.minecraft.client.renderer.blockentity.SignRenderer(net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider$Context);
   public void render(net.minecraft.world.level.block.entity.SignBlockEntity, float, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.MultiBufferSource, int, int);
-  void renderSign(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.MultiBufferSource, int, int, float, net.minecraft.world.level.block.state.properties.WoodType, net.minecraft.client.model.Model);
+  public float getSignModelRenderScale();
+  public float getSignTextRenderScale();
+  void renderSignWithText(net.minecraft.world.level.block.entity.SignBlockEntity, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.MultiBufferSource, int, int, net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.block.SignBlock, net.minecraft.world.level.block.state.properties.WoodType, net.minecraft.client.model.Model);
+  void translateSign(com.mojang.blaze3d.vertex.PoseStack, float, net.minecraft.world.level.block.state.BlockState);
+  void renderSign(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.MultiBufferSource, int, int, net.minecraft.world.level.block.state.properties.WoodType, net.minecraft.client.model.Model);
   void renderSignModel(com.mojang.blaze3d.vertex.PoseStack, int, int, net.minecraft.client.model.Model, com.mojang.blaze3d.vertex.VertexConsumer);
   net.minecraft.client.resources.model.Material getSignMaterial(net.minecraft.world.level.block.state.properties.WoodType);
-  void renderSignText(net.minecraft.world.level.block.entity.SignBlockEntity, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.MultiBufferSource, int, float);
-  net.minecraft.world.phys.Vec3 getTextOffset(float);
-  static boolean isOutlineVisible(net.minecraft.world.level.block.entity.SignBlockEntity, int);
-  static int getDarkColor(net.minecraft.world.level.block.entity.SignBlockEntity);
+  void renderSignText(net.minecraft.core.BlockPos, net.minecraft.world.level.block.entity.SignText, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.MultiBufferSource, int, int, int, boolean);
+  private void translateSignText(com.mojang.blaze3d.vertex.PoseStack, boolean, net.minecraft.world.phys.Vec3);
+  net.minecraft.world.phys.Vec3 getTextOffset();
+  static boolean isOutlineVisible(net.minecraft.core.BlockPos, int);
+  public static int getDarkColor(net.minecraft.world.level.block.entity.SignText);
   public static net.minecraft.client.renderer.blockentity.SignRenderer$SignModel createSignModel(net.minecraft.client.model.geom.EntityModelSet, net.minecraft.world.level.block.state.properties.WoodType);
   public static net.minecraft.client.model.geom.builders.LayerDefinition createSignLayer();
   public void render(net.minecraft.world.level.block.entity.BlockEntity, float, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.MultiBufferSource, int, int);
-  private net.minecraft.util.FormattedCharSequence method_45799(net.minecraft.world.level.block.entity.SignBlockEntity, net.minecraft.network.chat.Component);
+  private net.minecraft.util.FormattedCharSequence method_45799(int, net.minecraft.network.chat.Component);
   private static net.minecraft.client.renderer.blockentity.SignRenderer$SignModel method_32158(net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider$Context, net.minecraft.world.level.block.state.properties.WoodType);
   private static net.minecraft.world.level.block.state.properties.WoodType method_32156(net.minecraft.world.level.block.state.properties.WoodType);
   static {};
@@ -100,22 +97,112 @@ Compiled from "HangingSignRenderer.java"
 public class net.minecraft.client.renderer.blockentity.HangingSignRenderer extends net.minecraft.client.renderer.blockentity.SignRenderer {
   private static final java.lang.String PLANK;
   private static final java.lang.String V_CHAINS;
-  public static final java.lang.String NORMAL_CHAINS;
-  public static final java.lang.String CHAIN_L_1;
-  public static final java.lang.String CHAIN_L_2;
-  public static final java.lang.String CHAIN_R_1;
-  public static final java.lang.String CHAIN_R_2;
-  public static final java.lang.String BOARD;
+  private static final java.lang.String NORMAL_CHAINS;
+  private static final java.lang.String CHAIN_L_1;
+  private static final java.lang.String CHAIN_L_2;
+  private static final java.lang.String CHAIN_R_1;
+  private static final java.lang.String CHAIN_R_2;
+  private static final java.lang.String BOARD;
+  private static final float MODEL_RENDER_SCALE;
+  private static final float TEXT_RENDER_SCALE;
+  private static final net.minecraft.world.phys.Vec3 TEXT_OFFSET;
   private final java.util.Map<net.minecraft.world.level.block.state.properties.WoodType, net.minecraft.client.renderer.blockentity.HangingSignRenderer$HangingSignModel> hangingSignModels;
   public net.minecraft.client.renderer.blockentity.HangingSignRenderer(net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider$Context);
+  public float getSignModelRenderScale();
+  public float getSignTextRenderScale();
   public void render(net.minecraft.world.level.block.entity.SignBlockEntity, float, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.MultiBufferSource, int, int);
-  private float getSignAngle(net.minecraft.world.level.block.state.BlockState, boolean);
-  net.minecraft.client.resources.model.Material getSignMaterial(net.minecraft.world.level.block.state.properties.WoodType);
+  void translateSign(com.mojang.blaze3d.vertex.PoseStack, float, net.minecraft.world.level.block.state.BlockState);
   void renderSignModel(com.mojang.blaze3d.vertex.PoseStack, int, int, net.minecraft.client.model.Model, com.mojang.blaze3d.vertex.VertexConsumer);
-  net.minecraft.world.phys.Vec3 getTextOffset(float);
+  net.minecraft.client.resources.model.Material getSignMaterial(net.minecraft.world.level.block.state.properties.WoodType);
+  net.minecraft.world.phys.Vec3 getTextOffset();
   public static net.minecraft.client.model.geom.builders.LayerDefinition createHangingSignLayer();
   public void render(net.minecraft.world.level.block.entity.BlockEntity, float, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.MultiBufferSource, int, int);
-  private static net.minecraft.client.renderer.blockentity.HangingSignRenderer$HangingSignModel method_45794(net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider$Context, net.minecraft.worDispatcher
+  private static net.minecraft.client.renderer.blockentity.HangingSignRenderer$HangingSignModel method_45794(net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider$Context, net.minecraft.world.level.block.state.properties.WoodType);
+  private static net.minecraft.world.level.block.state.properties.WoodType method_45796(net.minecraft.world.level.block.state.properties.WoodType);
+  static {};
+}
+
+=== net.minecraft.client.gui.Font$PreparedText
+Error: class not found: net.minecraft.client.gui.Font$PreparedText
+
+=== net.minecraft.client.gui.font.TextRenderable
+Error: class not found: net.minecraft.client.gui.font.TextRenderable
+
+=== net.minecraft.client.renderer.blockentity.state.ChestRenderState
+Error: class not found: net.minecraft.client.renderer.blockentity.state.ChestRenderState
+
+=== net.minecraft.client.Camera
+Compiled from "Camera.java"
+public class net.minecraft.client.Camera {
+  private boolean initialized;
+  private net.minecraft.world.level.BlockGetter level;
+  private net.minecraft.world.entity.Entity entity;
+  private net.minecraft.world.phys.Vec3 position;
+  private final net.minecraft.core.BlockPos$MutableBlockPos blockPosition;
+  private final org.joml.Vector3f forwards;
+  private final org.joml.Vector3f up;
+  private final org.joml.Vector3f left;
+  private float xRot;
+  private float yRot;
+  private final org.joml.Quaternionf rotation;
+  private boolean detached;
+  private float eyeHeight;
+  private float eyeHeightOld;
+  private float partialTickTime;
+  public static final float FOG_DISTANCE_SCALE;
+  public net.minecraft.client.Camera();
+  public void setup(net.minecraft.world.level.BlockGetter, net.minecraft.world.entity.Entity, boolean, boolean, float);
+  public void tick();
+  private double getMaxZoom(double);
+  protected void move(double, double, double);
+  protected void setRotation(float, float);
+  protected void setPosition(double, double, double);
+  protected void setPosition(net.minecraft.world.phys.Vec3);
+  public net.minecraft.world.phys.Vec3 getPosition();
+  public net.minecraft.core.BlockPos getBlockPosition();
+  public float getXRot();
+  public float getYRot();
+  public org.joml.Quaternionf rotation();
+  public net.minecraft.world.entity.Entity getEntity();
+  public boolean isInitialized();
+  public boolean isDetached();
+  public net.minecraft.client.Camera$NearPlane getNearPlane();
+  public net.minecraft.world.level.material.FogType getFluidInCamera();
+  public final org.joml.Vector3f getLookVector();
+  public final org.joml.Vector3f getUpVector();
+  public final org.joml.Vector3f getLeftVector();
+  public void reset();
+  public float getPartialTickTime();
+}
+
+=== net.minecraft.client.renderer.blockentity.ChestRenderer
+Compiled from "ChestRenderer.java"
+public class net.minecraft.client.renderer.blockentity.ChestRenderer<T extends net.minecraft.world.level.block.entity.BlockEntity & net.minecraft.world.level.block.entity.LidBlockEntity> implements net.minecraft.client.renderer.blockentity.BlockEntityRenderer<T> {
+  private static final java.lang.String BOTTOM;
+  private static final java.lang.String LID;
+  private static final java.lang.String LOCK;
+  private final net.minecraft.client.model.geom.ModelPart lid;
+  private final net.minecraft.client.model.geom.ModelPart bottom;
+  private final net.minecraft.client.model.geom.ModelPart lock;
+  private final net.minecraft.client.model.geom.ModelPart doubleLeftLid;
+  private final net.minecraft.client.model.geom.ModelPart doubleLeftBottom;
+  private final net.minecraft.client.model.geom.ModelPart doubleLeftLock;
+  private final net.minecraft.client.model.geom.ModelPart doubleRightLid;
+  private final net.minecraft.client.model.geom.ModelPart doubleRightBottom;
+  private final net.minecraft.client.model.geom.ModelPart doubleRightLock;
+  private boolean xmasTextures;
+  public net.minecraft.client.renderer.blockentity.ChestRenderer(net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider$Context);
+  public static net.minecraft.client.model.geom.builders.LayerDefinition createSingleBodyLayer();
+  public static net.minecraft.client.model.geom.builders.LayerDefinition createDoubleBodyRightLayer();
+  public static net.minecraft.client.model.geom.builders.LayerDefinition createDoubleBodyLeftLayer();
+  public void render(T, float, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.MultiBufferSource, int, int);
+  private void render(com.mojang.blaze3d.vertex.PoseStack, com.mojang.blaze3d.vertex.VertexConsumer, net.minecraft.client.model.geom.ModelPart, net.minecraft.client.model.geom.ModelPart, net.minecraft.client.model.geom.ModelPart, float, int, int);
+}
+
+=== net.minecraft.client.renderer.blockentity.EnderChestRenderer
+Error: class not found: net.minecraft.client.renderer.blockentity.EnderChestRenderer
+
+=== net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher
 Compiled from "BlockEntityRenderDispatcher.java"
 public class net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher implements net.minecraft.server.packs.resources.ResourceManagerReloadListener {
   private java.util.Map<net.minecraft.world.level.block.entity.BlockEntityType<?>, net.minecraft.client.renderer.blockentity.BlockEntityRenderer<?>> renderers;
@@ -165,8 +252,10 @@ public class net.minecraft.client.renderer.blockentity.BeaconRenderer implements
 Compiled from "EntityRenderDispatcher.java"
 public class net.minecraft.client.renderer.entity.EntityRenderDispatcher implements net.minecraft.server.packs.resources.ResourceManagerReloadListener {
   private static final net.minecraft.client.renderer.RenderType SHADOW_RENDER_TYPE;
+  private static final float MAX_SHADOW_RADIUS;
+  private static final float SHADOW_POWER_FALLOFF_Y;
   private java.util.Map<net.minecraft.world.entity.EntityType<?>, net.minecraft.client.renderer.entity.EntityRenderer<?>> renderers;
-  private java.util.Map<java.lang.String, net.minecraft.client.renderer.entity.EntityRenderer<? extends net.minecraft.world.entity.player.Player>> playerRenderers;
+  private java.util.Map<net.minecraft.client.resources.PlayerSkin$Model, net.minecraft.client.renderer.entity.EntityRenderer<? extends net.minecraft.world.entity.player.Player>> playerRenderers;
   public final net.minecraft.client.renderer.texture.TextureManager textureManager;
   private net.minecraft.world.level.Level level;
   public net.minecraft.client.Camera camera;
@@ -191,10 +280,10 @@ public class net.minecraft.client.renderer.entity.EntityRenderDispatcher impleme
   public <E extends net.minecraft.world.entity.Entity> boolean shouldRender(E, net.minecraft.client.renderer.culling.Frustum, double, double, double);
   public <E extends net.minecraft.world.entity.Entity> void render(E, double, double, double, float, float, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.MultiBufferSource, int);
   private static void renderHitbox(com.mojang.blaze3d.vertex.PoseStack, com.mojang.blaze3d.vertex.VertexConsumer, net.minecraft.world.entity.Entity, float);
-  private void renderFlame(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.MultiBufferSource, net.minecraft.world.entity.Entity);
+  private void renderFlame(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.MultiBufferSource, net.minecraft.world.entity.Entity, org.joml.Quaternionf);
   private static void fireVertex(com.mojang.blaze3d.vertex.PoseStack$Pose, com.mojang.blaze3d.vertex.VertexConsumer, float, float, float, float, float);
   private static void renderShadow(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.MultiBufferSource, net.minecraft.world.entity.Entity, float, float, net.minecraft.world.level.LevelReader, float);
-  private static void renderBlockShadow(com.mojang.blaze3d.vertex.PoseStack$Pose, com.mojang.blaze3d.vertex.VertexConsumer, net.minecraft.world.level.LevelReader, net.minecraft.core.BlockPos, double, double, double, float, float);
+  private static void renderBlockShadow(com.mojang.blaze3d.vertex.PoseStack$Pose, com.mojang.blaze3d.vertex.VertexConsumer, net.minecraft.world.level.chunk.ChunkAccess, net.minecraft.world.level.LevelReader, net.minecraft.core.BlockPos, double, double, double, float, float);
   private static void shadowVertex(com.mojang.blaze3d.vertex.PoseStack$Pose, com.mojang.blaze3d.vertex.VertexConsumer, float, float, float, float, float, float);
   public void setLevel(net.minecraft.world.level.Level);
   public double distanceToSqr(net.minecraft.world.entity.Entity);
@@ -232,7 +321,6 @@ public abstract class net.minecraft.world.level.Level implements net.minecraft.w
   public static final int MAX_LEVEL_SIZE;
   public static final int LONG_PARTICLE_CLIP_RANGE;
   public static final int SHORT_PARTICLE_CLIP_RANGE;
-  private static final net.minecraft.core.Direction[] DIRECTIONS;
   public static final int MAX_BRIGHTNESS;
   public static final int TICKS_PER_DAY;
   public static final int MAX_ENTITY_SPAWN_Y;
@@ -298,11 +386,12 @@ public abstract class net.minecraft.world.level.Level implements net.minecraft.w
   public abstract void playSeededSound(net.minecraft.world.entity.player.Player, double, double, double, net.minecraft.core.Holder<net.minecraft.sounds.SoundEvent>, net.minecraft.sounds.SoundSource, float, float, long);
   public void playSeededSound(net.minecraft.world.entity.player.Player, double, double, double, net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource, float, float, long);
   public abstract void playSeededSound(net.minecraft.world.entity.player.Player, net.minecraft.world.entity.Entity, net.minecraft.core.Holder<net.minecraft.sounds.SoundEvent>, net.minecraft.sounds.SoundSource, float, float, long);
+  public void playSound(net.minecraft.world.entity.player.Player, double, double, double, net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource);
   public void playSound(net.minecraft.world.entity.player.Player, double, double, double, net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource, float, float);
   public void playSound(net.minecraft.world.entity.player.Player, net.minecraft.world.entity.Entity, net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource, float, float);
   public void playLocalSound(net.minecraft.core.BlockPos, net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource, float, float, boolean);
+  public void playLocalSound(net.minecraft.world.entity.Entity, net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource, float, float);
   public void playLocalSound(double, double, double, net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource, float, float, boolean);
-  public void addParticle(net.minecraft.core.particles.ParticleOptions, double, double, double, double, double, double);
 
 === net.minecraft.util.FormattedText
 Error: class not found: net.minecraft.util.FormattedText
@@ -318,130 +407,6 @@ public interface net.minecraft.network.chat.FormattedText {
   public static net.minecraft.network.chat.FormattedText of(java.lang.String, net.minecraft.network.chat.Style);
   public static net.minecraft.network.chat.FormattedText composite(net.minecraft.network.chat.FormattedText...);
   public static net.minecraft.network.chat.FormattedText composite(java.util.List<? extends net.minecraft.network.chat.FormattedText>);
-  public default java.lang.String getString();
-  private static java.util.Optional method_30067(java.lang.StringBuilder, java.lang.String);
-  static {};
-}
-
-=== com.mojang.blaze3d.vertex.Matrix4f
-Error: class not found: com.mojang.blaze3d.vertex.Matrix4f
-
-=== com.mojang.math.Matrix4f
-Error: class not found: com.mojang.math.Matrix4f
-
-=== org.joml.Matrix4f
-Compiled from "Matrix4f.java"
-public class org.joml.Matrix4f implements java.io.Externalizable,java.lang.Cloneable,org.joml.Matrix4fc {
-  private static final long serialVersionUID;
-  float m00;
-  float m01;
-  float m02;
-  float m03;
-  float m10;
-  float m11;
-  float m12;
-  float m13;
-  float m20;
-  float m21;
-  float m22;
-  float m23;
-  float m30;
-  float m31;
-  float m32;
-  float m33;
-  int properties;
-  public org.joml.Matrix4f();
-  public org.joml.Matrix4f(org.joml.Matrix3fc);
-  public org.joml.Matrix4f(org.joml.Matrix4fc);
-  public org.joml.Matrix4f(org.joml.Matrix4x3fc);
-  public org.joml.Matrix4f(org.joml.Matrix4dc);
-  public org.joml.Matrix4f(float, float, float, float, float, float, float, float, float, float, float, float, float, float, float, float);
-  public org.joml.Matrix4f(java.nio.FloatBuffer);
-  public org.joml.Matrix4f(org.joml.Vector4fc, org.joml.Vector4fc, org.joml.Vector4fc, org.joml.Vector4fc);
-  org.joml.Matrix4f _properties(int);
-  public org.joml.Matrix4f assume(int);
-  public org.joml.Matrix4f determineProperties();
-  public int properties();
-  public float m00();
-  public float m01();
-  public float m02();
-  public float m03();
-  public float m10();
-  public float m11();
-  public float m12();
-  public float m13();
-  public float m20();
-  public float m21();
-  public float m22();
-  public float m23();
-  public float m30();
-  public float m31();
-  public float m32();
-  public float m33();
-  public org.joml.Matrix4f m00(float);
-  public org.joml.Matrix4f m01(float);
-  public org.joml.Matrix4f m02(float);
-  public org.joml.Matrix4f m03(float);
-  public org.joml.Matrix4f m10(float);
-  public org.joml.Matrix4f m11(float);
-  public org.joml.Matrix4f m12(float);
-  public org.joml.Matrix4f m13(float);
-  public org.joml.Matrix4f m20(float);
-  public org.joml.Matrix4f m21(float);
-  public org.joml.Matrix4f m22(float);
-  public org.joml.Matrix4f m23(float);
-  public org.joml.Matrix4f m30(float);
-  public org.joml.Matrix4f m31(float);
-  public org.joml.Matrix4f m32(float);
-  public org.joml.Matrix4f m33(float);
-  org.joml.Matrix4f _m00(float);
-  org.joml.Matrix4f _m01(float);
-  org.joml.Matrix4f _m02(float);
-  org.joml.Matrix4f _m03(float);
-  org.joml.Matrix4f _m10(float);
-  org.joml.Matrix4f _m11(float);
-  org.joml.Matrix4f _m12(float);
-  org.joml.Matrix4f _m13(float);
-  org.joml.Matrix4f _m20(float);
-  org.joml.Matrix4f _m21(float);
-  org.joml.Matrix4f _m22(float);
-  org.joml.Matrix4f _m23(float);
-  org.joml.Matrix4f _m30(float);
-  org.joml.Matrix4f _m31(float);
-  org.joml.Matrix4f _m32(float);
-  org.joml.Matrix4f _m33(float);
-
-=== com.mojang.blaze3d.vertex.PoseStack
-Compiled from "PoseStack.java"
-public class com.mojang.blaze3d.vertex.PoseStack {
-  private final java.util.Deque<com.mojang.blaze3d.vertex.PoseStack$Pose> poseStack;
-  public com.mojang.blaze3d.vertex.PoseStack();
-  public void translate(double, double, double);
-  public void translate(float, float, float);
-  public void scale(float, float, float);
-  public void mulPose(org.joml.Quaternionf);
-  public void rotateAround(org.joml.Quaternionf, float, float, float);
-  public void pushPose();
-  public void popPose();
-  public com.mojang.blaze3d.vertex.PoseStack$Pose last();
-  public boolean clear();
-  public void setIdentity();
-  public void mulPoseMatrix(org.joml.Matrix4f);
-  private static void method_22908(java.util.ArrayDeque);
-}
-
-=== net.minecraft.client.renderer.MultiBufferSource
-Compiled from "MultiBufferSource.java"
-public interface net.minecraft.client.renderer.MultiBufferSource {
-  public static net.minecraft.client.renderer.MultiBufferSource$BufferSource immediate(com.mojang.blaze3d.vertex.BufferBuilder);
-  public static net.minecraft.client.renderer.MultiBufferSource$BufferSource immediateWithBuffers(java.util.Map<net.minecraft.client.renderer.RenderType, com.mojang.blaze3d.vertex.BufferBuilder>, com.mojang.blaze3d.vertex.BufferBuilder);
-  public abstract com.mojang.blaze3d.vertex.VertexConsumer getBuffer(net.minecraft.client.renderer.RenderType);
-}
-
-=== net.minecraft.world.level.Level (height + beacon members)
-  private static boolean isOutsideSpawnableHeight(int);
-  public int getHeight(net.minecraft.world.level.levelgen.Heightmap$Types, int, int);
-;
   public default java.lang.String getString();
   private static java.util.Optional method_30067(java.lang.StringBuilder, java.lang.String);
   static {};

@@ -1,4 +1,4 @@
-## minecraft 1.21.4
+## minecraft 1.21.7
 ## gradle exit: 0
 
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
