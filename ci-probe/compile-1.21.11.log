@@ -1,5 +1,20 @@
 ## minecraft 1.21.11
-## gradle exit: 1
+## run 35364252921 attempt 1
+## commit: 17fc8a052ae867555fee7c00ef54cc58ac30c300
+## source files: 98
+## gradle exit: 1, validate exit: 1
+## compile errors: 18
+## generated access widener header: accessWidener v1 named
+## packaged access widener header: 
+## generated access widener:
+##   accessWidener v1 named
+##   
+##   accessible class net/minecraft/world/phys/shapes/IndexMerger
+##   accessible field net/minecraft/world/phys/shapes/VoxelShape shape Lnet/minecraft/world/phys/shapes/DiscreteVoxelShape;
+##   accessible method net/minecraft/world/phys/shapes/Shapes findBits (DD)I
+##   accessible method net/minecraft/world/phys/shapes/VoxelShape <init> (Lnet/minecraft/world/phys/shapes/DiscreteVoxelShape;)V
+##   accessible method net/minecraft/world/phys/shapes/VoxelShape getCoords (Lnet/minecraft/core/Direction$Axis;)Lit/unimi/dsi/fastutil/doubles/DoubleList;
+##   accessible method net/minecraft/world/phys/shapes/CubePointRange <init> (I)V
 
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
 Daemon will be stopped at the end of the build 
@@ -8,63 +23,123 @@ Daemon will be stopped at the end of the build
 Fabric Loom: 1.17.21
 Failed to parse fabric.mod.json: /home/runner/work/Beryllium/Beryllium/src/main/resources/fabric.mod.json
 
+> Task :clean UP-TO-DATE
 > Task :compileJava
-/home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/mixin/tick/ItemEntityTickMixin.java:52: error: cannot find symbol
-		if (self.getCommandSenderWorld() == null || self.getCommandSenderWorld().isClientSide()) {
-		        ^
-  symbol:   method getCommandSenderWorld()
-  location: variable self of type ItemEntity
-/home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/mixin/tick/ItemEntityTickMixin.java:52: error: cannot find symbol
-		if (self.getCommandSenderWorld() == null || self.getCommandSenderWorld().isClientSide()) {
-		                                                ^
-  symbol:   method getCommandSenderWorld()
-  location: variable self of type ItemEntity
-/home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/tick/EntityTickBatcher.java:116: error: cannot find symbol
-		Level level = entity.getCommandSenderWorld();
-		                    ^
-  symbol:   method getCommandSenderWorld()
-  location: variable entity of type Entity
-/home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/tick/EntityTickBatcher.java:248: error: cannot find symbol
-		Level level = entity.getCommandSenderWorld();
-		                    ^
-  symbol:   method getCommandSenderWorld()
-  location: variable entity of type Entity
-4 errors
+> Task :processResources
+> Task :classes
 
-> Task :compileJava FAILED
+> Task :compileClientJava FAILED
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/BlockEntityCulling.java:72: error: cannot find symbol
+			if (camera.getPosition().distanceToSqr(center) < safeRadiusSq) {
+			          ^
+  symbol:   method getPosition()
+  location: variable camera of type Camera
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/VisibilityCulling.java:153: error: cannot find symbol
+			return camera == null ? null : camera.getPosition();
+			                                     ^
+  symbol:   method getPosition()
+  location: variable camera of type Camera
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/ClientFrameHooks.java:124: error: cannot find symbol
+			Vector3f look = camera.getLookVector();
+			                      ^
+  symbol:   method getLookVector()
+  location: variable camera of type Camera
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/ClientFrameHooks.java:127: error: cannot find symbol
+				camera.getPosition().x, camera.getPosition().y, camera.getPosition().z,
+				      ^
+  symbol:   method getPosition()
+  location: variable camera of type Camera
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/ClientFrameHooks.java:127: error: cannot find symbol
+				camera.getPosition().x, camera.getPosition().y, camera.getPosition().z,
+				                              ^
+  symbol:   method getPosition()
+  location: variable camera of type Camera
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/ClientFrameHooks.java:127: error: cannot find symbol
+				camera.getPosition().x, camera.getPosition().y, camera.getPosition().z,
+				                                                      ^
+  symbol:   method getPosition()
+  location: variable camera of type Camera
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/culling/EntityRenderDispatcherMixin.java:42: error: cannot find symbol
+		Vec3 camPos = camera.getPosition();
+		                    ^
+  symbol:   method getPosition()
+  location: variable camera of type Camera
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/culling/EntityRenderDispatcherMixin.java:43: error: cannot find symbol
+		Vector3f forward = camera.getLookVector();
+		                         ^
+  symbol:   method getLookVector()
+  location: variable camera of type Camera
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/NameTagCullMixin.java:72: error: cannot find symbol
+		Vec3 camPos = mc.gameRenderer.getMainCamera().getPosition();
+		                                             ^
+  symbol:   method getPosition()
+  location: class Camera
+9 errors
 
 [Incubating] Problems report is available at: file:///home/runner/work/Beryllium/Beryllium/build/reports/problems/problems-report.html
 
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
+Execution failed for task ':compileClientJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
 > Compilation failed; see the compiler output below.
-  /home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/mixin/tick/ItemEntityTickMixin.java:52: error: cannot find symbol
-  		if (self.getCommandSenderWorld() == null || self.getCommandSenderWorld().isClientSide()) {
-  		        ^
-    symbol:   method getCommandSenderWorld()
-    location: variable self of type ItemEntity
-  /home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/mixin/tick/ItemEntityTickMixin.java:52: error: cannot find symbol
-  		if (self.getCommandSenderWorld() == null || self.getCommandSenderWorld().isClientSide()) {
-  		                                                ^
-    symbol:   method getCommandSenderWorld()
-    location: variable self of type ItemEntity
-  /home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/tick/EntityTickBatcher.java:116: error: cannot find symbol
-  		Level level = entity.getCommandSenderWorld();
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/BlockEntityCulling.java:72: error: cannot find symbol
+  			if (camera.getPosition().distanceToSqr(center) < safeRadiusSq) {
+  			          ^
+    symbol:   method getPosition()
+    location: variable camera of type Camera
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/VisibilityCulling.java:153: error: cannot find symbol
+  			return camera == null ? null : camera.getPosition();
+  			                                     ^
+    symbol:   method getPosition()
+    location: variable camera of type Camera
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/ClientFrameHooks.java:124: error: cannot find symbol
+  			Vector3f look = camera.getLookVector();
+  			                      ^
+    symbol:   method getLookVector()
+    location: variable camera of type Camera
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/ClientFrameHooks.java:127: error: cannot find symbol
+  				camera.getPosition().x, camera.getPosition().y, camera.getPosition().z,
+  				      ^
+    symbol:   method getPosition()
+    location: variable camera of type Camera
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/ClientFrameHooks.java:127: error: cannot find symbol
+  				camera.getPosition().x, camera.getPosition().y, camera.getPosition().z,
+  				                              ^
+    symbol:   method getPosition()
+    location: variable camera of type Camera
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/ClientFrameHooks.java:127: error: cannot find symbol
+  				camera.getPosition().x, camera.getPosition().y, camera.getPosition().z,
+  				                                                      ^
+    symbol:   method getPosition()
+    location: variable camera of type Camera
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/culling/EntityRenderDispatcherMixin.java:42: error: cannot find symbol
+  		Vec3 camPos = camera.getPosition();
   		                    ^
-    symbol:   method getCommandSenderWorld()
-    location: variable entity of type Entity
-  /home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/tick/EntityTickBatcher.java:248: error: cannot find symbol
-  		Level level = entity.getCommandSenderWorld();
-  		                    ^
-    symbol:   method getCommandSenderWorld()
-    location: variable entity of type Entity
-  4 errors
+    symbol:   method getPosition()
+    location: variable camera of type Camera
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/culling/EntityRenderDispatcherMixin.java:43: error: cannot find symbol
+  		Vector3f forward = camera.getLookVector();
+  		                         ^
+    symbol:   method getLookVector()
+    location: variable camera of type Camera
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/NameTagCullMixin.java:72: error: cannot find symbol
+  		Vec3 camPos = mc.gameRenderer.getMainCamera().getPosition();
+  		                                             ^
+    symbol:   method getPosition()
+    location: class Camera
+  9 errors
 
 * Try:
 > Check your code and dependencies to fix the compilation error(s)
 > Run with --scan to get full insights from a Build Scan (powered by Develocity).
 
-BUILD FAILED in 11s
-1 actionable task: 1 executed
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 14s
+4 actionable tasks: 3 executed, 1 up-to-date
+no non-sources jar found in build/libs
