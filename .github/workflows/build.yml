@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  checks: write
 concurrency:
   group: beryllium-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
