@@ -105,6 +105,12 @@ jobs:
               net.minecraft.client.gui.Font \
               'net.minecraft.client.gui.Font$DisplayMode' \
               net.minecraft.client.renderer.blockentity.SignRenderer \
+              net.minecraft.client.renderer.blockentity.AbstractSignRenderer \
+              net.minecraft.client.renderer.blockentity.HangingSignRenderer \
+              'net.minecraft.client.gui.Font$PreparedText' \
+              net.minecraft.client.gui.font.TextRenderable \
+              net.minecraft.client.renderer.blockentity.state.ChestRenderState \
+              net.minecraft.client.Camera \
               net.minecraft.client.renderer.blockentity.ChestRenderer \
               net.minecraft.client.renderer.blockentity.EnderChestRenderer \
               net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher \
@@ -132,11 +138,15 @@ jobs:
       - name: compile and capture the output
         continue-on-error: true
         run: |
+          set +e
           ./gradlew --no-daemon --console=plain compileJava compileClientJava \
             -Pminecraft_version=${{ matrix.minecraft }} > gradle-out.txt 2>&1
-          echo "gradle_exit=$?"
+          GRADLE_EXIT=$?
+          set -e
+          echo "gradle_exit=$GRADLE_EXIT"
           mkdir -p ci-probe
           { echo "## minecraft ${{ matrix.minecraft }}"
+            echo "## gradle exit: $GRADLE_EXIT"
             echo
             tail -c 120000 gradle-out.txt; } > "ci-probe/compile-${{ matrix.minecraft }}.log"
           rm -f gradle-out.txt probe-cp.txt
