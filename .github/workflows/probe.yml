@@ -1,0 +1,180 @@
+# TEMPORARY diagnostic workflow — removed before merge.
+#
+# The workspace this change is developed in has no JDK, no Maven/Gradle network access and no
+# reachable GitHub log-download endpoint, so the real vanilla API cannot be inspected locally.
+# This workflow asks Gradle for the mapped Minecraft classpath, dumps the signatures Beryllium
+# depends on with javap, compiles the mod, and commits the result back to the branch so both
+# can be read with a normal `git show`.
+name: probe
+
+on:
+  push:
+    branches:
+      - "arena/**"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: beryllium-probe-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    name: probe ${{ matrix.minecraft }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        minecraft:
+          - "1.19.4"
+          - "1.20.1"
+          - "1.20.4"
+          - "1.20.6"
+          - "1.21.1"
+          - "1.21.4"
+          - "1.21.8"
+          - "1.21.11"
+          - "26.1"
+          - "26.2"
+          - "26.3"
+
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+
+      - name: setup JDK 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: "25"
+          distribution: microsoft
+          cache: gradle
+
+      - name: make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: write the classpath probe init script
+        run: |
+          cat > /tmp/probe-init.gradle <<'EOF'
+          allprojects { proj ->
+              proj.tasks.register('berylliumProbeClasspath') {
+                  doLast {
+                      def cp = new LinkedHashSet()
+                      for (String name : ['main', 'client']) {
+                          try {
+                              cp.addAll(proj.extensions.getByName('sourceSets').getByName(name).compileClasspath.files)
+                          } catch (Throwable ignored) {
+                              // source set does not exist on this release
+                          }
+                      }
+                      new File(proj.projectDir, 'probe-cp.txt').text =
+                          cp.findAll { it != null && it.exists() }.collect { it.absolutePath }.join(':')
+                  }
+              }
+          }
+          EOF
+
+      - name: resolve the mapped Minecraft classpath
+        run: |
+          ./gradlew --no-daemon --console=plain -I /tmp/probe-init.gradle \
+            -Pminecraft_version=${{ matrix.minecraft }} berylliumProbeClasspath 2>&1 | tail -20
+          if [ ! -s probe-cp.txt ]; then
+            echo "init script produced nothing; falling back to the Loom cache"
+            find "$HOME/.gradle/caches/fabric-loom" -name '*.jar' ! -name '*sources*' > /tmp/loom-jars.txt || true
+            : > probe-cp.txt
+            while read -r jar; do
+              if unzip -l "$jar" 'net/minecraft/client/gui/Font.class' > /dev/null 2>&1; then
+                printf '%s:' "$jar" >> probe-cp.txt
+              fi
+            done < /tmp/loom-jars.txt
+          fi
+          echo "--- classpath ---"
+          tr ':' '\n' < probe-cp.txt
+
+      - name: dump the signatures Beryllium depends on
+        continue-on-error: true
+        run: |
+          CP="$(cat probe-cp.txt)"
+          mkdir -p .ci-probe
+          OUT=".ci-probe/signatures-${{ matrix.minecraft }}.txt"
+          {
+            echo "## minecraft ${{ matrix.minecraft }}"
+            echo "## classpath: $CP"
+            echo
+            for cls in \
+              net.minecraft.client.gui.Font \
+              'net.minecraft.client.gui.Font$DisplayMode' \
+              net.minecraft.client.renderer.blockentity.SignRenderer \
+              net.minecraft.client.renderer.blockentity.ChestRenderer \
+              net.minecraft.client.renderer.blockentity.EnderChestRenderer \
+              net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher \
+              net.minecraft.client.renderer.blockentity.BeaconRenderer \
+              net.minecraft.client.renderer.entity.EntityRenderDispatcher \
+              net.minecraft.world.level.LevelHeightAccessor \
+              net.minecraft.world.level.Level \
+              net.minecraft.util.FormattedText \
+              net.minecraft.network.chat.FormattedText \
+              com.mojang.blaze3d.vertex.Matrix4f \
+              com.mojang.math.Matrix4f \
+              org.joml.Matrix4f \
+              com.mojang.blaze3d.vertex.PoseStack \
+              net.minecraft.client.renderer.MultiBufferSource ; do
+              echo "=== $cls"
+              javap -p -cp "$CP" "$cls" 2>&1 | head -80 || echo "MISSING"
+              echo
+            done
+          } > "$OUT"
+          # grep the interesting Height/Beam members out of the Level dump
+          echo "=== net.minecraft.world.level.Level (height + beacon members)" >> "$OUT"
+          javap -p -cp "$CP" net.minecraft.world.level.Level 2>&1 \
+            | grep -i "height\|MaxY\|MinY\|Beam" >> "$OUT" || echo "(none)" >> "$OUT"
+
+      - name: compile and capture the output
+        continue-on-error: true
+        run: |
+          ./gradlew --no-daemon --console=plain compileJava compileClientJava \
+            -Pminecraft_version=${{ matrix.minecraft }} > gradle-out.txt 2>&1
+          echo "gradle_exit=$?"
+          mkdir -p .ci-probe
+          { echo "## minecraft ${{ matrix.minecraft }}"
+            echo
+            tail -c 120000 gradle-out.txt; } > ".ci-probe/compile-${{ matrix.minecraft }}.log"
+          rm -f gradle-out.txt probe-cp.txt
+
+      - name: upload the probe output
+        uses: actions/upload-artifact@v4
+        with:
+          name: probe-${{ matrix.minecraft }}
+          path: .ci-probe/
+          if-no-files-found: ignore
+
+  publish:
+    name: publish probe output
+    needs: probe
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+
+      - name: download every probe artifact
+        uses: actions/download-artifact@v4
+        with:
+          path: .ci-probe
+          merge-multiple: true
+
+      - name: commit the probe output
+        run: |
+          git config user.name "beryllium-ci-debug"
+          git config user.email "ci-debug@users.noreply.github.com"
+          git add .ci-probe
+          if git diff --cached --quiet; then
+            echo "nothing to commit"
+          else
+            git commit -m "ci-probe: vanilla signatures and compile output ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            for i in 1 2 3 4 5; do
+              git pull --rebase -q origin "${GITHUB_REF_NAME}" && \
+                git push -q origin "HEAD:${GITHUB_REF_NAME}" && break
+              sleep 5
+            done
+          fi
