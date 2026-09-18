@@ -78,6 +78,13 @@ def hasViewArea = mcAtLeast(1, 21, 2)
 // release — and stays vanilla everywhere else (exactly the old compatibility-core split,
 // just over the narrow range where the specialization is valid).
 def hasShapeEngine = mcAtLeast(1, 21, 0) && !unobfuscatedGame
+// 26.2 rewrote block-entity rendering into a render-state/submit pipeline: the renderers
+// Beryllium hooks (sign text scope, font sign passes, block entity / chest / beacon
+// render entry points) no longer exist in the shape the injectors describe, and
+// MultiBufferSource moved out of net.minecraft.client.renderer. Those mixins ship through
+// 26.1 (where they compile and apply) and stay vanilla from 26.2 on until they are
+// re-aimed at the new pipeline.
+def hasLegacyBlockEntityRenderers = !mcAtLeast(26, 2, 0)
 
 loom {
 	if (!unobfuscatedGame) {
@@ -124,6 +131,15 @@ sourceSets {
 				// ViewArea does not exist before 1.21.2; the LevelRenderer-level hook and
 				// SectionDirtyBridge (reflection) already cover those releases.
 				exclude 'com/endiq/beryllium/mixin/chunk/ViewAreaMixin.java'
+			}
+			if (!hasLegacyBlockEntityRenderers) {
+				// 26.2+ block-entity render pipeline (see hasLegacyBlockEntityRenderers).
+				exclude 'com/endiq/beryllium/mixin/text/SignTextScopeMixin.java'
+				exclude 'com/endiq/beryllium/mixin/text/FontSignTextMixin.java'
+				exclude 'com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java'
+				exclude 'com/endiq/beryllium/mixin/render/BlockEntityCullMixin.java'
+				exclude 'com/endiq/beryllium/mixin/render/ChestRenderCullMixin.java'
+				exclude 'com/endiq/beryllium/mixin/render/BeaconBeamCullMixin.java'
 			}
 		}
 	}

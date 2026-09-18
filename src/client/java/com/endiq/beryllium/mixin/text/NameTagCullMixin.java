@@ -5,7 +5,6 @@ import com.endiq.beryllium.config.BerylliumConfig;
 import com.endiq.beryllium.culling.RenderDistanceSync;
 import com.endiq.beryllium.culling.VisibilityCulling;
 import com.endiq.beryllium.text.TextCulling;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
@@ -60,8 +59,9 @@ public abstract class NameTagCullMixin {
 			return;
 		}
 
-		Minecraft mc = Minecraft.getInstance();
-		if (mc.gameRenderer == null || mc.gameRenderer.getMainCamera() == null) {
+		if (VisibilityCulling.cameraPosition() == null) {
+			// Camera access is resolved per Minecraft release; a miss means no
+			// distance-based name-tag culling this frame.
 			return;
 		}
 

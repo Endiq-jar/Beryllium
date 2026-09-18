@@ -276,11 +276,96 @@ public final class VisibilityCulling {
 
 	private static Camera mainCamera() {
 		Minecraft minecraft = Minecraft.getInstance();
-		if (minecraft == null || minecraft.gameRenderer == null) {
+		if (minecraft == null) {
 			return null;
 		}
-		return minecraft.gameRenderer.getMainCamera();
+		try {
+			// 1) The historical path: a no-arg method on GameRenderer returning the camera
+			//    (named getMainCamera through 26.1). Found by return type so a rename does
+			//    not matter.
+			if (minecraft.gameRenderer != null) {
+				if (!gameRendererCameraResolved) {
+					synchronized (VisibilityCulling.class) {
+						if (!gameRendererCameraResolved) {
+							gameRendererCameraMethod = findMethodReturning(
+									minecraft.gameRenderer.getClass(), Camera.class);
+							gameRendererCameraResolved = true;
+						}
+					}
+				}
+				Method method = gameRendererCameraMethod;
+				if (method != null) {
+					Object value = method.invoke(minecraft.gameRenderer);
+					if (value instanceof Camera camera) {
+						return camera;
+					}
+				}
+				// 2) A Camera-typed field on the game renderer itself.
+				Object byField = firstFieldValueOfType(minecraft.gameRenderer, Camera.class);
+				if (byField instanceof Camera camera) {
+					return camera;
+				}
+			}
+			// 3) The entity render dispatcher also carries the live camera (public field on
+			//    every release inspected). Located by type rather than by mapped name.
+			Object dispatcher = firstFieldValueOfType(minecraft, net.minecraft.client.renderer.entity.EntityRenderDispatcher.class);
+			if (dispatcher != null) {
+				Object byField = firstFieldValueOfType(dispatcher, Camera.class);
+				if (byField instanceof Camera camera) {
+					return camera;
+				}
+			}
+			return null;
+		} catch (Throwable t) {
+			return null;
+		}
 	}
+
+	/** First no-arg method whose return type is exactly {@code type}, anywhere up the
+	 *  hierarchy; {@code null} when none exists. */
+	private static Method findMethodReturning(Class<?> clazz, Class<?> type) {
+		for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
+			for (Method method : current.getDeclaredMethods()) {
+				if (method.getParameterCount() == 0 && method.getReturnType() == type) {
+					try {
+						method.setAccessible(true);
+						return method;
+					} catch (Throwable ignored) {
+						// keep looking
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	/** First readable field value assignable to {@code type}, anywhere up the hierarchy;
+	 *  {@code null} when none exists or nothing is readable. */
+	private static Object firstFieldValueOfType(Object holder, Class<?> type) {
+		if (holder == null) {
+			return null;
+		}
+		for (Class<?> current = holder.getClass(); current != null && current != Object.class; current = current.getSuperclass()) {
+			for (Field field : current.getDeclaredFields()) {
+				if (!type.isAssignableFrom(field.getType())) {
+					continue;
+				}
+				try {
+					field.setAccessible(true);
+					Object value = field.get(holder);
+					if (type.isInstance(value)) {
+						return value;
+					}
+				} catch (Throwable ignored) {
+					// try the next candidate
+				}
+			}
+		}
+		return null;
+	}
+
+	private static volatile Method gameRendererCameraMethod;
+	private static volatile boolean gameRendererCameraResolved;
 
 	/** @return the world's build height, used to size beam columns. */
 	public static double ceilingOf(Level level, BlockPos pos) {

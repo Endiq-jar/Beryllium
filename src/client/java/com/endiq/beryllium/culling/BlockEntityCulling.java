@@ -1,6 +1,5 @@
 package com.endiq.beryllium.culling;
 
-import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.core.BlockPos;
@@ -53,16 +52,6 @@ public final class BlockEntityCulling {
 				return false;
 			}
 
-			Minecraft minecraft = Minecraft.getInstance();
-			if (minecraft == null || minecraft.gameRenderer == null) {
-				return false;
-			}
-
-			Camera camera = minecraft.gameRenderer.getMainCamera();
-			if (camera == null) {
-				return false;
-			}
-
 			BlockPos pos = blockEntity.getBlockPos();
 
 			// Never cull anything close: the frustum is exact, but a stale/mid-update camera
@@ -70,11 +59,15 @@ public final class BlockEntityCulling {
 			Vec3 center = Vec3.atCenterOf(pos);
 			double safeRadiusSq = safeRadius * safeRadius;
 			Vec3 cameraPos = VisibilityCulling.cameraPosition();
-			if (cameraPos != null && cameraPos.distanceToSqr(center) < safeRadiusSq) {
+			if (cameraPos == null) {
+				// No camera anchor on this release/state: do not cull.
+				return false;
+			}
+			if (cameraPos.distanceToSqr(center) < safeRadiusSq) {
 				return false;
 			}
 
-			Frustum frustum = currentFrustum(minecraft);
+			Frustum frustum = currentFrustum(Minecraft.getInstance());
 			if (frustum == null) {
 				return false;
 			}
