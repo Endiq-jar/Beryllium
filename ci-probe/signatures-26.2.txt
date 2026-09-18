@@ -344,3 +344,280 @@ public interface net.minecraft.client.renderer.MultiBufferSource {
 === net.minecraft.world.level.Level (height + beacon members)
   private static boolean isOutsideSpawnableHeight(int);
   public int getHeight(net.minecraft.world.level.levelgen.Heightmap$Types, int, int);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             , float, float, com.mojang.blaze3d.vertex.PoseStack$Pose, com.mojang.blaze3d.vertex.VertexConsumer);
+  private static void lambda$submitBeaconBeam$0(int, int, int, float, float, float, float, float, float, com.mojang.blaze3d.vertex.PoseStack$Pose, com.mojang.blaze3d.vertex.VertexConsumer);
+  private static net.minecraft.client.renderer.blockentity.state.BeaconRenderState$Section lambda$extract$0(net.minecraft.world.level.block.entity.BeaconBeamOwner$Section);
+  static {};
+}
+
+=== net.minecraft.client.renderer.entity.EntityRenderDispatcher
+Compiled from "EntityRenderDispatcher.java"
+public class net.minecraft.client.renderer.entity.EntityRenderDispatcher implements net.minecraft.server.packs.resources.ResourceManagerReloadListener {
+  private java.util.Map<net.minecraft.world.entity.EntityType<?>, net.minecraft.client.renderer.entity.EntityRenderer<?, ?>> renderers;
+  private java.util.Map<net.minecraft.world.entity.player.PlayerModelType, net.minecraft.client.renderer.entity.player.AvatarRenderer<net.minecraft.client.player.AbstractClientPlayer>> playerRenderers;
+  private java.util.Map<net.minecraft.world.entity.player.PlayerModelType, net.minecraft.client.renderer.entity.player.AvatarRenderer<net.minecraft.client.entity.ClientMannequin>> mannequinRenderers;
+  public final net.minecraft.client.renderer.texture.TextureManager textureManager;
+  public net.minecraft.client.Camera camera;
+  public net.minecraft.world.entity.Entity crosshairPickEntity;
+  private final net.minecraft.client.renderer.block.BlockModelResolver blockModelResolver;
+  private final net.minecraft.client.renderer.item.ItemModelResolver itemModelResolver;
+  private final net.minecraft.client.renderer.MapRenderer mapRenderer;
+  private final net.minecraft.client.renderer.ItemInHandRenderer itemInHandRenderer;
+  private final net.minecraft.client.resources.model.sprite.AtlasManager atlasManager;
+  private final net.minecraft.client.gui.Font font;
+  public final net.minecraft.client.Options options;
+  private final java.util.function.Supplier<net.minecraft.client.model.geom.EntityModelSet> entityModels;
+  private final net.minecraft.client.resources.model.EquipmentAssetManager equipmentAssets;
+  private final net.minecraft.client.renderer.PlayerSkinRenderCache playerSkinRenderCache;
+  public <E extends net.minecraft.world.entity.Entity> int getPackedLightCoords(E, float);
+  public net.minecraft.client.renderer.entity.EntityRenderDispatcher(net.minecraft.client.Minecraft, net.minecraft.client.renderer.texture.TextureManager, net.minecraft.client.renderer.block.BlockModelResolver, net.minecraft.client.renderer.item.ItemModelResolver, net.minecraft.client.renderer.MapRenderer, net.minecraft.client.resources.model.sprite.AtlasManager, net.minecraft.client.gui.Font, net.minecraft.client.Options, java.util.function.Supplier<net.minecraft.client.model.geom.EntityModelSet>, net.minecraft.client.resources.model.EquipmentAssetManager, net.minecraft.client.renderer.PlayerSkinRenderCache);
+  public <T extends net.minecraft.world.entity.Entity> net.minecraft.client.renderer.entity.EntityRenderer<? super T, ?> getRenderer(T);
+  public net.minecraft.client.renderer.entity.player.AvatarRenderer<net.minecraft.client.player.AbstractClientPlayer> getPlayerRenderer(net.minecraft.client.player.AbstractClientPlayer);
+  private <T extends net.minecraft.world.entity.Avatar & net.minecraft.client.entity.ClientAvatarEntity> net.minecraft.client.renderer.entity.player.AvatarRenderer<T> getAvatarRenderer(java.util.Map<net.minecraft.world.entity.player.PlayerModelType, net.minecraft.client.renderer.entity.player.AvatarRenderer<T>>, T);
+  public <S extends net.minecraft.client.renderer.entity.state.EntityRenderState> net.minecraft.client.renderer.entity.EntityRenderer<?, ? super S> getRenderer(S);
+  public void prepare(net.minecraft.client.Camera, net.minecraft.world.entity.Entity);
+  public <E extends net.minecraft.world.entity.Entity> boolean shouldRender(E, net.minecraft.client.renderer.culling.Frustum, double, double, double);
+  public <E extends net.minecraft.world.entity.Entity> net.minecraft.client.renderer.entity.state.EntityRenderState extractEntity(E, float);
+  public <S extends net.minecraft.client.renderer.entity.state.EntityRenderState> void submit(S, net.minecraft.client.renderer.state.level.CameraRenderState, double, double, double, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector);
+  private <S extends net.minecraft.client.renderer.entity.state.EntityRenderState> net.minecraft.CrashReportCategory fillRendererDetails(net.minecraft.client.renderer.entity.EntityRenderer<?, S>, net.minecraft.CrashReport);
+  public void resetCamera();
+  public double distanceToSqr(net.minecraft.world.entity.Entity);
+  public net.minecraft.client.renderer.ItemInHandRenderer getItemInHandRenderer();
+  public void onResourceManagerReload(net.minecraft.server.packs.resources.ResourceManager);
+}
+
+=== net.minecraft.world.level.LevelHeightAccessor
+Compiled from "LevelHeightAccessor.java"
+public interface net.minecraft.world.level.LevelHeightAccessor {
+  public abstract int getHeight();
+  public abstract int getMinY();
+  public default int getMaxY();
+  public default int getSectionsCount();
+  public default int getMinSectionY();
+  public default int getMaxSectionY();
+  public default boolean isInsideBuildHeight(net.minecraft.core.BlockPos);
+  public default boolean isInsideBuildHeight(int);
+  public default boolean isOutsideBuildHeight(net.minecraft.core.BlockPos);
+  public default boolean isOutsideBuildHeight(int);
+  public default int getSectionIndex(int);
+  public default int getSectionIndexFromSectionY(int);
+  public default int getSectionYFromSectionIndex(int);
+  public static net.minecraft.world.level.LevelHeightAccessor create(int, int);
+}
+
+=== net.minecraft.world.level.Level
+Compiled from "Level.java"
+public abstract class net.minecraft.world.level.Level implements net.minecraft.world.level.LevelAccessor,java.lang.AutoCloseable {
+  public static final com.mojang.serialization.Codec<net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level>> RESOURCE_KEY_CODEC;
+  public static final net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> OVERWORLD;
+  public static final net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> NETHER;
+  public static final net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> END;
+  public static final int MAX_LEVEL_SIZE;
+  public static final int ACROSS_THE_WHOLE_WORLD;
+  public static final int LONG_PARTICLE_CLIP_RANGE;
+  public static final int SHORT_PARTICLE_CLIP_RANGE;
+  public static final int MAX_BRIGHTNESS;
+  public static final int MAX_ENTITY_SPAWN_Y;
+  public static final int MIN_ENTITY_SPAWN_Y;
+  private static final net.minecraft.util.random.WeightedList<net.minecraft.core.particles.ExplosionParticleInfo> DEFAULT_EXPLOSION_BLOCK_PARTICLES;
+  protected final java.util.List<net.minecraft.world.level.block.entity.TickingBlockEntity> blockEntityTickers;
+  protected final net.minecraft.world.level.redstone.CollectingNeighborUpdater neighborUpdater;
+  private final java.util.List<net.minecraft.world.level.block.entity.TickingBlockEntity> pendingBlockEntityTickers;
+  private boolean tickingBlockEntities;
+  private final java.lang.Thread thread;
+  private final boolean isDebug;
+  private int skyDarken;
+  protected int randValue;
+  protected final int addend;
+  protected float oRainLevel;
+  protected float rainLevel;
+  protected float oThunderLevel;
+  protected float thunderLevel;
+  protected final net.minecraft.util.RandomSource random;
+  private final net.minecraft.util.RandomSource soundSeedGenerator;
+  private final net.minecraft.core.Holder<net.minecraft.world.level.dimension.DimensionType> dimensionTypeRegistration;
+  protected final net.minecraft.world.level.storage.WritableLevelData levelData;
+  private final boolean isClientSide;
+  private final net.minecraft.world.level.biome.BiomeManager biomeManager;
+  private final net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> dimension;
+  private final net.minecraft.core.RegistryAccess registryAccess;
+  private final net.minecraft.world.damagesource.DamageSources damageSources;
+  private final net.minecraft.world.level.chunk.PalettedContainerFactory palettedContainerFactory;
+  private long subTickCount;
+  protected net.minecraft.world.level.Level(net.minecraft.world.level.storage.WritableLevelData, net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level>, net.minecraft.core.RegistryAccess, net.minecraft.core.Holder<net.minecraft.world.level.dimension.DimensionType>, boolean, boolean, long, int);
+  public int getNextEntityId();
+  public boolean isClientSide();
+  public net.minecraft.server.MinecraftServer getServer();
+  public boolean isInWorldBounds(net.minecraft.core.BlockPos);
+  public boolean isInValidBounds(net.minecraft.core.BlockPos);
+  public static boolean isInSpawnableBounds(net.minecraft.core.BlockPos);
+  private static boolean isInWorldBoundsHorizontal(net.minecraft.core.BlockPos);
+  private static boolean isInValidBoundsHorizontal(net.minecraft.core.BlockPos);
+  private static boolean isOutsideSpawnableHeight(int);
+  public net.minecraft.world.level.chunk.LevelChunk getChunkAt(net.minecraft.core.BlockPos);
+  public net.minecraft.world.level.chunk.LevelChunk getChunk(int, int);
+  public net.minecraft.world.level.chunk.ChunkAccess getChunk(int, int, net.minecraft.world.level.chunk.status.ChunkStatus, boolean);
+  public boolean setBlock(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, int);
+  public boolean setBlock(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, int, int);
+  public void updatePOIOnBlockStateChange(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.block.state.BlockState);
+  public boolean removeBlock(net.minecraft.core.BlockPos, boolean);
+  public boolean destroyBlock(net.minecraft.core.BlockPos, boolean, net.minecraft.world.entity.Entity, int);
+  public void addDestroyBlockEffect(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState);
+  public boolean setBlockAndUpdate(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState);
+  public abstract void sendBlockUpdated(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.block.state.BlockState, int);
+  public void setBlocksDirty(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.block.state.BlockState);
+  public void updateNeighborsAt(net.minecraft.core.BlockPos, net.minecraft.world.level.block.Block, net.minecraft.world.level.redstone.Orientation);
+  public void updateNeighborsAtExceptFromFacing(net.minecraft.core.BlockPos, net.minecraft.world.level.block.Block, net.minecraft.core.Direction, net.minecraft.world.level.redstone.Orientation);
+  public void neighborChanged(net.minecraft.core.BlockPos, net.minecraft.world.level.block.Block, net.minecraft.world.level.redstone.Orientation);
+  public void neighborChanged(net.minecraft.world.level.block.state.BlockState, net.minecraft.core.BlockPos, net.minecraft.world.level.block.Block, net.minecraft.world.level.redstone.Orientation, boolean);
+  public void neighborShapeChanged(net.minecraft.core.Direction, net.minecraft.core.BlockPos, net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, int, int);
+  public int getHeight(net.minecraft.world.level.levelgen.Heightmap$Types, int, int);
+  public net.minecraft.world.level.lighting.LevelLightEngine getLightEngine();
+  public net.minecraft.world.level.block.state.BlockState getBlockState(net.minecraft.core.BlockPos);
+  public net.minecraft.world.level.material.FluidState getFluidState(net.minecraft.core.BlockPos);
+  public boolean isBrightOutside();
+  public boolean isDarkOutside();
+  public void playSound(net.minecraft.world.entity.Entity, net.minecraft.core.BlockPos, net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource, float, float);
+  public abstract void playSeededSound(net.minecraft.world.entity.Entity, double, double, double, net.minecraft.core.Holder<net.minecraft.sounds.SoundEvent>, net.minecraft.sounds.SoundSource, float, float, long);
+  public void playSeededSound(net.minecraft.world.entity.Entity, double, double, double, net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource, float, float, long);
+  public abstract void playSeededSound(net.minecraft.world.entity.Entity, net.minecraft.world.entity.Entity, net.minecraft.core.Holder<net.minecraft.sounds.SoundEvent>, net.minecraft.sounds.SoundSource, float, float, long);
+  public void playSound(net.minecraft.world.entity.Entity, double, double, double, net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource);
+  public void playSound(net.minecraft.world.entity.Entity, double, double, double, net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource, float, float);
+  public void playSound(net.minecraft.world.entity.Entity, double, double, double, net.minecraft.core.Holder<net.minecraft.sounds.SoundEvent>, net.minecraft.sounds.SoundSource, float, float);
+  public void playSound(net.minecraft.world.entity.Entity, net.minecraft.world.entity.Entity, net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource, float, float);
+  public void playLocalSound(net.minecraft.core.BlockPos, net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource, float, float, boolean);
+
+=== net.minecraft.util.FormattedText
+Error: class not found: net.minecraft.util.FormattedText
+
+=== net.minecraft.network.chat.FormattedText
+Compiled from "FormattedText.java"
+public interface net.minecraft.network.chat.FormattedText {
+  public static final java.util.Optional<net.minecraft.util.Unit> STOP_ITERATION;
+  public static final net.minecraft.network.chat.FormattedText EMPTY;
+  public abstract <T> java.util.Optional<T> visit(net.minecraft.network.chat.FormattedText$ContentConsumer<T>);
+  public abstract <T> java.util.Optional<T> visit(net.minecraft.network.chat.FormattedText$StyledContentConsumer<T>, net.minecraft.network.chat.Style);
+  public static net.minecraft.network.chat.FormattedText of(java.lang.String);
+  public static net.minecraft.network.chat.FormattedText of(java.lang.String, net.minecraft.network.chat.Style);
+  public static net.minecraft.network.chat.FormattedText composite(net.minecraft.network.chat.FormattedText...);
+  public static net.minecraft.network.chat.FormattedText composite(java.util.List<? extends net.minecraft.network.chat.FormattedText>);
+  public default java.lang.String getString();
+  private static java.util.Optional lambda$getString$0(java.lang.StringBuilder, java.lang.String);
+  static {};
+}
+
+=== com.mojang.blaze3d.vertex.Matrix4f
+Error: class not found: com.mojang.blaze3d.vertex.Matrix4f
+
+=== com.mojang.math.Matrix4f
+Error: class not found: com.mojang.math.Matrix4f
+
+=== org.joml.Matrix4f
+Compiled from "Matrix4f.java"
+public class org.joml.Matrix4f implements java.io.Externalizable,java.lang.Cloneable,org.joml.Matrix4fc {
+  private static final long serialVersionUID;
+  int properties;
+  float m00;
+  float m01;
+  float m02;
+  float m03;
+  float m10;
+  float m11;
+  float m12;
+  float m13;
+  float m20;
+  float m21;
+  float m22;
+  float m23;
+  float m30;
+  float m31;
+  float m32;
+  float m33;
+  public org.joml.Matrix4f();
+  public org.joml.Matrix4f(org.joml.Matrix3fc);
+  public org.joml.Matrix4f(org.joml.Matrix4fc);
+  public org.joml.Matrix4f(org.joml.Matrix4x3fc);
+  public org.joml.Matrix4f(org.joml.Matrix4dc);
+  public org.joml.Matrix4f(float, float, float, float, float, float, float, float, float, float, float, float, float, float, float, float);
+  public org.joml.Matrix4f(java.nio.FloatBuffer);
+  public org.joml.Matrix4f(org.joml.Vector4fc, org.joml.Vector4fc, org.joml.Vector4fc, org.joml.Vector4fc);
+  org.joml.Matrix4f _properties(int);
+  public org.joml.Matrix4f assume(int);
+  public org.joml.Matrix4f determineProperties();
+  public int properties();
+  public float m00();
+  public float m01();
+  public float m02();
+  public float m03();
+  public float m10();
+  public float m11();
+  public float m12();
+  public float m13();
+  public float m20();
+  public float m21();
+  public float m22();
+  public float m23();
+  public float m30();
+  public float m31();
+  public float m32();
+  public float m33();
+  public org.joml.Matrix4f m00(float);
+  public org.joml.Matrix4f m01(float);
+  public org.joml.Matrix4f m02(float);
+  public org.joml.Matrix4f m03(float);
+  public org.joml.Matrix4f m10(float);
+  public org.joml.Matrix4f m11(float);
+  public org.joml.Matrix4f m12(float);
+  public org.joml.Matrix4f m13(float);
+  public org.joml.Matrix4f m20(float);
+  public org.joml.Matrix4f m21(float);
+  public org.joml.Matrix4f m22(float);
+  public org.joml.Matrix4f m23(float);
+  public org.joml.Matrix4f m30(float);
+  public org.joml.Matrix4f m31(float);
+  public org.joml.Matrix4f m32(float);
+  public org.joml.Matrix4f m33(float);
+  org.joml.Matrix4f _m00(float);
+  org.joml.Matrix4f _m01(float);
+  org.joml.Matrix4f _m02(float);
+  org.joml.Matrix4f _m03(float);
+  org.joml.Matrix4f _m10(float);
+  org.joml.Matrix4f _m11(float);
+  org.joml.Matrix4f _m12(float);
+  org.joml.Matrix4f _m13(float);
+  org.joml.Matrix4f _m20(float);
+  org.joml.Matrix4f _m21(float);
+  org.joml.Matrix4f _m22(float);
+  org.joml.Matrix4f _m23(float);
+  org.joml.Matrix4f _m30(float);
+  org.joml.Matrix4f _m31(float);
+  org.joml.Matrix4f _m32(float);
+  org.joml.Matrix4f _m33(float);
+
+=== com.mojang.blaze3d.vertex.PoseStack
+Compiled from "PoseStack.java"
+public class com.mojang.blaze3d.vertex.PoseStack {
+  private final java.util.List<com.mojang.blaze3d.vertex.PoseStack$Pose> poses;
+  private int lastIndex;
+  public com.mojang.blaze3d.vertex.PoseStack();
+  public void translate(double, double, double);
+  public void translate(float, float, float);
+  public void translate(net.minecraft.world.phys.Vec3);
+  public void scale(float, float, float);
+  public void mulPose(org.joml.Quaternionfc);
+  public void rotateAround(org.joml.Quaternionfc, float, float, float);
+  public void pushPose();
+  public void popPose();
+  public com.mojang.blaze3d.vertex.PoseStack$Pose last();
+  public boolean isEmpty();
+  public void setIdentity();
+  public void mulPose(org.joml.Matrix4fc);
+  public void mulPose(com.mojang.math.Transformation);
+}
+
+=== net.minecraft.client.renderer.MultiBufferSource
+Error: class not found: net.minecraft.client.renderer.MultiBufferSource
+
+=== net.minecraft.world.level.Level (height + beacon members)
+  private static boolean isOutsideSpawnableHeight(int);
+  public int getHeight(net.minecraft.world.level.levelgen.Heightmap$Types, int, int);

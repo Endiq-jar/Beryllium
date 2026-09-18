@@ -541,3 +541,4 @@ public interface net.minecraft.client.renderer.MultiBufferSource {
 === net.minecraft.world.level.Level (height + beacon members)
   private static boolean isOutsideSpawnableHeight(int);
   public int getHeight(net.minecraft.world.level.levelgen.Heightmap$Types, int, int);
+.Heightmap$Types, int, int);
