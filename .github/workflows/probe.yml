@@ -1,10 +1,14 @@
 # TEMPORARY diagnostic workflow — removed before merge.
 #
-# The workspace this change is developed in has no JDK, no Maven/Gradle network access and no
-# reachable GitHub log-download endpoint, so the real vanilla API cannot be inspected locally.
-# This workflow asks Gradle for the mapped Minecraft classpath, dumps the signatures Beryllium
-# depends on with javap, compiles the mod, and commits the result back to the branch so both
-# can be read with a normal `git show`.
+# The workspace this change is developed in has no JDK and no Maven/Gradle network access, and
+# neither GitHub's log-download endpoint nor the artifact blob store is reachable from it, so
+# the real vanilla API and the real compile results cannot be inspected locally. This workflow
+# builds every covered release with the exact CI command and commits the results to the branch
+# so they can be read with a normal `git show`.
+#
+# It is deliberately ONE job with a sequential loop: an earlier version used a matrix plus
+# upload/download-artifact to collect the logs, and the collection step silently lost most of
+# them. A single job writing straight into the working tree cannot lose anything.
 name: probe
 
 on:
@@ -16,36 +20,15 @@ permissions:
   contents: write
 
 concurrency:
-  # No cancel-in-progress: a cancelled run's publish job (if: always()) would race the next
-  # run's publish job, and the two would interleave their output into one directory.
   group: beryllium-probe-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  releases:
-    name: resolve the release list
-    # The publish job below commits its own output to the branch, which would otherwise
-    # re-trigger this workflow on every run, forever.
+  probe:
+    name: probe every covered release
+    # The commit at the end of this job would otherwise re-trigger the whole thing, forever.
     if: ${{ !contains(github.event.head_commit.message, 'ci-probe:') }}
     runs-on: ubuntu-24.04
-    outputs:
-      matrix: ${{ steps.releases.outputs.matrix }}
-    steps:
-      - name: checkout repository
-        uses: actions/checkout@v6
-
-      - name: resolve every release from 1.19.4 through latest
-        id: releases
-        run: python3 scripts/resolve_minecraft_releases.py --github-output
-
-  probe:
-    name: probe ${{ matrix.minecraft }}
-    needs: releases
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.releases.outputs.matrix) }}
-
     steps:
       - name: checkout repository
         uses: actions/checkout@v6
@@ -81,148 +64,97 @@ jobs:
           }
           EOF
 
-      - name: resolve the mapped Minecraft classpath
+      - name: build every release exactly like CI does
         run: |
-          ./gradlew --no-daemon --console=plain -I /tmp/probe-init.gradle \
-            -Pminecraft_version=${{ matrix.minecraft }} berylliumProbeClasspath 2>&1 | tail -20
-          if [ ! -s probe-cp.txt ]; then
-            echo "init script produced nothing; falling back to the Loom cache"
-            find "$HOME/.gradle/caches/fabric-loom" -name '*.jar' ! -name '*sources*' > /tmp/loom-jars.txt || true
-            : > probe-cp.txt
-            while read -r jar; do
-              if unzip -l "$jar" 'net/minecraft/client/gui/Font.class' > /dev/null 2>&1; then
-                printf '%s:' "$jar" >> probe-cp.txt
-              fi
-            done < /tmp/loom-jars.txt
-          fi
-          echo "--- classpath ---"
-          tr ':' '\n' < probe-cp.txt
-
-      - name: dump the signatures Beryllium depends on
-        continue-on-error: true
-        run: |
-          CP="$(cat probe-cp.txt)"
+          set -u
+          COMMIT="$(git rev-parse --short HEAD)"
           mkdir -p ci-probe
-          OUT="ci-probe/signatures-${{ matrix.minecraft }}.txt"
-          {
-            echo "## minecraft ${{ matrix.minecraft }}"
-            echo "## run ${{ github.run_id }} attempt ${{ github.run_attempt }}"
-            echo "## commit: $(git rev-parse HEAD)"
-            echo "## classpath: $CP"
-            echo
-            for cls in \
-              net.minecraft.client.gui.Font \
-              'net.minecraft.client.gui.Font$DisplayMode' \
-              net.minecraft.client.renderer.blockentity.SignRenderer \
-              net.minecraft.client.renderer.blockentity.AbstractSignRenderer \
-              net.minecraft.client.renderer.blockentity.HangingSignRenderer \
-              'net.minecraft.client.gui.Font$PreparedText' \
-              net.minecraft.client.gui.font.TextRenderable \
-              net.minecraft.client.renderer.blockentity.state.ChestRenderState \
-              net.minecraft.client.Camera \
-              net.minecraft.client.renderer.blockentity.ChestRenderer \
-              net.minecraft.client.renderer.blockentity.EnderChestRenderer \
-              net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher \
-              net.minecraft.client.renderer.blockentity.BeaconRenderer \
-              net.minecraft.client.renderer.blockentity.BlockEntityRenderer \
-              net.minecraft.client.renderer.LevelRenderer \
-              net.minecraft.client.renderer.SectionRenderDispatcher \
-              net.minecraft.client.renderer.entity.EntityRenderer \
-              net.minecraft.client.particle.ParticleEngine \
-              net.minecraft.client.Minecraft \
-              net.minecraft.world.entity.Entity \
-              net.minecraft.server.level.ServerLevel \
-              net.minecraft.client.renderer.SubmitNodeCollector \
-              net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState \
-              net.minecraft.client.renderer.entity.EntityRenderDispatcher \
-              net.minecraft.world.level.LevelHeightAccessor \
-              net.minecraft.world.level.Level \
-              net.minecraft.util.FormattedText \
-              net.minecraft.network.chat.FormattedText \
-              com.mojang.blaze3d.vertex.Matrix4f \
-              com.mojang.math.Matrix4f \
-              org.joml.Matrix4f \
-              com.mojang.blaze3d.vertex.PoseStack \
-              net.minecraft.client.renderer.MultiBufferSource ; do
-              echo "=== $cls"
-              javap -p -cp "$CP" "$cls" 2>&1 | head -200 || echo "MISSING"
+          rm -rf ci-probe/*
+          python3 scripts/resolve_minecraft_releases.py > /tmp/matrix.json
+          VERSIONS=$(python3 -c "import json;print(' '.join(e['minecraft'] for e in json.load(open('/tmp/matrix.json'))['include']))")
+          echo "probing: $VERSIONS"
+
+          for V in $VERSIONS; do
+            echo "=================== $V"
+            LOG="ci-probe/compile-$V.log"
+            rm -f probe-cp.txt
+
+            # Vanilla signatures, so an API that moved can be read directly.
+            ./gradlew --no-daemon --console=plain -I /tmp/probe-init.gradle \
+              -Pminecraft_version="$V" berylliumProbeClasspath > /tmp/setup.txt 2>&1 || true
+            CP="$(cat probe-cp.txt 2>/dev/null || true)"
+            {
+              echo "## minecraft $V"
+              echo "## commit: $COMMIT"
+              echo "## source files: $(find src -name '*.java' | wc -l)"
               echo
-            done
-          } > "$OUT"
-          # grep the interesting Height/Beam members out of the Level dump
-          echo "=== net.minecraft.world.level.Level (height + beacon members)" >> "$OUT"
-          javap -p -cp "$CP" net.minecraft.world.level.Level 2>&1 \
-            | grep -i "height\|MaxY\|MinY\|Beam" >> "$OUT" || echo "(none)" >> "$OUT"
+              for CLS in \
+                net.minecraft.client.gui.Font \
+                'net.minecraft.client.gui.Font$DisplayMode' \
+                net.minecraft.client.Camera \
+                net.minecraft.client.Minecraft \
+                net.minecraft.client.renderer.LevelRenderer \
+                net.minecraft.client.renderer.SectionRenderDispatcher \
+                net.minecraft.client.renderer.ViewArea \
+                net.minecraft.client.renderer.blockentity.AbstractSignRenderer \
+                net.minecraft.client.renderer.blockentity.SignRenderer \
+                net.minecraft.client.renderer.blockentity.BeaconRenderer \
+                net.minecraft.client.renderer.blockentity.BlockEntityRenderer \
+                net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher \
+                net.minecraft.client.renderer.entity.EntityRenderDispatcher \
+                net.minecraft.client.particle.ParticleEngine \
+                net.minecraft.world.entity.Entity \
+                net.minecraft.world.level.Level \
+                net.minecraft.server.level.ServerLevel \
+                net.minecraft.world.level.chunk.LevelChunk \
+                net.minecraft.world.level.ChunkPos ; do
+                echo "=== $CLS"
+                javap -p -cp "$CP" "$CLS" 2>&1 | head -120 || echo "MISSING"
+                echo
+              done
+            } > "ci-probe/signatures-$V.txt" 2>&1 || true
 
-      - name: build exactly like CI does, and capture everything
-        continue-on-error: true
-        run: |
-          set +e
-          ./gradlew --no-daemon --console=plain clean build \
-            -Pminecraft_version=${{ matrix.minecraft }} > gradle-out.txt 2>&1
-          GRADLE_EXIT=$?
-          python3 scripts/validate_built_mod.py build/libs '${{ matrix.minecraft }}' >> gradle-out.txt 2>&1
-          VALIDATE_EXIT=$?
-          set -e
-          echo "gradle_exit=$GRADLE_EXIT validate_exit=$VALIDATE_EXIT"
-          mkdir -p ci-probe
-          { echo "## minecraft ${{ matrix.minecraft }}"
-            echo "## run ${{ github.run_id }} attempt ${{ github.run_attempt }}"
-            echo "## commit: $(git rev-parse HEAD)"
-            echo "## source files: $(find src -name '*.java' | wc -l)"
-            echo "## gradle exit: $GRADLE_EXIT, validate exit: $VALIDATE_EXIT"
-            echo "## compile errors: $(grep -c 'error:' gradle-out.txt)"
-            echo "## generated access widener header: $(head -1 .gradle/beryllium/beryllium.accesswidener 2>/dev/null || echo MISSING)"
-            echo "## packaged access widener header: $(unzip -p build/libs/*.jar beryllium.accesswidener 2>/dev/null | head -1 || echo MISSING)"
-            echo "## generated access widener:"
-            sed 's/^/##   /' .gradle/beryllium/beryllium.accesswidener 2>/dev/null || echo "##   MISSING"
-            echo
-            tail -c 150000 gradle-out.txt; } > "ci-probe/compile-${{ matrix.minecraft }}.log"
-          rm -f gradle-out.txt probe-cp.txt
+            # The real thing: the same command CI runs for the artifact.
+            set +e
+            ./gradlew --no-daemon --console=plain clean build \
+              -Pminecraft_version="$V" > /tmp/gradle-out.txt 2>&1
+            GRADLE_EXIT=$?
+            python3 scripts/validate_built_mod.py build/libs "$V" > /tmp/validate.txt 2>&1
+            VALIDATE_EXIT=$?
+            set -e
 
-      - name: upload the probe output
-        uses: actions/upload-artifact@v4
-        with:
-          name: probe-${{ matrix.minecraft }}
-          path: ci-probe
-          if-no-files-found: ignore
+            {
+              echo "## minecraft $V"
+              echo "## commit: $COMMIT"
+              echo "## gradle exit: $GRADLE_EXIT, validate exit: $VALIDATE_EXIT"
+              echo "## compile errors: $(grep -c 'error:' /tmp/gradle-out.txt || true)"
+              echo "## access widener: $(head -1 .gradle/beryllium/beryllium.accesswidener 2>/dev/null || echo MISSING)"
+              echo "## packaged widener: $(unzip -p build/libs/*.jar beryllium.accesswidener 2>/dev/null | head -1 || echo MISSING)"
+              echo "## validate output: $(cat /tmp/validate.txt | tr '\n' ' ')"
+              echo
+              tail -c 200000 /tmp/gradle-out.txt
+            } > "$LOG"
+            echo "$V done: gradle=$GRADLE_EXIT validate=$VALIDATE_EXIT"
+            rm -f probe-cp.txt
+          done
 
-  publish:
-    name: publish probe output
-    needs: probe
-    if: always()
-    runs-on: ubuntu-24.04
-    steps:
-      - name: checkout repository
-        uses: actions/checkout@v6
-
-      - name: drop the previous run's output
-        run: rm -rf ci-probe
-
-      - name: download every probe artifact
-        uses: actions/download-artifact@v4
-        with:
-          path: ci-probe
-          pattern: probe-*
-          merge-multiple: true
-
-      - name: list what was downloaded
-        run: |
-          echo "artifacts received:"
-          ls -la ci-probe || true
-
-      - name: commit the probe output
+      - name: publish the probe output
         run: |
           git config user.name "beryllium-ci-debug"
           git config user.email "ci-debug@users.noreply.github.com"
           git add -A ci-probe
           if git diff --cached --quiet; then
             echo "nothing to commit"
-          else
-            git commit -m "ci-probe: vanilla signatures and compile output ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
-            for i in 1 2 3 4 5; do
-              git pull --rebase -q origin "${GITHUB_REF_NAME}" && \
-                git push -q origin "HEAD:${GITHUB_REF_NAME}" && break
-              sleep 5
-            done
+            exit 0
           fi
+          git commit -m "ci-probe: build every covered release ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase -q origin "${GITHUB_REF_NAME}" && \
+               git push -q origin "HEAD:${GITHUB_REF_NAME}"; then
+              echo "published"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "could not publish the probe output" >&2
+          exit 1
