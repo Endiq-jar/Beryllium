@@ -1,5 +1,5 @@
 ## minecraft 1.21.2
-## commit: bb80ca8
+## commit: f7aa175
 ## gradle exit: 0, validate exit: 0
 ## compile errors: 0
 ## access widener: accessWidener v1 named
@@ -31,6 +31,8 @@ Failed to parse fabric.mod.json: /home/runner/work/Beryllium/Beryllium/src/main/
 
 > Task :printBuildTarget
 Beryllium target: Minecraft 1.21.2; full optimization set; remapped Loom pipeline; ViewArea=true, drawInBatch text hooks=true
+Cannot remap tryExtractRenderState(Lnet/minecraft/world/level/block/entity/BlockEntity;FLnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)Lnet/minecraft/client/renderer/blockentity/state/BlockEntityRenderState; because it does not exist in any of the targets [net/minecraft/client/renderer/blockentity/BlockEntityRenderDispatcher]
+Cannot remap tryExtractRenderState(Lnet/minecraft/world/level/block/entity/BlockEntity;FLnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;Z)Lnet/minecraft/client/renderer/blockentity/state/BlockEntityRenderState; because it does not exist in any of the targets [net/minecraft/client/renderer/blockentity/BlockEntityRenderDispatcher]
 Cannot remap tick because it does not exist in any of the targets [net/minecraft/server/MinecraftServer]
 Cannot remap tick because it does not exist in any of the targets [net/minecraft/server/MinecraftServer]
 Cannot remap setLevel(Lnet/minecraft/client/multiplayer/ClientLevel;)V because it does not exist in any of the targets [net/minecraft/client/Minecraft]

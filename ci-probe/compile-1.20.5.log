@@ -1,5 +1,5 @@
 ## minecraft 1.20.5
-## commit: bb80ca8
+## commit: f7aa175
 ## gradle exit: 0, validate exit: 0
 ## compile errors: 0
 ## access widener: accessWidener v1 named
@@ -31,10 +31,12 @@ Failed to parse fabric.mod.json: /home/runner/work/Beryllium/Beryllium/src/main/
 
 > Task :printBuildTarget
 Beryllium target: Minecraft 1.20.5; full optimization set; remapped Loom pipeline; ViewArea=false, drawInBatch text hooks=true
+Cannot remap tryExtractRenderState(Lnet/minecraft/world/level/block/entity/BlockEntity;FLnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)Lnet/minecraft/client/renderer/blockentity/state/BlockEntityRenderState; because it does not exist in any of the targets [net/minecraft/client/renderer/blockentity/BlockEntityRenderDispatcher]
+Cannot remap tryExtractRenderState(Lnet/minecraft/world/level/block/entity/BlockEntity;FLnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;Z)Lnet/minecraft/client/renderer/blockentity/state/BlockEntityRenderState; because it does not exist in any of the targets [net/minecraft/client/renderer/blockentity/BlockEntityRenderDispatcher]
 Cannot remap tick because it does not exist in any of the targets [net/minecraft/server/MinecraftServer]
 Cannot remap tick because it does not exist in any of the targets [net/minecraft/server/MinecraftServer]
-Cannot remap setLevel(Lnet/minecraft/client/multiplayer/ClientLevel;)V because it does not exist in any of the targets [net/minecraft/client/Minecraft]
 Cannot remap shouldShowName(Lnet/minecraft/world/entity/Entity;D)Z because it does not exist in any of the targets [net/minecraft/client/renderer/entity/EntityRenderer]
+Cannot remap setLevel(Lnet/minecraft/client/multiplayer/ClientLevel;)V because it does not exist in any of the targets [net/minecraft/client/Minecraft]
 Cannot remap <init>(Lnet/minecraft/world/entity/Entity;Z)V because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
 Cannot remap <init>(Lnet/minecraft/world/entity/Entity;Z)V because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
 Cannot remap <init>(Lnet/minecraft/world/entity/Entity;Z)V because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
@@ -63,5 +65,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 20s
+BUILD SUCCESSFUL in 22s
 10 actionable tasks: 10 executed
