@@ -69,7 +69,8 @@ public final class BlockEntityCulling {
 			// plus a 1-block box could shave a pixel off something the player is looking at.
 			Vec3 center = Vec3.atCenterOf(pos);
 			double safeRadiusSq = safeRadius * safeRadius;
-			if (camera.getPosition().distanceToSqr(center) < safeRadiusSq) {
+			Vec3 cameraPos = VisibilityCulling.cameraPosition();
+			if (cameraPos != null && cameraPos.distanceToSqr(center) < safeRadiusSq) {
 				return false;
 			}
 

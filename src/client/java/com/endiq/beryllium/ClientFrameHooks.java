@@ -9,8 +9,7 @@ import com.endiq.beryllium.profiler.DebugOverlay;
 import com.endiq.beryllium.profiler.FrameProfiler;
 import com.endiq.beryllium.text.SignTextState;
 import com.endiq.beryllium.util.BerylliumLog;
-import net.minecraft.client.Camera;
-import net.minecraft.client.Minecraft;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
 /**
@@ -113,18 +112,16 @@ public final class ClientFrameHooks {
 			return;
 		}
 		try {
-			Minecraft minecraft = Minecraft.getInstance();
-			if (minecraft == null || minecraft.gameRenderer == null) {
+			Vec3 camPos = VisibilityCulling.cameraPosition();
+			Vector3f look = VisibilityCulling.cameraLookVector();
+			if (camPos == null || look == null) {
+				// Camera access is resolved per Minecraft release; a miss here means the
+				// prioritized drain has no anchor point this frame and waits for the next.
 				return;
 			}
-			Camera camera = minecraft.gameRenderer.getMainCamera();
-			if (camera == null) {
-				return;
-			}
-			Vector3f look = camera.getLookVector();
 			long lastFrameNanos = frameProfiler == null ? -1L : frameProfiler.lastFrameNanos();
 			manager.onFrameStart(
-				camera.getPosition().x, camera.getPosition().y, camera.getPosition().z,
+				camPos.x, camPos.y, camPos.z,
 				look.x(), look.y(), look.z(),
 				lastFrameNanos
 			);

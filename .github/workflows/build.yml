@@ -63,34 +63,74 @@ jobs:
           set -o pipefail
           ./gradlew --no-daemon clean build -Pminecraft_version=${{ matrix.minecraft }} 2>&1 | tee build-output.log
 
-      # The raw Actions log blobs are unavailable to some API clients; publish the
-      # Gradle failure (compile errors) through the Checks API instead: patch the
-      # check-run summary and emit compact annotations.
-      - name: publish failure diagnostics
-        if: failure()
+      # Publish per-version API reference + any Gradle failure through the Checks API:
+      # the raw Actions log blobs are unavailable to some API clients, and the mapped
+      # Minecraft classes only exist where Mojang's servers are reachable (CI). This is
+      # what answers "what does class X look like on version Y" during cross-version
+      # maintenance without guessing.
+      - name: capture api reference and diagnostics
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Compact per-error annotations (symbol + location on one line each).
-          grep -E "error: |Caused by: |What went wrong: |Cannot add |Could not |Failed to" build-output.log \
-            | sed 's/^[[:space:]]*//' | sort -u | head -10 \
-            | while IFS= read -r line; do echo "::error::${line:0:500}"; done || true
+          {
+            echo "## API reference — Minecraft ${{ matrix.minecraft }} (${{ matrix.loom_pipeline }})"
+            jar=$(find ~/.gradle/caches/fabric-loom -name "*.jar" -path "*minecraft*" \
+              ! -name "*sources*" ! -name "*mappings*" 2>/dev/null | sort | head -20)
+            mapped=""
+            for j in $jar; do
+              if unzip -l "$j" 'net/minecraft/client/Camera.class' > /dev/null 2>&1; then mapped="$j"; break; fi
+            done
+            echo "mapped jar: ${mapped:-<not found>}"
+            if [ -n "$mapped" ]; then
+              for cls in \
+                net.minecraft.client.Camera \
+                net.minecraft.client.renderer.entity.EntityRenderDispatcher \
+                net.minecraft.client.renderer.blockentity.ChestRenderer \
+                net.minecraft.client.renderer.blockentity.BeaconRenderer \
+                net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher \
+                net.minecraft.world.level.ChunkPos \
+                net.minecraft.world.entity.Entity \
+                net.minecraft.world.level.Level \
+              ; do
+                echo ""
+                echo "=== $cls"
+                "$JAVA_HOME/bin/javap" -classpath "$mapped" "$cls" 2>&1 \
+                  | grep -vE "^\s*(static \{\}|[A-Za-z0-9_$]+\(\);)" | head -120
+              done
+            fi
+          } > api-reference.txt 2>&1 || true
 
-          # Full error section into the check-run summary (readable via the Checks API).
-          errors=$(grep -n -A 3 "error: " build-output.log | head -c 55000 || true)
-          [ -z "$errors" ] && errors=$(tail -c 55000 build-output.log)
+          {
+            if [ -f build-output.log ]; then
+              echo "## Gradle errors (if any)"
+              grep -n -A 3 "error: " build-output.log | head -c 20000 || echo "(no javac errors)"
+              echo
+              echo "## Gradle tail"
+              tail -c 12000 build-output.log
+            fi
+            cat api-reference.txt
+          } > diagnostics.txt
+
           job_name="Minecraft ${{ matrix.minecraft }} (${{ matrix.loom_pipeline }})"
           job_id=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs?per_page=100" \
             --jq '.jobs[] | [.id, .name] | @tsv' \
             | awk -F'\t' -v target="$job_name" '$2 == target {print $1; exit}')
           if [ -z "$job_id" ]; then
-            echo "::error::diagnostics: could not resolve check-run id for '$job_name'; summary not patched"
+            echo "::error::diagnostics: could not resolve check-run id for '$job_name'"
             exit 0
           fi
-          patch_out=$(gh api "repos/${{ github.repository }}/check-runs/$job_id" -X PATCH \
-            -f "output[title]=Gradle failure — ${{ matrix.minecraft }} (${{ matrix.loom_pipeline }})" \
-            -f "output[summary]=$(printf '%s' "$errors" | head -c 60000)" 2>&1) \
-            || echo "::error::diagnostics: summary patch failed: ${patch_out:0:400}"
+          gh api "repos/${{ github.repository }}/check-runs/$job_id" -X PATCH \
+            -f "output[title]=Beryllium — Minecraft ${{ matrix.minecraft }} (${{ matrix.loom_pipeline }})" \
+            -f "output[summary]=$(head -c 60000 diagnostics.txt)" || \
+            echo "::error::diagnostics: summary patch failed"
+
+      - name: publish failure annotations
+        if: failure()
+        run: |
+          grep -E "error: |Caused by: |What went wrong: |Cannot add |Could not |Failed to" build-output.log \
+            | sed 's/^[[:space:]]*//' | sort -u | head -10 \
+            | while IFS= read -r line; do echo "::error::${line:0:500}"; done || true
 
       - name: validate generated mod metadata
         run: python3 scripts/validate_built_mod.py build/libs '${{ matrix.minecraft }}'

@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -145,15 +146,77 @@ public final class VisibilityCulling {
 
 	public static Vec3 cameraPosition() {
 		try {
-			Minecraft minecraft = Minecraft.getInstance();
-			if (minecraft == null || minecraft.gameRenderer == null) {
+			Camera camera = mainCamera();
+			if (camera == null) {
 				return null;
 			}
-			Camera camera = minecraft.gameRenderer.getMainCamera();
-			return camera == null ? null : camera.getPosition();
+			// Looked up reflectively: the accessor was renamed late in the supported range
+			// (getPosition existed through 1.21.10). A miss means "cannot determine" and the
+			// callers fall back to not culling.
+			Method method;
+			if (!cameraPositionResolved) {
+				synchronized (VisibilityCulling.class) {
+					if (!cameraPositionResolved) {
+						cameraPositionMethod = findFirstMethod(Camera.class, "getPosition");
+						cameraPositionResolved = true;
+					}
+				}
+			}
+			method = cameraPositionMethod;
+			if (method == null) {
+				return null;
+			}
+			Object value = method.invoke(camera);
+			return value instanceof Vec3 vec ? vec : null;
 		} catch (Throwable t) {
 			return null;
 		}
+	}
+
+	/**
+	 * The direction the camera is looking, or {@code null} when it cannot be determined.
+	 *
+	 * <p>Reflective for the same reason as {@link #cameraPosition()}; the result is
+	 * normalised to a JOML vector because the accessor's return type changed across the
+	 * range (a {@code Vector3f} on older releases).
+	 */
+	public static Vector3f cameraLookVector() {
+		try {
+			Camera camera = mainCamera();
+			if (camera == null) {
+				return null;
+			}
+			if (!cameraLookResolved) {
+				synchronized (VisibilityCulling.class) {
+					if (!cameraLookResolved) {
+						cameraLookMethod = findFirstMethod(Camera.class, "getLookVector", "getLookDirection");
+						cameraLookResolved = true;
+					}
+				}
+			}
+			Method method = cameraLookMethod;
+			if (method == null) {
+				return null;
+			}
+			Object value = method.invoke(camera);
+			if (value instanceof Vector3f vec) {
+				return vec;
+			}
+			if (value instanceof Vec3 vec) {
+				return new Vector3f((float) vec.x, (float) vec.y, (float) vec.z);
+			}
+			return null;
+		} catch (Throwable t) {
+			return null;
+		}
+	}
+
+	private static Camera mainCamera() {
+		Minecraft minecraft = Minecraft.getInstance();
+		if (minecraft == null || minecraft.gameRenderer == null) {
+			return null;
+		}
+		return minecraft.gameRenderer.getMainCamera();
 	}
 
 	/** @return the world's build height, used to size beam columns. */
@@ -218,6 +281,11 @@ public final class VisibilityCulling {
 
 	private static volatile Method buildCeilingMethod;
 	private static volatile boolean buildCeilingResolved;
+
+	private static volatile Method cameraPositionMethod;
+	private static volatile boolean cameraPositionResolved;
+	private static volatile Method cameraLookMethod;
+	private static volatile boolean cameraLookResolved;
 
 	/** The per-frame memo is a pure optimisation; it can be switched off without changing
 	 *  what is culled, only how often the frustum is asked. */
