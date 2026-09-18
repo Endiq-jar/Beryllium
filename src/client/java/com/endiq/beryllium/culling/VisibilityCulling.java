@@ -150,7 +150,7 @@ public final class VisibilityCulling {
 				return null;
 			}
 			Camera camera = minecraft.gameRenderer.getMainCamera();
-			return camera == null ? null : camera.getPosition();
+			return camera == null ? null : CameraAccess.position(camera);
 		} catch (Throwable t) {
 			return null;
 		}

@@ -16,12 +16,17 @@ permissions:
   contents: write
 
 concurrency:
+  # No cancel-in-progress: a cancelled run's publish job (if: always()) would race the next
+  # run's publish job, and the two would interleave their output into one directory.
   group: beryllium-probe-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   releases:
     name: resolve the release list
+    # The publish job below commits its own output to the branch, which would otherwise
+    # re-trigger this workflow on every run, forever.
+    if: ${{ !contains(github.event.head_commit.message, 'ci-probe:') }}
     runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.releases.outputs.matrix }}
@@ -201,11 +206,16 @@ jobs:
           pattern: probe-*
           merge-multiple: true
 
+      - name: list what was downloaded
+        run: |
+          echo "artifacts received:"
+          ls -la ci-probe || true
+
       - name: commit the probe output
         run: |
           git config user.name "beryllium-ci-debug"
           git config user.email "ci-debug@users.noreply.github.com"
-          git add ci-probe
+          git add -A ci-probe
           if git diff --cached --quiet; then
             echo "nothing to commit"
           else

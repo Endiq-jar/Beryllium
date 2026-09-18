@@ -2,6 +2,7 @@ package com.endiq.beryllium.mixin.culling;
 
 import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
+import com.endiq.beryllium.culling.CameraAccess;
 import com.endiq.beryllium.culling.BehindCameraCulling;
 import com.endiq.beryllium.culling.RenderDistanceSync;
 import net.minecraft.client.Camera;
@@ -39,8 +40,12 @@ public abstract class EntityRenderDispatcherMixin {
 			return;
 		}
 
-		Vec3 camPos = camera.getPosition();
-		Vector3f forward = camera.getLookVector();
+		Vec3 camPos = CameraAccess.position(camera);
+		Vector3f forward = CameraAccess.lookVector(camera);
+		if (camPos == null) {
+			// No camera position this release: leave the decision entirely to vanilla.
+			return;
+		}
 
 		// --- Entity render distance -------------------------------------------------
 		// A hard ceiling on how far away an entity may be and still be drawn. Vanilla has

@@ -2,6 +2,7 @@ package com.endiq.beryllium;
 
 import com.endiq.beryllium.chunk.ChunkRebuildManager;
 import com.endiq.beryllium.chunk.ChunkUploadPacer;
+import com.endiq.beryllium.culling.CameraAccess;
 import com.endiq.beryllium.culling.VisibilityCulling;
 import com.endiq.beryllium.debug.HudOverlayBridge;
 import com.endiq.beryllium.performance.FrameMaintenanceScheduler;
@@ -11,6 +12,7 @@ import com.endiq.beryllium.text.SignTextState;
 import com.endiq.beryllium.util.BerylliumLog;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
 /**
@@ -121,10 +123,14 @@ public final class ClientFrameHooks {
 			if (camera == null) {
 				return;
 			}
-			Vector3f look = camera.getLookVector();
+			Vec3 cameraPosition = CameraAccess.position(camera);
+			if (cameraPosition == null) {
+				return;
+			}
+			Vector3f look = CameraAccess.lookVector(camera);
 			long lastFrameNanos = frameProfiler == null ? -1L : frameProfiler.lastFrameNanos();
 			manager.onFrameStart(
-				camera.getPosition().x, camera.getPosition().y, camera.getPosition().z,
+				cameraPosition.x, cameraPosition.y, cameraPosition.z,
 				look.x(), look.y(), look.z(),
 				lastFrameNanos
 			);
