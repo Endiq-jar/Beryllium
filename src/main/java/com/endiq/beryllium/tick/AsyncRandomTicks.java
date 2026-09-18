@@ -1,5 +1,6 @@
 package com.endiq.beryllium.tick;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
@@ -136,8 +137,13 @@ public final class AsyncRandomTicks {
 			// Lightning (and the snow/ice path) reaches outside pure block ticking.
 			return false;
 		}
-		int cx = chunk.getPos().getX();
-		int cz = chunk.getPos().getZ();
+		// Via the block position, not ChunkPos' x/z fields: those are public on the
+		// remapped releases but private record components on the unobfuscated 26.x line,
+		// and the static ChunkPos#getX(long)/getZ(long) helpers take a packed position.
+		// getWorldPosition() resolves on both pipelines.
+		BlockPos origin = chunk.getPos().getWorldPosition();
+		int cx = origin.getX() >> 4;
+		int cz = origin.getZ() >> 4;
 		for (int dx = -1; dx <= 1; dx++) {
 			for (int dz = -1; dz <= 1; dz++) {
 				if (!level.hasChunk(cx + dx, cz + dz)) {

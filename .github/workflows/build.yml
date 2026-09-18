@@ -75,14 +75,11 @@ jobs:
         run: |
           {
             echo "## API reference — Minecraft ${{ matrix.minecraft }} (${{ matrix.loom_pipeline }})"
-            jar=$(find ~/.gradle/caches/fabric-loom -name "*.jar" -path "*minecraft*" \
+            jars=$(find ~/.gradle/caches/fabric-loom -name "*.jar" -path "*minecraft*" \
               ! -name "*sources*" ! -name "*mappings*" 2>/dev/null | sort | head -20)
-            mapped=""
-            for j in $jar; do
-              if unzip -l "$j" 'net/minecraft/client/Camera.class' > /dev/null 2>&1; then mapped="$j"; break; fi
-            done
-            echo "mapped jar: ${mapped:-<not found>}"
-            if [ -n "$mapped" ]; then
+            cp=""
+            for j in $jars; do cp="$cp$j:"; done
+            if [ -n "$cp" ]; then
               for cls in \
                 net.minecraft.client.Camera \
                 net.minecraft.client.renderer.entity.EntityRenderDispatcher \
@@ -95,9 +92,11 @@ jobs:
               ; do
                 echo ""
                 echo "=== $cls"
-                "$JAVA_HOME/bin/javap" -classpath "$mapped" "$cls" 2>&1 \
+                "$JAVA_HOME/bin/javap" -classpath "$cp" "$cls" 2>&1 \
                   | grep -vE "^\s*(static \{\}|[A-Za-z0-9_$]+\(\);)" | head -120
               done
+            else
+              echo "no mapped minecraft jars found in the loom cache"
             fi
           } > api-reference.txt 2>&1 || true
 

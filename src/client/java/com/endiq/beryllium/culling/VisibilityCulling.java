@@ -145,6 +145,18 @@ public final class VisibilityCulling {
 	}
 
 	public static Vec3 cameraPosition() {
+		Vec3 position = cameraAccessorPosition();
+		if (position != null) {
+			return position;
+		}
+		// Fallback for releases whose Camera carries its state elsewhere (26.x): the
+		// player's eye position. In third person the camera pulls back a few blocks from
+		// the eye, so the anchor is slightly different — the culling ranges already treat
+		// distances as approximate, and the alternative is not culling at all.
+		return playerEyePosition();
+	}
+
+	private static Vec3 cameraAccessorPosition() {
 		try {
 			Camera camera = mainCamera();
 			if (camera == null) {
@@ -153,7 +165,6 @@ public final class VisibilityCulling {
 			// Looked up reflectively: the accessor was renamed late in the supported range
 			// (getPosition existed through 1.21.10). A miss means "cannot determine" and the
 			// callers fall back to not culling.
-			Method method;
 			if (!cameraPositionResolved) {
 				synchronized (VisibilityCulling.class) {
 					if (!cameraPositionResolved) {
@@ -162,11 +173,36 @@ public final class VisibilityCulling {
 					}
 				}
 			}
-			method = cameraPositionMethod;
+			Method method = cameraPositionMethod;
 			if (method == null) {
 				return null;
 			}
 			Object value = method.invoke(camera);
+			return value instanceof Vec3 vec ? vec : null;
+		} catch (Throwable t) {
+			return null;
+		}
+	}
+
+	private static Vec3 playerEyePosition() {
+		try {
+			Object player = Minecraft.getInstance() == null ? null : Minecraft.getInstance().player;
+			if (player == null) {
+				return null;
+			}
+			if (!playerEyeResolved) {
+				synchronized (VisibilityCulling.class) {
+					if (!playerEyeResolved) {
+						playerEyeMethod = findFirstMethod(player.getClass(), "getEyePosition");
+						playerEyeResolved = true;
+					}
+				}
+			}
+			Method method = playerEyeMethod;
+			if (method == null) {
+				return null;
+			}
+			Object value = method.invoke(player);
 			return value instanceof Vec3 vec ? vec : null;
 		} catch (Throwable t) {
 			return null;
@@ -178,27 +214,54 @@ public final class VisibilityCulling {
 	 *
 	 * <p>Reflective for the same reason as {@link #cameraPosition()}; the result is
 	 * normalised to a JOML vector because the accessor's return type changed across the
-	 * range (a {@code Vector3f} on older releases).
+	 * range (a {@code Vector3f} on older releases). The fallback for state-carrying
+	 * cameras is the player's view vector at full tick delta.
 	 */
 	public static Vector3f cameraLookVector() {
 		try {
 			Camera camera = mainCamera();
-			if (camera == null) {
-				return null;
-			}
-			if (!cameraLookResolved) {
-				synchronized (VisibilityCulling.class) {
-					if (!cameraLookResolved) {
-						cameraLookMethod = findFirstMethod(Camera.class, "getLookVector", "getLookDirection");
-						cameraLookResolved = true;
+			if (camera != null) {
+				if (!cameraLookResolved) {
+					synchronized (VisibilityCulling.class) {
+						if (!cameraLookResolved) {
+							cameraLookMethod = findFirstMethod(Camera.class, "getLookVector", "getLookDirection");
+							cameraLookResolved = true;
+						}
+					}
+				}
+				Method method = cameraLookMethod;
+				if (method != null) {
+					Object value = method.invoke(camera);
+					if (value instanceof Vector3f vec) {
+						return vec;
+					}
+					if (value instanceof Vec3 vec) {
+						return new Vector3f((float) vec.x, (float) vec.y, (float) vec.z);
 					}
 				}
 			}
-			Method method = cameraLookMethod;
+
+			Object player = Minecraft.getInstance() == null ? null : Minecraft.getInstance().player;
+			if (player == null) {
+				return null;
+			}
+			if (!playerLookResolved) {
+				synchronized (VisibilityCulling.class) {
+					if (!playerLookResolved) {
+						// getViewVector takes a partial-tick float; getLookAngle is no-arg.
+						playerLookMethod = findFirstMethod(player.getClass(), float.class, "getViewVector");
+						if (playerLookMethod == null) {
+							playerLookMethod = findFirstMethod(player.getClass(), "getLookAngle");
+						}
+						playerLookResolved = true;
+					}
+				}
+			}
+			Method method = playerLookMethod;
 			if (method == null) {
 				return null;
 			}
-			Object value = method.invoke(camera);
+			Object value = method.getParameterCount() == 1 ? method.invoke(player, 1.0F) : method.invoke(player);
 			if (value instanceof Vector3f vec) {
 				return vec;
 			}
@@ -279,6 +342,24 @@ public final class VisibilityCulling {
 		return null;
 	}
 
+	/** Same walk, but for a single-{@code float} method. */
+	private static Method findFirstMethod(Class<?> clazz, Class<?> parameter, String... names) {
+		for (String name : names) {
+			for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
+				try {
+					Method method = current.getDeclaredMethod(name, parameter);
+					method.setAccessible(true);
+					return method;
+				} catch (NoSuchMethodException ignored) {
+					// try the next class up the hierarchy
+				} catch (Throwable ignored) {
+					break;
+				}
+			}
+		}
+		return null;
+	}
+
 	private static volatile Method buildCeilingMethod;
 	private static volatile boolean buildCeilingResolved;
 
@@ -286,6 +367,10 @@ public final class VisibilityCulling {
 	private static volatile boolean cameraPositionResolved;
 	private static volatile Method cameraLookMethod;
 	private static volatile boolean cameraLookResolved;
+	private static volatile Method playerEyeMethod;
+	private static volatile boolean playerEyeResolved;
+	private static volatile Method playerLookMethod;
+	private static volatile boolean playerLookResolved;
 
 	/** The per-frame memo is a pure optimisation; it can be switched off without changing
 	 *  what is culled, only how often the frustum is asked. */

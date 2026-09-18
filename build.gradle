@@ -78,9 +78,6 @@ def hasViewArea = mcAtLeast(1, 21, 2)
 // release — and stays vanilla everywhere else (exactly the old compatibility-core split,
 // just over the narrow range where the specialization is valid).
 def hasShapeEngine = mcAtLeast(1, 21, 0) && !unobfuscatedGame
-// EnderChestRenderer was folded away when ChestRenderer became generic in 1.21; the
-// chest mixin keeps running there, the ender-chest-specific one degrades to vanilla.
-def hasEnderChestRenderer = !mcAtLeast(1, 21, 0)
 
 loom {
 	if (!unobfuscatedGame) {
@@ -127,9 +124,6 @@ sourceSets {
 				// ViewArea does not exist before 1.21.2; the LevelRenderer-level hook and
 				// SectionDirtyBridge (reflection) already cover those releases.
 				exclude 'com/endiq/beryllium/mixin/chunk/ViewAreaMixin.java'
-			}
-			if (!hasEnderChestRenderer) {
-				exclude 'com/endiq/beryllium/mixin/render/EnderChestRenderCullMixin.java'
 			}
 		}
 	}
@@ -237,7 +231,7 @@ tasks.register('printBuildTarget') {
 		println "Beryllium target: Minecraft ${minecraftVersion}; full optimization set" +
 			"; ${unobfuscatedGame ? 'unobfuscated' : 'remapped'} Loom pipeline" +
 			"; Font\$DisplayMode=${fontHasDisplayMode}, ViewArea=${hasViewArea}, " +
-			"shapeEngine=${hasShapeEngine}, enderChestRenderer=${hasEnderChestRenderer}"
+			"shapeEngine=${hasShapeEngine}"
 	}
 }
 
