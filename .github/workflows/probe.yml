@@ -102,6 +102,7 @@ jobs:
           {
             echo "## minecraft ${{ matrix.minecraft }}"
             echo "## run ${{ github.run_id }} attempt ${{ github.run_attempt }}"
+            echo "## commit: $(git rev-parse HEAD)"
             echo "## classpath: $CP"
             echo
             for cls in \
@@ -118,6 +119,16 @@ jobs:
               net.minecraft.client.renderer.blockentity.EnderChestRenderer \
               net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher \
               net.minecraft.client.renderer.blockentity.BeaconRenderer \
+              net.minecraft.client.renderer.blockentity.BlockEntityRenderer \
+              net.minecraft.client.renderer.LevelRenderer \
+              net.minecraft.client.renderer.SectionRenderDispatcher \
+              net.minecraft.client.renderer.entity.EntityRenderer \
+              net.minecraft.client.particle.ParticleEngine \
+              net.minecraft.client.Minecraft \
+              net.minecraft.world.entity.Entity \
+              net.minecraft.server.level.ServerLevel \
+              net.minecraft.client.renderer.SubmitNodeCollector \
+              net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState \
               net.minecraft.client.renderer.entity.EntityRenderDispatcher \
               net.minecraft.world.level.LevelHeightAccessor \
               net.minecraft.world.level.Level \
@@ -129,7 +140,7 @@ jobs:
               com.mojang.blaze3d.vertex.PoseStack \
               net.minecraft.client.renderer.MultiBufferSource ; do
               echo "=== $cls"
-              javap -p -cp "$CP" "$cls" 2>&1 | head -80 || echo "MISSING"
+              javap -p -cp "$CP" "$cls" 2>&1 | head -200 || echo "MISSING"
               echo
             done
           } > "$OUT"
@@ -152,9 +163,14 @@ jobs:
           mkdir -p ci-probe
           { echo "## minecraft ${{ matrix.minecraft }}"
             echo "## run ${{ github.run_id }} attempt ${{ github.run_attempt }}"
+            echo "## commit: $(git rev-parse HEAD)"
+            echo "## source files: $(find src -name '*.java' | wc -l)"
             echo "## gradle exit: $GRADLE_EXIT, validate exit: $VALIDATE_EXIT"
-            echo "## generated access widener header: $(head -1 build/generated/beryllium-access-widener/beryllium.accesswidener 2>/dev/null || echo MISSING)"
+            echo "## compile errors: $(grep -c 'error:' gradle-out.txt)"
+            echo "## generated access widener header: $(head -1 .gradle/beryllium/beryllium.accesswidener 2>/dev/null || echo MISSING)"
             echo "## packaged access widener header: $(unzip -p build/libs/*.jar beryllium.accesswidener 2>/dev/null | head -1 || echo MISSING)"
+            echo "## generated access widener:"
+            sed 's/^/##   /' .gradle/beryllium/beryllium.accesswidener 2>/dev/null || echo "##   MISSING"
             echo
             tail -c 150000 gradle-out.txt; } > "ci-probe/compile-${{ matrix.minecraft }}.log"
           rm -f gradle-out.txt probe-cp.txt
@@ -174,6 +190,9 @@ jobs:
     steps:
       - name: checkout repository
         uses: actions/checkout@v6
+
+      - name: drop the previous run's output
+        run: rm -rf ci-probe
 
       - name: download every probe artifact
         uses: actions/download-artifact@v4

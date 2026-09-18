@@ -136,8 +136,8 @@ public final class AsyncRandomTicks {
 			// Lightning (and the snow/ice path) reaches outside pure block ticking.
 			return false;
 		}
-		int cx = chunk.getPos().x;
-		int cz = chunk.getPos().z;
+		int cx = VanillaBridges.chunkX(chunk);
+		int cz = VanillaBridges.chunkZ(chunk);
 		for (int dx = -1; dx <= 1; dx++) {
 			for (int dz = -1; dz <= 1; dz++) {
 				if (!level.hasChunk(cx + dx, cz + dz)) {

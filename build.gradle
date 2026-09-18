@@ -85,7 +85,11 @@ def textUsesDrawInBatch = !mcAtLeast(1, 26, 2)
  * is what lets one source tree compile for 1.19.4 through current.
  */
 def accessWidenerSource = file('src/main/accesswidener/beryllium.accesswidener')
-def accessWidenerDir = file("${layout.buildDirectory.get().asFile}/generated/beryllium-access-widener")
+// Deliberately NOT under build/: CI builds with `clean build`, and a generated file inside
+// build/ would be deleted by `clean` after configuration generated it but before
+// processResources packaged it -- producing a jar that declares an access widener it does
+// not contain. `.gradle/` survives clean and is already ignored by git.
+def accessWidenerDir = file("${rootDir}/.gradle/beryllium")
 def accessWidenerFile = new File(accessWidenerDir, 'beryllium.accesswidener')
 
 def accessWidenerLines = accessWidenerSource.readLines()

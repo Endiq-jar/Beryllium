@@ -100,10 +100,12 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
   (default 32 blocks) are dropped at spawn, so they never tick, never sort into a buffer
   and never reach the GPU. Culling at the door is the cheap kind; particles the player can
   actually see are untouched.
-- **Chest render culling** — the chest and ender chest renderers are skipped beyond
+- **Chest render culling** — chests, trapped chests and ender chests are not drawn beyond
   `chestRenderCullDistance` (default 24 blocks). Storage rooms are the classic case:
   hundreds of animated lids, none of them more than a few pixels tall, all costing a draw
-  call every frame.
+  call every frame. The rule is applied where every block entity is dispatched, and tests
+  the block entity types rather than the renderer classes — ender chests stopped having a
+  renderer class of their own entirely, so a per-renderer patch could not cover them.
 - **Visibility culling** — one shared frustum, and one answer per block per frame. Vanilla
   asks "is this visible?" repeatedly for the same geometry inside a single frame, and the
   invisible answer is the expensive one — it is exactly what makes a room full of chests
@@ -129,11 +131,17 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
 - **Glow hidden at distance** — beyond `signTextGlowCullDistance` (default 24 blocks),
   glowing sign text renders as ordinary text: no see-through layer, no outline. The text
   itself still draws.
-- **Glowing-text outline → shadow** — vanilla draws glowing text many times per line to
-  build its outline. `signTextOutlineMode: NORMAL` keeps one pass per line (it reads as a
-  shadow, at a fraction of the cost); `FAST` drops the outline entirely. If Beryllium ever
-  observes a version where those passes *are* the text, it stops dropping them — see
+- **Glowing-text outline → shadow** — vanilla draws glowing text eight times per line to
+  build its outline. `signTextOutlineMode: NORMAL` replaces those eight passes with a single
+  darker, offset pass — a shadow, at an eighth of the cost; `FAST` drops the outline
+  entirely. If Beryllium ever observes a version where those passes *are* the text, it stops
+  dropping them — see
   [Experimental & self-checking behaviour](#experimental--self-checking-behaviour).
+- **Which releases** — 1.19.4 through 26.1. Minecraft 26.2 replaced `Font#drawInBatch` with
+  `Font#prepareText`, a prepare-then-submit text pipeline that has no per-draw hook to make
+  the decision at, so on 26.2 and later sign text renders exactly as vanilla does. Every
+  other sign rule (beacon, chest, particles, entity distance, chunk work) still applies
+  there.
 - **Glow-effect optimization** — the glow layer is identified at the `Font#drawInBatch`
   level, so every text path that renders through it is covered by the same rules rather
   than needing a per-renderer patch.
@@ -261,10 +269,16 @@ because of how the mixins are written rather than by withholding them:
 | Technique | Why |
 |---|---|
 | Every injector names its target descriptor explicitly with `require = 0` | A renamed or reshaped method is *skipped*, never guessed. No bad descriptor can crash a launch. |
-| Version-only classes are targeted by string (`@Mixin(targets = "...")`) | `ViewArea`, `HangingSignRenderer` and friends never have to link at compile time. |
-| Two era-specific files are swapped by `build.gradle` | `Font$DisplayMode` (1.20+) vs the pre-1.20 `boolean seeThrough`; `ViewArea` (1.21.2+) vs `LevelRenderer`. |
-| Reflection for vanilla bodies and cross-class state | `VanillaBridges`, `SectionDirtyBridge` — a drift in a private method disables one feature instead of failing class transformation. |
+| Version-only members are reached through access wideners or reflection | `ViewArea`, `Entity#getCommandSenderWorld`, `Level`'s build-height accessor and the shape internals never have to link at compile time. |
+| Two era-specific files are swapped by `build.gradle` | `FontSignTextMixin` (the per-draw text hook, which exists up to 26.1) and `ViewAreaMixin` (1.21.2+). Both are excluded per release rather than guessed at. |
+| Overloads of the same method are declared side by side | `Font#drawInBatch` changed its return type from `int` to `void` *and back* inside the covered range, and gained and lost an argument. All variants are declared; each release matches exactly one. |
+| Reflection for vanilla bodies and cross-class state | `VanillaBridges`, `SectionDirtyBridge` — a drift in a private method or a renamed getter disables one feature instead of failing class transformation. |
 | Containment everywhere | Every new hook is wrapped so a throw is logged and vanilla behaviour continues. |
+
+The access widener itself is generated per release (`build.gradle` writes it into
+`.gradle/beryllium/`) because its **namespace depends on the release**: 1.19.4–1.21.11 take a `named` widener, while 26.1+ ships unobfuscated code and
+Fabric requires an `official` one in the v2 format. The entries are the same
+Mojang-named members either way.
 
 What this means per release:
 
@@ -306,7 +320,7 @@ optimization should never prevent Minecraft from reaching the title screen.
 | 11 — text shadows toggle | ✅ done — `FontTextShadowMixin` suppresses the `dropShadow` argument of the `Font.drawInBatch` overloads |
 | 12 — sign optimization | ✅ done — text hidden at distance / out of view; glow hidden at distance; outline → shadow (`NORMAL`/`FAST`) |
 | 13 — beacon optimization | ✅ done — beams hidden at distance and out of view, column-shaped frustum test |
-| 14 — chest render culling | ✅ done — chest + ender chest renderer skipped beyond 24 blocks |
+| 14 — chest render culling | ✅ done — chests + ender chests skipped beyond 24 blocks, on every release |
 | 15 — particle & entity render distance culling | ✅ done — spawn-distance particle culling; hard entity render-distance ceiling |
 | 16 — visibility culling | ✅ done — one shared frustum, one visibility answer per block per frame |
 | 17 — chunk compilation scheduling & upload pacing | ✅ done — frame-time-driven rebuild allowance and per-frame GPU upload budget |
@@ -471,7 +485,7 @@ transcribed constants nobody could check.
 | `signTextHideOutOfView` | `true` | Skip sign text for signs outside the camera frustum |
 | `signTextGlowOptimization` | `true` | Master switch for the glowing-text optimizations |
 | `signTextHideGlowOutline` | `true` | Drop vanilla's multi-pass glowing outline behind sign text |
-| `signTextOutlineMode` | `FAST` | `NORMAL` = keep one outline pass per line (reads as a shadow); `FAST` = drop all of them |
+| `signTextOutlineMode` | `FAST` | `NORMAL` = replace vanilla's eight outline passes with one shadow-like pass; `FAST` = drop all of them |
 | `signTextGlowCullDistance` | `24.0` | Beyond this distance, glowing sign text renders as ordinary text |
 | `beaconOptimization` | `true` | Master switch for beacon beam work |
 | `beaconBeamHideAtDistance` | `true` | Stop drawing beams beyond `beaconBeamCullDistance` |
