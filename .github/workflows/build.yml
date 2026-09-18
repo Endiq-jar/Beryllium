@@ -81,12 +81,16 @@ jobs:
           [ -z "$errors" ] && errors=$(tail -c 55000 build-output.log)
           job_name="Minecraft ${{ matrix.minecraft }} (${{ matrix.loom_pipeline }})"
           job_id=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs?per_page=100" \
-            --jq --arg n "$job_name" '.jobs[] | select(.name==$n) | .id' | head -1)
-          if [ -n "$job_id" ]; then
-            gh api "repos/${{ github.repository }}/check-runs/$job_id" -X PATCH \
-              -f "output[title]=Gradle failure — ${{ matrix.minecraft }} (${{ matrix.loom_pipeline }})" \
-              -f "output[summary]=$(printf '%s' "$errors" | head -c 60000)" || true
+            --jq '.jobs[] | [.id, .name] | @tsv' \
+            | awk -F'\t' -v target="$job_name" '$2 == target {print $1; exit}')
+          if [ -z "$job_id" ]; then
+            echo "::error::diagnostics: could not resolve check-run id for '$job_name'; summary not patched"
+            exit 0
           fi
+          patch_out=$(gh api "repos/${{ github.repository }}/check-runs/$job_id" -X PATCH \
+            -f "output[title]=Gradle failure — ${{ matrix.minecraft }} (${{ matrix.loom_pipeline }})" \
+            -f "output[summary]=$(printf '%s' "$errors" | head -c 60000)" 2>&1) \
+            || echo "::error::diagnostics: summary patch failed: ${patch_out:0:400}"
 
       - name: validate generated mod metadata
         run: python3 scripts/validate_built_mod.py build/libs '${{ matrix.minecraft }}'
