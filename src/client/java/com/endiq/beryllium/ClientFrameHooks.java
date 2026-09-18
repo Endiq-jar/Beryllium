@@ -119,7 +119,7 @@ public final class ClientFrameHooks {
 			if (minecraft == null || minecraft.gameRenderer == null) {
 				return;
 			}
-			Camera camera = minecraft.gameRenderer.getMainCamera();
+			Camera camera = CameraAccess.current();
 			if (camera == null) {
 				return;
 			}

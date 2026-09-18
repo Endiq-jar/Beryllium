@@ -2,6 +2,7 @@ package com.endiq.beryllium.culling;
 
 import com.endiq.beryllium.util.BerylliumLog;
 import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -30,6 +31,8 @@ import java.lang.reflect.Method;
 public final class CameraAccess {
 	private static final Vector3f SCRATCH = new Vector3f();
 
+	private static volatile Method currentCameraMethod;
+	private static volatile boolean resolvedCurrentCamera;
 	private static volatile Method positionMethod;
 	private static volatile Method lookVectorMethod;
 	private static volatile Method xRotMethod;
@@ -37,6 +40,60 @@ public final class CameraAccess {
 	private static volatile boolean resolved;
 
 	private CameraAccess() {
+	}
+
+	/**
+	 * The live camera.
+	 *
+	 * <p>{@code GameRenderer}'s accessor for it was renamed too (and is not one of the names
+	 * the rest of the class resolves), so it is located by shape rather than by name: any
+	 * no-argument method on the game renderer whose return type is a {@link Camera} will do.
+	 * The camera itself is then read through the resolved accessors above.
+	 *
+	 * @return the camera, or null when there is none (early startup, no world, or no such
+	 *         method on this release)
+	 */
+	public static Camera current() {
+		Minecraft minecraft = Minecraft.getInstance();
+		if (minecraft == null || minecraft.gameRenderer == null) {
+			return null;
+		}
+		resolve();
+		if (!resolvedCurrentCamera) {
+			synchronized (CameraAccess.class) {
+				if (!resolvedCurrentCamera) {
+					currentCameraMethod = findCameraOn(minecraft.gameRenderer.getClass());
+					resolvedCurrentCamera = true;
+				}
+			}
+		}
+		Method method = currentCameraMethod;
+		if (method == null) {
+			return null;
+		}
+		try {
+			Object value = method.invoke(minecraft.gameRenderer);
+			return value instanceof Camera camera ? camera : null;
+		} catch (Throwable t) {
+			return null;
+		}
+	}
+
+	private static Method findCameraOn(Class<?> gameRendererType) {
+		Method fallback = null;
+		for (Method candidate : gameRendererType.getMethods()) {
+			if (candidate.getParameterCount() != 0 || !Camera.class.isAssignableFrom(candidate.getReturnType())) {
+				continue;
+			}
+			String name = candidate.getName();
+			if (name.equals("mainCamera") || name.equals("getMainCamera") || name.equals("camera")) {
+				return candidate;
+			}
+			if (fallback == null) {
+				fallback = candidate;
+			}
+		}
+		return fallback;
 	}
 
 	/** @return the camera position, or null when the running release exposes neither spelling */

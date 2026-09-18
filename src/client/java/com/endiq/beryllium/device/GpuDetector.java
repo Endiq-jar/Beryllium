@@ -1,7 +1,5 @@
 package com.endiq.beryllium.device;
 
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
@@ -39,14 +37,29 @@ public final class GpuDetector {
 		}
 	}
 
+	/**
+	 * The primary monitor's refresh rate.
+	 *
+	 * <p>GLFW is reached reflectively: newer Minecraft development jars do not expose
+	 * {@code org.lwjgl.glfw} on the compile classpath at all (26.3 is one such release),
+	 * while the classes are present at runtime in every launcher Beryllium supports. A direct
+	 * reference would stop the mod from building there for the sake of one optional number;
+	 * a lookup that fails simply reports -1, which the capability classifier already treats as
+	 * "unknown".
+	 */
 	private static int safeGetRefreshRate() {
 		try {
-			long monitor = GLFW.glfwGetPrimaryMonitor();
-			if (monitor == 0L) {
+			Class<?> glfw = Class.forName("org.lwjgl.glfw.GLFW");
+			Object monitor = glfw.getMethod("glfwGetPrimaryMonitor").invoke(null);
+			if (!(monitor instanceof Long handle) || handle == 0L) {
 				return -1;
 			}
-			GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
-			return mode == null ? -1 : mode.refreshRate();
+			Object mode = glfw.getMethod("glfwGetVideoMode", long.class).invoke(null, handle);
+			if (mode == null) {
+				return -1;
+			}
+			Object rate = mode.getClass().getMethod("refreshRate").invoke(mode);
+			return rate instanceof Number number ? number.intValue() : -1;
 		} catch (Throwable t) {
 			return -1;
 		}

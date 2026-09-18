@@ -1,6 +1,5 @@
 package com.endiq.beryllium.tick;
 
-import com.endiq.beryllium.util.BerylliumLog;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;

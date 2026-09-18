@@ -58,7 +58,7 @@ public final class BlockEntityCulling {
 				return false;
 			}
 
-			Camera camera = minecraft.gameRenderer.getMainCamera();
+			Camera camera = CameraAccess.current();
 			if (camera == null) {
 				return false;
 			}
