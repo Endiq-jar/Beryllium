@@ -1,20 +1,10 @@
 ## minecraft 1.20.1
-## run 35364938041 attempt 1
-## commit: 116114eed43a38f481d1e4ad1a66c2d1cf51de21
-## source files: 99
+## commit: bb80ca8
 ## gradle exit: 0, validate exit: 0
 ## compile errors: 0
-## generated access widener header: accessWidener v1 named
-## packaged access widener header: accessWidener	v1	intermediary
-## generated access widener:
-##   accessWidener v1 named
-##   
-##   accessible class net/minecraft/world/phys/shapes/IndexMerger
-##   accessible field net/minecraft/world/phys/shapes/VoxelShape shape Lnet/minecraft/world/phys/shapes/DiscreteVoxelShape;
-##   accessible method net/minecraft/world/phys/shapes/Shapes findBits (DD)I
-##   accessible method net/minecraft/world/phys/shapes/VoxelShape <init> (Lnet/minecraft/world/phys/shapes/DiscreteVoxelShape;)V
-##   accessible method net/minecraft/world/phys/shapes/VoxelShape getCoords (Lnet/minecraft/core/Direction$Axis;)Lit/unimi/dsi/fastutil/doubles/DoubleList;
-##   accessible method net/minecraft/world/phys/shapes/CubePointRange <init> (I)V
+## access widener: accessWidener v1 named
+## packaged widener: accessWidener	v1	intermediary
+## validate output: validated 1 artifact(s) pinned to Minecraft 1.20.1 
 
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
 Daemon will be stopped at the end of the build 
@@ -23,7 +13,7 @@ Daemon will be stopped at the end of the build
 Fabric Loom: 1.17.21
 Failed to parse fabric.mod.json: /home/runner/work/Beryllium/Beryllium/src/main/resources/fabric.mod.json
 
-> Task :clean UP-TO-DATE
+> Task :clean
 > Task :compileJava
 > Task :processResources
 > Task :classes
@@ -44,11 +34,11 @@ Beryllium target: Minecraft 1.20.1; full optimization set; remapped Loom pipelin
 Cannot remap uploadAllPendingUploads()V because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/ViewArea]
 Cannot remap tick because it does not exist in any of the targets [net/minecraft/server/MinecraftServer]
 Cannot remap tick because it does not exist in any of the targets [net/minecraft/server/MinecraftServer]
-Cannot remap shouldShowName(Lnet/minecraft/world/entity/Entity;D)Z because it does not exist in any of the targets [net/minecraft/client/renderer/entity/EntityRenderer]
 Cannot remap <init>(Lnet/minecraft/world/entity/Entity;Z)V because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
 Cannot remap <init>(Lnet/minecraft/world/entity/Entity;Z)V because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
 Cannot remap <init>(Lnet/minecraft/world/entity/Entity;Z)V because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
 Cannot remap getHeldItem because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
+Cannot remap shouldShowName(Lnet/minecraft/world/entity/Entity;D)Z because it does not exist in any of the targets [net/minecraft/client/renderer/entity/EntityRenderer]
 Cannot remap drawInBatch(Lnet/minecraft/network/chat/Component;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
 Cannot remap drawInBatch(Lnet/minecraft/util/FormattedText;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
 Cannot remap drawInBatch(Ljava/lang/String;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
@@ -73,6 +63,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 18s
-10 actionable tasks: 9 executed, 1 up-to-date
-validated 1 artifact(s) pinned to Minecraft 1.20.1
+BUILD SUCCESSFUL in 16s
+10 actionable tasks: 10 executed

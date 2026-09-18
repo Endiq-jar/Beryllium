@@ -1,25 +1,206 @@
 ## minecraft 26.3
-## gradle exit: 1
+## commit: bb80ca8
+## gradle exit: 1, validate exit: 1
+## compile errors: 34
+## access widener: accessWidener v2 official
+## packaged widener: 
+## validate output: no non-sources jar found in build/libs 
 
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
 Daemon will be stopped at the end of the build 
 
 > Configure project :
 Fabric Loom: 1.17.21
-Previous process has disowned the lock due to abrupt termination.
-Found existing cache lock file (ACQUIRED_PREVIOUS_OWNER_DISOWNED), rebuilding loom cache. This may have been caused by a failed or canceled build.
 Failed to parse fabric.mod.json: /home/runner/work/Beryllium/Beryllium/src/main/resources/fabric.mod.json
+
+> Task :clean
+> Task :compileJava
+> Task :processResources
+> Task :classes
+
+> Task :compileClientJava FAILED
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/render/BeaconBeamCullMixin.java:5: error: cannot find symbol
+import net.minecraft.client.renderer.MultiBufferSource;
+                                    ^
+  symbol:   class MultiBufferSource
+  location: package net.minecraft.client.renderer
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/render/BeaconBeamCullMixin.java:32: error: cannot find symbol
+		MultiBufferSource bufferSource, int light, int overlay, CallbackInfo ci
+		^
+  symbol:   class MultiBufferSource
+  location: class BeaconBeamCullMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/render/BlockEntityCullMixin.java:8: error: cannot find symbol
+import net.minecraft.client.renderer.MultiBufferSource;
+                                    ^
+  symbol:   class MultiBufferSource
+  location: package net.minecraft.client.renderer
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/render/BlockEntityCullMixin.java:38: error: cannot find symbol
+		MultiBufferSource bufferSource, CallbackInfo ci
+		^
+  symbol:   class MultiBufferSource
+  location: class BlockEntityCullMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/SignTextScopeMixin.java:5: error: cannot find symbol
+import net.minecraft.client.renderer.MultiBufferSource;
+                                    ^
+  symbol:   class MultiBufferSource
+  location: package net.minecraft.client.renderer
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/SignTextScopeMixin.java:38: error: cannot find symbol
+		MultiBufferSource bufferSource, CallbackInfo ci
+		^
+  symbol:   class MultiBufferSource
+  location: class SignTextScopeMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/SignTextScopeMixin.java:52: error: cannot find symbol
+		MultiBufferSource bufferSource, CallbackInfo ci
+		^
+  symbol:   class MultiBufferSource
+  location: class SignTextScopeMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/device/GpuDetector.java:3: error: package org.lwjgl.glfw does not exist
+import org.lwjgl.glfw.GLFW;
+                     ^
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/device/GpuDetector.java:4: error: package org.lwjgl.glfw does not exist
+import org.lwjgl.glfw.GLFWVidMode;
+                     ^
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/BlockEntityCulling.java:61: error: cannot find symbol
+			Camera camera = minecraft.gameRenderer.getMainCamera();
+			                                      ^
+  symbol:   method getMainCamera()
+  location: variable gameRenderer of type GameRenderer
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/VisibilityCulling.java:152: error: cannot find symbol
+			Camera camera = minecraft.gameRenderer.getMainCamera();
+			                                      ^
+  symbol:   method getMainCamera()
+  location: variable gameRenderer of type GameRenderer
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/ClientFrameHooks.java:122: error: cannot find symbol
+			Camera camera = minecraft.gameRenderer.getMainCamera();
+			                                      ^
+  symbol:   method getMainCamera()
+  location: variable gameRenderer of type GameRenderer
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/NameTagCullMixin.java:64: error: cannot find symbol
+		if (mc.gameRenderer == null || mc.gameRenderer.getMainCamera() == null) {
+		                                              ^
+  symbol:   method getMainCamera()
+  location: variable gameRenderer of type GameRenderer
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/NameTagCullMixin.java:73: error: cannot find symbol
+		Vec3 camPos = CameraAccess.position(mc.gameRenderer.getMainCamera());
+		                                                   ^
+  symbol:   method getMainCamera()
+  location: variable gameRenderer of type GameRenderer
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/device/GpuDetector.java:44: error: cannot find symbol
+			long monitor = GLFW.glfwGetPrimaryMonitor();
+			               ^
+  symbol:   variable GLFW
+  location: class GpuDetector
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/device/GpuDetector.java:48: error: cannot find symbol
+			GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
+			^
+  symbol:   class GLFWVidMode
+  location: class GpuDetector
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/device/GpuDetector.java:48: error: cannot find symbol
+			GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
+			                   ^
+  symbol:   variable GLFW
+  location: class GpuDetector
+17 errors
+
+[Incubating] Problems report is available at: file:///home/runner/work/Beryllium/Beryllium/build/reports/problems/problems-report.html
 
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-A problem occurred configuring root project 'beryllium'.
-> Failed to setup Minecraft, java.io.IOException: Failed to process jar when running jar processor: fabric-loom:access-widener - Expected official namespace for access widener entry, found: named
+Execution failed for task ':compileClientJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
+> Compilation failed; see the compiler output below.
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/render/BeaconBeamCullMixin.java:5: error: cannot find symbol
+  import net.minecraft.client.renderer.MultiBufferSource;
+                                      ^
+    symbol:   class MultiBufferSource
+    location: package net.minecraft.client.renderer
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/render/BeaconBeamCullMixin.java:32: error: cannot find symbol
+  		MultiBufferSource bufferSource, int light, int overlay, CallbackInfo ci
+  		^
+    symbol:   class MultiBufferSource
+    location: class BeaconBeamCullMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/render/BlockEntityCullMixin.java:8: error: cannot find symbol
+  import net.minecraft.client.renderer.MultiBufferSource;
+                                      ^
+    symbol:   class MultiBufferSource
+    location: package net.minecraft.client.renderer
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/render/BlockEntityCullMixin.java:38: error: cannot find symbol
+  		MultiBufferSource bufferSource, CallbackInfo ci
+  		^
+    symbol:   class MultiBufferSource
+    location: class BlockEntityCullMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/SignTextScopeMixin.java:5: error: cannot find symbol
+  import net.minecraft.client.renderer.MultiBufferSource;
+                                      ^
+    symbol:   class MultiBufferSource
+    location: package net.minecraft.client.renderer
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/SignTextScopeMixin.java:38: error: cannot find symbol
+  		MultiBufferSource bufferSource, CallbackInfo ci
+  		^
+    symbol:   class MultiBufferSource
+    location: class SignTextScopeMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/SignTextScopeMixin.java:52: error: cannot find symbol
+  		MultiBufferSource bufferSource, CallbackInfo ci
+  		^
+    symbol:   class MultiBufferSource
+    location: class SignTextScopeMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/device/GpuDetector.java:44: error: cannot find symbol
+  			long monitor = GLFW.glfwGetPrimaryMonitor();
+  			               ^
+    symbol:   variable GLFW
+    location: class GpuDetector
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/device/GpuDetector.java:48: error: cannot find symbol
+  			GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
+  			^
+    symbol:   class GLFWVidMode
+    location: class GpuDetector
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/device/GpuDetector.java:48: error: cannot find symbol
+  			GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
+  			                   ^
+    symbol:   variable GLFW
+    location: class GpuDetector
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/BlockEntityCulling.java:61: error: cannot find symbol
+  			Camera camera = minecraft.gameRenderer.getMainCamera();
+  			                                      ^
+    symbol:   method getMainCamera()
+    location: variable gameRenderer of type GameRenderer
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/VisibilityCulling.java:152: error: cannot find symbol
+  			Camera camera = minecraft.gameRenderer.getMainCamera();
+  			                                      ^
+    symbol:   method getMainCamera()
+    location: variable gameRenderer of type GameRenderer
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/ClientFrameHooks.java:122: error: cannot find symbol
+  			Camera camera = minecraft.gameRenderer.getMainCamera();
+  			                                      ^
+    symbol:   method getMainCamera()
+    location: variable gameRenderer of type GameRenderer
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/NameTagCullMixin.java:64: error: cannot find symbol
+  		if (mc.gameRenderer == null || mc.gameRenderer.getMainCamera() == null) {
+  		                                              ^
+    symbol:   method getMainCamera()
+    location: variable gameRenderer of type GameRenderer
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/NameTagCullMixin.java:73: error: cannot find symbol
+  		Vec3 camPos = CameraAccess.position(mc.gameRenderer.getMainCamera());
+  		                                                   ^
+    symbol:   method getMainCamera()
+    location: variable gameRenderer of type GameRenderer
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/device/GpuDetector.java:3: error: package org.lwjgl.glfw does not exist
+  import org.lwjgl.glfw.GLFW;
+                       ^
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/device/GpuDetector.java:4: error: package org.lwjgl.glfw does not exist
+  import org.lwjgl.glfw.GLFWVidMode;
+                       ^
+  17 errors
 
 * Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
+> Check your code and dependencies to fix the compilation error(s)
 > Run with --scan to get full insights from a Build Scan (powered by Develocity).
-> Get more help at https://help.gradle.org.
 
-BUILD FAILED in 10s
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 16s
+4 actionable tasks: 4 executed

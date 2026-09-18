@@ -1,5 +1,6 @@
 ## minecraft 26.1.2
-## classpath: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/26.0.2/c7ce3cdeda3d18909368dfe5977332dfad326c6d/annotations-26.0.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc/fabric-loader/0.19.5/ff9e65cffca4a67f31523e1807fe0855940fcbfa/fabric-loader-0.19.5.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm/9.10.1/ada2141c0cc52ee8f5c48cd5fa4ce0e794f22236/asm-9.10.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-analysis/9.10.1/8d49f14d51f632cb1d87c88d1ceaf50db0d8af1b/asm-analysis-9.10.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-commons/9.10.1/4229e4c55fd8e01c23f9fe9884075cc628aacc50/asm-commons-9.10.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-tree/9.10.1/e244332a17564c1d1572449399a842de35881be2/asm-tree-9.10.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-util/9.10.1/7bb9d450e8d4cbf9f9e04096c44bbfe7fba80b15/asm-util-9.10.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.17.4+mixin.0.8.7/5f66cc9f59b8efaa942155a3d5a30599bf6640dd/sponge-mixin-0.17.4+mixin.0.8.7.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.github.llamalad7/mixinextras-fabric/0.5.5/d1055b99c0ab08a8403fe2da3d79ca28e6340a76/mixinextras-fabric-0.5.5.jar:/home/runner/.gradle/caches/modules-2/files-2.1/at.yawk.lz4/lz4-java/1.10.1/f541d7f910fe3d76f38f799c507c48cc81b12ecb/lz4-java-1.10.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.azure/azure-json/1.4.0/fcc1d354dbc3e0300e5276b1bf124d0247799cd8/azure-json-1.4.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.github.oshi/oshi-core/6.9.0/3224870731860cfcd7744581a05b559e94291e7/oshi-core-6.9.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.google.code.gson/gson/2.13.2/48b8230771e573b54ce6e867a9001e75977fe78e/gson-2.13.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.google.guava/failureaccess/1.0.3/aeaffd00d57023a2c947393ed251f0354f0985fc/failureaccess-1.0.3.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.google.guava/guava/33.5.0-jre/8699de25f2f979108d6c1b804a7ba38cda1116bc/guava-33.5.0-jre.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.ibm.icu/icu4j/77.1/38693cf0b1d7362a8b726af74dc06026a7c23809/icu4j-77.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.microsoft.azure/msal4j/1.23.1/6c722b514873b24a4e1ce9c22dca36ea3c22bdbe/msal4j-1.23.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/authlib/7.0.63/54895b4e25e8b9b4cbbbe25f24eccf2b71b1ac2b/authlib-7.0.63.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/blocklist/1.0.10/5c685c5ffa94c4cd39496c7184c1d122e515ecef/blocklist-1.0.10.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/brigadier/1.3.10/d15b53a14cf20fdcaa98f731af5dda654452c010/brigadier-1.3.10.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/datafixerupper/9.0.19/4e91f9712fa1e83231d1501625381b0210a977da/datafixerupper-9.0.19.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/jtracy/1.0.37/a3fb649b2e2b2288d2978f0b0bc3d83f62809d1e/jtracy-1.0.37.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/logging/1.6.11/fd147240733010c158249d986323f9ef98977fe/logging-1.6.11.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/patchy/2.2.10/da05971b07cbb379d002cf7eaec6a2048211fefc/patchy-2.2.10.jar:/home/runner/.gradle/caches/modules-2/files-2.1/com.mojang/text2speech/1.18.11/e853a12cdd6ba4f4836e8f4bf3b37844a13482b6/text2speech-1.18.11.jar:/home/runner/.gradle/caches/modules-2/files-2.1/commons-codec/commons-codec/1.19.0/8c0dbe3ae883fceda9b50a6c76e745e548073388/commons-codec-1.19.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/commons-io/commons-io/2.20.0/36f3474daec2849c149e877614e7f979b2082cd2/commons-io-2.20.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-buffer/4.2.7.Final/5555ff561643bf2f8430fb57c24403c0efe15994/netty-buffer-4.2.7.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-base/4.2.7.Final/915e381ebabcf115f1c7ff7032d55c48afb50210/netty-codec-base-4.2.7.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-compression/4.2.7.Final/572341bc1ca90fd9d6e47f1d2694aab5258566e9/netty-codec-compression-4.2.7.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-http/4.2.7.Final/b734c108854099c421fd94d92d9f865e4d4da853/netty-codec-http-4.2.7.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-common/4.2.7.Final/11aa30df26af4fca3239ac1917f303a280f301e1/netty-common-4.2.7.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-handler/4.2.7.Final/7ad8a1f851e2e6fe93cdd091871fda2b81c03b5b/netty-handler-4.2.7.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-resolver/4.2.7.Final/5f3e5ef8de03992cd4fb46960dc0085ec1a12a12/netty-resolver-4.2.7.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-classes-epoll/4.2.7.Final/1075c09f48a78eef9d819fbfd9096b903fdd362a/netty-transport-classes-epoll-4.2.7.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-classes-kqueue/4.2.7.Final/bdec7c23c75caabd848426d073c09568e8d5f94e/netty-transport-classes-kqueue-4.2.7.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-epoll/4.2.7.Final/98d02251c98c8f07a23ac5ea27657d9e0ef57614/netty-transport-native-epoll-4.2.7.Final-linux-aarch_64.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-epoll/4.2.7.Final/e83998bfc10b5289d9bcbe807c4079ef0eed8e6f/netty-transport-native-epoll-4.2.7.Final-linux-x86_64.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-unix-common/4.2.7.Final/89953f04259ea7502cffb313630dd51e00e60669/netty-transport-native-unix-common-4.2.7.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport/4.2.7.Final/83ea548981d0d8c4a98027cc1a6f9624f902e142/netty-transport-4.2.7.Final.jar:/home/runner/.gradle/caches/modules-2/files-2.1/it.unimi.dsi/fastutil/8.5.18/a6cff377eecc19c2037bf31568a6d7106b50ba1f/fastutil-8.5.18.jar:/home/runner/.gradle/caches/modules-2/files-2.1/net.java.dev.jna/jna-platform/5.17.0/a4934c44d25a9d8c2ddf4203affd20330cb3426f/jna-platform-5.17.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/net.java.dev.jna/jna/5.17.0/33d12735bef894440780fce64f9758d420c7bae2/jna-5.17.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/net.sf.jopt-simple/jopt-simple/5.0.4/4fdac2fbe92dfad86aa6e9301736f6b4342a3f5c/jopt-simple-5.0.4.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-compress/1.28.0/e482f2c7a88dac3c497e96aa420b6a769f59c8d7/commons-compress-1.28.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-lang3/3.19.0/d6524b169a6574cd253760c472d419b47bfd37e6/commons-lang3-3.19.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.logging.log4j/log4j-api/2.25.2/292c1a2b1702f1e1e3adb13e1c57e5bff60335ff/log4j-api-2.25.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.logging.log4j/log4j-core/2.25.2/d4d0ad2e51e03e531f784891fbfff1bae1e13a12/log4j-core-2.25.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.apache.logging.log4j/log4j-slf4j2-impl/2.25.2/5eec0c392661dee8a366baec17e8896900dd978f/log4j-slf4j2-impl-2.25.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.jcraft/jorbis/0.0.17/8872d22b293e8f5d7d56ff92be966e6dc28ebdc6/jorbis-0.0.17.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.joml/joml/1.10.8/fc0a71dad90a2cf41d82a76156a0e700af8e4f8d/joml-1.10.8.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.jspecify/jspecify/1.0.0/7425a601c1c7ec76645a78d22b8c6a627edee507/jspecify-1.0.0.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-freetype/3.4.1/caa75a37e857efc9b0686e434d708d6420c5b6ea/lwjgl-freetype-3.4.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-glfw/3.4.1/a782b1ddd175c9107bf300fd92920579ea65e2a4/lwjgl-glfw-3.4.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-jemalloc/3.4.1/16b663092854fc6adfe0a941e61cae2bb2e437b6/lwjgl-jemalloc-3.4.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-openal/3.4.1/8508bd60589de0539aa465b78fcf838efd07ae9a/lwjgl-openal-3.4.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-opengl/3.4.1/830412cab823c029cda6b9729f9d2ed36cf79959/lwjgl-opengl-3.4.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-stb/3.4.1/f077c3dafc31924fbe8acb0b913f08977ba27f8e/lwjgl-stb-3.4.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl-tinyfd/3.4.1/562697d40dbd2ed0424bf24dcf65d51170f81adf/lwjgl-tinyfd-3.4.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.lwjgl/lwjgl/3.4.1/6105690714874b995aa7812e4f7732a21109276c/lwjgl-3.4.1.jar:/home/runner/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/2.0.17/d9e58ac9c7779ba3bf8142aff6c830617a7fe60f/slf4j-api-2.0.17.jar:/home/runner/work/Beryllium/Beryllium/.gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-common-48526fac97/26.1.2/minecraft-common-48526fac97-26.1.2.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-kqueue/4.2.7.Final/40868fd4e43bce2798245f790624b58803dc26b6/netty-transport-native-kqueue-4.2.7.Final-osx-x86_64.jar:/home/runner/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-kqueue/4.2.7.Final/e5a0feef41410c8a5ae00c6cb4e0c99bd0aded6a/netty-transport-native-kqueue-4.2.7.Final-osx-aarch_64.jar:/home/runner/work/Beryllium/Beryllium/.gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-clientOnly-48526fac97/26.1.2/minecraft-clientOnly-48526fac97-26.1.2.jar
+## commit: bb80ca8
+## source files: 99
 
 === net.minecraft.client.gui.Font
 Compiled from "Font.java"
@@ -49,101 +50,6 @@ public final class net.minecraft.client.gui.Font$DisplayMode extends java.lang.E
   private net.minecraft.client.gui.Font$DisplayMode();
   private static net.minecraft.client.gui.Font$DisplayMode[] $values();
   static {};
-}
-
-=== net.minecraft.client.renderer.blockentity.SignRenderer
-Error: class not found: net.minecraft.client.renderer.blockentity.SignRenderer
-
-=== net.minecraft.client.renderer.blockentity.AbstractSignRenderer
-Compiled from "AbstractSignRenderer.java"
-public abstract class net.minecraft.client.renderer.blockentity.AbstractSignRenderer<S extends net.minecraft.client.renderer.blockentity.state.SignRenderState> implements net.minecraft.client.renderer.blockentity.BlockEntityRenderer<net.minecraft.world.level.block.entity.SignBlockEntity, S> {
-  private static final int BLACK_TEXT_OUTLINE_COLOR;
-  private static final int OUTLINE_RENDER_DISTANCE;
-  private final net.minecraft.client.gui.Font font;
-  private final net.minecraft.client.resources.model.sprite.SpriteGetter sprites;
-  public net.minecraft.client.renderer.blockentity.AbstractSignRenderer(net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider$Context);
-  protected abstract net.minecraft.client.model.Model$Simple getSignModel(S);
-  protected abstract net.minecraft.client.resources.model.sprite.SpriteId getSignSprite(net.minecraft.world.level.block.state.properties.WoodType);
-  public void submit(S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
-  private void submitSignWithText(S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay, net.minecraft.client.renderer.SubmitNodeCollector);
-  protected void submitSign(com.mojang.blaze3d.vertex.PoseStack, int, net.minecraft.world.level.block.state.properties.WoodType, net.minecraft.client.model.Model$Simple, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay, net.minecraft.client.renderer.SubmitNodeCollector);
-  private void submitSignText(S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.world.level.block.entity.SignText);
-  private static boolean isOutlineVisible(net.minecraft.core.BlockPos);
-  public static int getDarkColor(net.minecraft.world.level.block.entity.SignText);
-  public void extractRenderState(net.minecraft.world.level.block.entity.SignBlockEntity, S, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
-  public void submit(net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
-  public void extractRenderState(net.minecraft.world.level.block.entity.BlockEntity, net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
-  private net.minecraft.util.FormattedCharSequence lambda$submitSignText$0(net.minecraft.client.renderer.blockentity.state.SignRenderState, net.minecraft.network.chat.Component);
-  static {};
-}
-
-=== net.minecraft.client.renderer.blockentity.HangingSignRenderer
-Compiled from "HangingSignRenderer.java"
-public class net.minecraft.client.renderer.blockentity.HangingSignRenderer extends net.minecraft.client.renderer.blockentity.AbstractSignRenderer<net.minecraft.client.renderer.blockentity.state.HangingSignRenderState> {
-  private static final java.lang.String PLANK;
-  private static final java.lang.String V_CHAINS;
-  private static final java.lang.String NORMAL_CHAINS;
-  private static final java.lang.String CHAIN_L_1;
-  private static final java.lang.String CHAIN_L_2;
-  private static final java.lang.String CHAIN_R_1;
-  private static final java.lang.String CHAIN_R_2;
-  private static final java.lang.String BOARD;
-  private static final float MODEL_RENDER_SCALE;
-  private static final float TEXT_RENDER_SCALE;
-  private static final org.joml.Vector3fc TEXT_OFFSET;
-  public static final net.minecraft.client.renderer.blockentity.WallAndGroundTransformations<net.minecraft.client.renderer.blockentity.state.SignRenderState$SignTransformations> TRANSFORMATIONS;
-  private final java.util.Map<net.minecraft.world.level.block.state.properties.WoodType, net.minecraft.client.renderer.blockentity.HangingSignRenderer$Models> signModels;
-  public net.minecraft.client.renderer.blockentity.HangingSignRenderer(net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider$Context);
-  public net.minecraft.client.renderer.blockentity.state.HangingSignRenderState createRenderState();
-  public void extractRenderState(net.minecraft.world.level.block.entity.SignBlockEntity, net.minecraft.client.renderer.blockentity.state.HangingSignRenderState, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
-  public static net.minecraft.client.model.Model$Simple createSignModel(net.minecraft.client.model.geom.EntityModelSet, net.minecraft.world.level.block.state.properties.WoodType, net.minecraft.world.level.block.HangingSignBlock$Attachment);
-  private static org.joml.Matrix4f baseTransformation(float);
-  private static com.mojang.math.Transformation bodyTransformation(float);
-  private static com.mojang.math.Transformation textTransformation(float, boolean);
-  private static net.minecraft.client.renderer.blockentity.state.SignRenderState$SignTransformations createTransformations(float);
-  private static net.minecraft.client.renderer.blockentity.state.SignRenderState$SignTransformations createGroundTransformation(int);
-  private static net.minecraft.client.renderer.blockentity.state.SignRenderState$SignTransformations createWallTransformation(net.minecraft.core.Direction);
-  protected net.minecraft.client.model.Model$Simple getSignModel(net.minecraft.client.renderer.blockentity.state.HangingSignRenderState);
-  protected net.minecraft.client.resources.model.sprite.SpriteId getSignSprite(net.minecraft.world.level.block.state.properties.WoodType);
-  public static void submitSpecial(net.minecraft.client.resources.model.sprite.SpriteGetter, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, int, int, net.minecraft.client.model.Model$Simple, net.minecraft.client.resources.model.sprite.SpriteId);
-  public static net.minecraft.client.model.geom.builders.LayerDefinition createHangingSignLayer(net.minecraft.world.level.block.HangingSignBlock$Attachment);
-  public void extractRenderState(net.minecraft.world.level.block.entity.SignBlockEntity, net.minecraft.client.renderer.blockentity.state.SignRenderState, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
-  protected net.minecraft.client.model.Model$Simple getSignModel(net.minecraft.client.renderer.blockentity.state.SignRenderState);
-  public void extractRenderState(net.minecraft.world.level.block.entity.BlockEntity, net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
-  public net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState createRenderState();
-  private static net.minecraft.client.renderer.blockentity.HangingSignRenderer$Models lambda$new$1(net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider$Context, net.minecraft.world.level.block.state.properties.WoodType);
-  private static net.minecraft.world.level.block.state.properties.WoodType lambda$new$0(net.minecraft.world.level.block.state.properties.WoodType);
-  static {};
-}
-
-=== net.minecraft.client.gui.Font$PreparedText
-Compiled from "Font.java"
-public interface net.minecraft.client.gui.Font$PreparedText {
-  public abstract void visit(net.minecraft.client.gui.Font$GlyphVisitor);
-  public abstract net.minecraft.client.gui.navigation.ScreenRectangle bounds();
-}
-
-=== net.minecraft.client.gui.font.TextRenderable
-Compiled from "TextRenderable.java"
-public interface net.minecraft.client.gui.font.TextRenderable {
-  public abstract void render(org.joml.Matrix4fc, com.mojang.blaze3d.vertex.VertexConsumer, int, boolean);
-  public abstract net.minecraft.client.renderer.rendertype.RenderType renderType(net.minecraft.client.gui.Font$DisplayMode);
-  public abstract com.mojang.blaze3d.textures.GpuTextureView textureView();
-  public abstract com.mojang.blaze3d.pipeline.RenderPipeline guiPipeline();
-  public abstract float left();
-  public abstract float top();
-  public abstract float right();
-  public abstract float bottom();
-}
-
-=== net.minecraft.client.renderer.blockentity.state.ChestRenderState
-Compiled from "ChestRenderState.java"
-public class net.minecraft.client.renderer.blockentity.state.ChestRenderState extends net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState {
-  public net.minecraft.world.level.block.state.properties.ChestType type;
-  public float open;
-  public net.minecraft.core.Direction facing;
-  public net.minecraft.client.renderer.blockentity.state.ChestRenderState$ChestMaterialType material;
-  public net.minecraft.client.renderer.blockentity.state.ChestRenderState();
 }
 
 === net.minecraft.client.Camera
@@ -227,53 +133,317 @@ public class net.minecraft.client.Camera implements net.minecraft.world.waypoint
   public boolean isDetached();
   public net.minecraft.world.attribute.EnvironmentAttributeProbe attributeProbe();
   public net.minecraft.client.Camera$NearPlane getNearPlane(float);
-
-=== net.minecraft.client.renderer.blockentity.ChestRenderer
-Compiled from "ChestRenderer.java"
-public class net.minecraft.client.renderer.blockentity.ChestRenderer<T extends net.minecraft.world.level.block.entity.BlockEntity & net.minecraft.world.level.block.entity.LidBlockEntity> implements net.minecraft.client.renderer.blockentity.BlockEntityRenderer<T, net.minecraft.client.renderer.blockentity.state.ChestRenderState> {
-  public static final net.minecraft.client.renderer.MultiblockChestResources<net.minecraft.client.model.geom.ModelLayerLocation> LAYERS;
-  private static final java.util.Map<net.minecraft.core.Direction, com.mojang.math.Transformation> TRANSFORMATIONS;
-  private final net.minecraft.client.resources.model.sprite.SpriteGetter sprites;
-  private final net.minecraft.client.renderer.MultiblockChestResources<net.minecraft.client.model.object.chest.ChestModel> models;
-  private final boolean xmasTextures;
-  public net.minecraft.client.renderer.blockentity.ChestRenderer(net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider$Context);
-  public static boolean xmasTextures();
-  public net.minecraft.client.renderer.blockentity.state.ChestRenderState createRenderState();
-  public void extractRenderState(T, net.minecraft.client.renderer.blockentity.state.ChestRenderState, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
-  public void submit(net.minecraft.client.renderer.blockentity.state.ChestRenderState, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
-  private static net.minecraft.client.renderer.blockentity.state.ChestRenderState$ChestMaterialType getChestMaterial(net.minecraft.world.level.block.entity.BlockEntity, boolean);
-  public static com.mojang.math.Transformation modelTransformation(net.minecraft.core.Direction);
-  private static com.mojang.math.Transformation createModelTransformation(net.minecraft.core.Direction);
-  public void submit(net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
-  public void extractRenderState(net.minecraft.world.level.block.entity.BlockEntity, net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
-  public net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState createRenderState();
-  private static net.minecraft.client.model.object.chest.ChestModel lambda$new$0(net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider$Context, net.minecraft.client.model.geom.ModelLayerLocation);
+  public net.minecraft.world.level.material.FogType getFluidInCamera();
+  public org.joml.Vector3fc forwardVector();
+  public org.joml.Vector3fc panoramicForwards();
+  public org.joml.Vector3fc upVector();
+  public org.joml.Vector3fc leftVector();
+  public void reset();
+  public void setLevel(net.minecraft.client.multiplayer.ClientLevel);
+  public void enablePanoramicMode();
+  public void disablePanoramicMode();
   static {};
 }
 
-=== net.minecraft.client.renderer.blockentity.EnderChestRenderer
-Error: class not found: net.minecraft.client.renderer.blockentity.EnderChestRenderer
-
-=== net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher
-Compiled from "BlockEntityRenderDispatcher.java"
-public class net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher implements net.minecraft.server.packs.resources.ResourceManagerReloadListener {
-  private java.util.Map<net.minecraft.world.level.block.entity.BlockEntityType<?>, net.minecraft.client.renderer.blockentity.BlockEntityRenderer<?, ?>> renderers;
-  private final net.minecraft.client.gui.Font font;
-  private final java.util.function.Supplier<net.minecraft.client.model.geom.EntityModelSet> entityModelSet;
-  private net.minecraft.world.phys.Vec3 cameraPos;
+=== net.minecraft.client.Minecraft
+Compiled from "Minecraft.java"
+public class net.minecraft.client.Minecraft extends net.minecraft.util.thread.ReentrantBlockableEventLoop<java.lang.Runnable> implements com.mojang.blaze3d.platform.WindowEventHandler {
+  private static net.minecraft.client.Minecraft instance;
+  private static final org.slf4j.Logger LOGGER;
+  private static final int MAX_TICKS_PER_UPDATE;
+  public static final net.minecraft.resources.Identifier DEFAULT_FONT;
+  public static final net.minecraft.resources.Identifier UNIFORM_FONT;
+  public static final net.minecraft.resources.Identifier ALT_FONT;
+  private static final net.minecraft.resources.Identifier REGIONAL_COMPLIANCIES;
+  private static final java.util.concurrent.CompletableFuture<net.minecraft.util.Unit> RESOURCE_RELOAD_INITIAL_TASK;
+  private static final net.minecraft.network.chat.Component SOCIAL_INTERACTIONS_NOT_AVAILABLE;
+  private static final net.minecraft.network.chat.Component SAVING_LEVEL;
+  public static final java.lang.String UPDATE_DRIVERS_ADVICE;
+  private final long canary;
+  private final java.nio.file.Path resourcePackDirectory;
+  private final java.util.concurrent.CompletableFuture<com.mojang.authlib.yggdrasil.ProfileResult> profileFuture;
+  private final net.minecraft.client.renderer.texture.TextureManager textureManager;
+  private final net.minecraft.client.renderer.ShaderManager shaderManager;
+  private final com.mojang.datafixers.DataFixer fixerUpper;
+  private final com.mojang.blaze3d.platform.Window window;
+  private final com.mojang.blaze3d.platform.TextInputManager textInputManager;
+  private final net.minecraft.client.DeltaTracker$Timer deltaTracker;
+  private final net.minecraft.client.renderer.RenderBuffers renderBuffers;
+  public final net.minecraft.client.renderer.LevelRenderer levelRenderer;
+  private final net.minecraft.client.renderer.entity.EntityRenderDispatcher entityRenderDispatcher;
   private final net.minecraft.client.renderer.block.BlockModelResolver blockModelResolver;
   private final net.minecraft.client.renderer.item.ItemModelResolver itemModelResolver;
-  private final net.minecraft.client.renderer.entity.EntityRenderDispatcher entityRenderer;
-  private final net.minecraft.client.resources.model.sprite.SpriteGetter sprites;
+  private final net.minecraft.client.renderer.MapRenderer mapRenderer;
+  public final net.minecraft.client.particle.ParticleEngine particleEngine;
+  private final net.minecraft.client.particle.ParticleResources particleResources;
+  private final net.minecraft.client.User user;
+  public final net.minecraft.client.gui.Font font;
+  public final net.minecraft.client.gui.Font fontFilterFishy;
+  public final net.minecraft.client.renderer.GameRenderer gameRenderer;
+  public final net.minecraft.client.gui.Gui gui;
+  public final net.minecraft.client.Options options;
+  public final net.minecraft.client.gui.components.debug.DebugScreenEntryList debugEntries;
+  private final net.minecraft.client.HotbarManager hotbarManager;
+  public final net.minecraft.client.MouseHandler mouseHandler;
+  public final net.minecraft.client.KeyboardHandler keyboardHandler;
+  private net.minecraft.client.InputType lastInputType;
+  public final java.io.File gameDirectory;
+  private final java.lang.String launchedVersion;
+  private final java.lang.String versionType;
+  private final java.net.Proxy proxy;
+  private final boolean offlineDeveloperMode;
+  private final net.minecraft.world.level.storage.LevelStorageSource levelSource;
+  private final boolean demo;
+  private final boolean allowsMultiplayer;
+  private final boolean allowsChat;
+  private final net.minecraft.server.packs.resources.ReloadableResourceManager resourceManager;
+  private final net.minecraft.server.packs.VanillaPackResources vanillaPackResources;
+  private final net.minecraft.client.resources.server.DownloadedPackSource downloadedPackSource;
+  private final net.minecraft.server.packs.repository.PackRepository resourcePackRepository;
+  private final net.minecraft.client.resources.language.LanguageManager languageManager;
+  private final net.minecraft.client.color.block.BlockColors blockColors;
+  private final com.mojang.blaze3d.pipeline.RenderTarget mainRenderTarget;
+  private final com.mojang.blaze3d.TracyFrameCapture tracyFrameCapture;
+  private final net.minecraft.client.sounds.SoundManager soundManager;
+  private final net.minecraft.client.sounds.MusicManager musicManager;
+  private final net.minecraft.client.gui.font.FontManager fontManager;
+  private final net.minecraft.client.resources.SplashManager splashManager;
+  private final net.minecraft.client.renderer.GpuWarnlistManager gpuWarnlistManager;
+  private final net.minecraft.client.PeriodicNotificationManager regionalCompliancies;
+  private final com.mojang.authlib.minecraft.UserApiService userApiService;
+  private final java.util.concurrent.CompletableFuture<com.mojang.authlib.minecraft.UserApiService$UserProperties> userPropertiesFuture;
+  private final net.minecraft.client.resources.SkinManager skinManager;
+  private final net.minecraft.client.resources.model.sprite.AtlasManager atlasManager;
+  private final net.minecraft.client.resources.model.ModelManager modelManager;
+  private final net.minecraft.client.resources.MapTextureManager mapTextureManager;
+  private final net.minecraft.client.resources.WaypointStyleManager waypointStyles;
+  private final net.minecraft.client.gui.components.toasts.ToastManager toastManager;
+  private final net.minecraft.client.tutorial.Tutorial tutorial;
+  private final net.minecraft.client.gui.screens.social.PlayerSocialManager playerSocialManager;
+  private final net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher blockEntityRenderDispatcher;
+  private final net.minecraft.client.telemetry.ClientTelemetryManager telemetryManager;
+  private final net.minecraft.client.multiplayer.ProfileKeyPairManager profileKeyPairManager;
+  private final com.mojang.realmsclient.gui.RealmsDataFetcher realmsDataFetcher;
+  private final net.minecraft.client.quickplay.QuickPlayLog quickPlayLog;
+  private final net.minecraft.server.Services services;
   private final net.minecraft.client.renderer.PlayerSkinRenderCache playerSkinRenderCache;
-  public net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher(net.minecraft.client.gui.Font, java.util.function.Supplier<net.minecraft.client.model.geom.EntityModelSet>, net.minecraft.client.renderer.block.BlockModelResolver, net.minecraft.client.renderer.item.ItemModelResolver, net.minecraft.client.renderer.entity.EntityRenderDispatcher, net.minecraft.client.resources.model.sprite.SpriteGetter, net.minecraft.client.renderer.PlayerSkinRenderCache);
-  public <E extends net.minecraft.world.level.block.entity.BlockEntity, S extends net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState> net.minecraft.client.renderer.blockentity.BlockEntityRenderer<E, S> getRenderer(E);
-  public <E extends net.minecraft.world.level.block.entity.BlockEntity, S extends net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState> net.minecraft.client.renderer.blockentity.BlockEntityRenderer<E, S> getRenderer(S);
-  public void prepare(net.minecraft.world.phys.Vec3);
-  public <E extends net.minecraft.world.level.block.entity.BlockEntity, S extends net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState> S tryExtractRenderState(E, float, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
-  public <S extends net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState> void submit(S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
+  public net.minecraft.client.multiplayer.MultiPlayerGameMode gameMode;
+  public net.minecraft.client.multiplayer.ClientLevel level;
+  public net.minecraft.client.player.LocalPlayer player;
+  private net.minecraft.client.server.IntegratedServer singleplayerServer;
+  private net.minecraft.network.Connection pendingConnection;
+  private boolean isLocalServer;
+  public net.minecraft.world.entity.Entity crosshairPickEntity;
+  public net.minecraft.world.phys.HitResult hitResult;
+  private int rightClickDelay;
+  protected int missTime;
+  private volatile boolean pause;
+  private long lastNanoTime;
+  private long lastTime;
+  private int frames;
+  public net.minecraft.client.gui.screens.Screen screen;
+  private net.minecraft.client.gui.screens.Overlay overlay;
+  private boolean clientLevelTeardownInProgress;
+  private java.lang.Thread gameThread;
+  private volatile boolean running;
+  private static int fps;
+  private long frameTimeNs;
+  private final com.mojang.blaze3d.platform.FramerateLimitTracker framerateLimitTracker;
+  public boolean wireframe;
+  public boolean smartCull;
+  private long lastActiveTime;
+  private java.util.concurrent.CompletableFuture<java.lang.Void> pendingReload;
+  private net.minecraft.client.gui.components.toasts.TutorialToast socialInteractionsToast;
+  private int fpsPieRenderTicks;
+  private final net.minecraft.util.profiling.ContinuousProfiler fpsPieProfiler;
+  private net.minecraft.util.profiling.metrics.profiling.MetricsRecorder metricsRecorder;
+  private final net.minecraft.client.ResourceLoadStateTracker reloadStateTracker;
+  private long savedCpuDuration;
+  private double gpuUtilization;
+  private com.mojang.blaze3d.systems.TimerQuery$FrameProfile currentFrameProfile;
+  private final net.minecraft.client.GameNarrator narrator;
+  private final net.minecraft.client.multiplayer.chat.ChatListener chatListener;
+  private net.minecraft.client.multiplayer.chat.report.ReportingContext reportingContext;
+  private final net.minecraft.client.CommandHistory commandHistory;
+  private final net.minecraft.world.level.validation.DirectoryValidator directoryValidator;
+
+=== net.minecraft.client.renderer.LevelRenderer
+Compiled from "LevelRenderer.java"
+public class net.minecraft.client.renderer.LevelRenderer implements net.minecraft.server.packs.resources.ResourceManagerReloadListener,java.lang.AutoCloseable {
+  private static final net.minecraft.resources.Identifier TRANSPARENCY_POST_CHAIN_ID;
+  private static final net.minecraft.resources.Identifier ENTITY_OUTLINE_POST_CHAIN_ID;
+  public static final int SECTION_SIZE;
+  public static final int HALF_SECTION_SIZE;
+  public static final int NEARBY_SECTION_DISTANCE_IN_BLOCKS;
+  private static final int MINIMUM_TRANSPARENT_SORT_COUNT;
+  private static final float CHUNK_VISIBILITY_THRESHOLD;
+  private final net.minecraft.client.Minecraft minecraft;
+  private final net.minecraft.client.renderer.entity.EntityRenderDispatcher entityRenderDispatcher;
+  private final net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher blockEntityRenderDispatcher;
+  private final net.minecraft.client.renderer.RenderBuffers renderBuffers;
+  private net.minecraft.client.renderer.SkyRenderer skyRenderer;
+  private final net.minecraft.client.renderer.CloudRenderer cloudRenderer;
+  private final net.minecraft.client.renderer.WorldBorderRenderer worldBorderRenderer;
+  private final net.minecraft.client.renderer.WeatherEffectRenderer weatherEffectRenderer;
+  public final net.minecraft.client.renderer.debug.DebugRenderer debugRenderer;
+  public final net.minecraft.client.renderer.debug.GameTestBlockHighlightRenderer gameTestBlockHighlightRenderer;
+  private net.minecraft.client.multiplayer.ClientLevel level;
+  private final net.minecraft.client.renderer.SectionOcclusionGraph sectionOcclusionGraph;
+  private final it.unimi.dsi.fastutil.objects.ObjectArrayList<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection> visibleSections;
+  private final it.unimi.dsi.fastutil.objects.ObjectArrayList<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection> nearbyVisibleSections;
+  private net.minecraft.client.renderer.ViewArea viewArea;
+  private int ticks;
+  private final it.unimi.dsi.fastutil.ints.Int2ObjectMap<net.minecraft.server.level.BlockDestructionProgress> destroyingBlocks;
+  private final it.unimi.dsi.fastutil.longs.Long2ObjectMap<java.util.SortedSet<net.minecraft.server.level.BlockDestructionProgress>> destructionProgress;
+  private com.mojang.blaze3d.pipeline.RenderTarget entityOutlineTarget;
+  private final net.minecraft.client.renderer.LevelTargetBundle targets;
+  private int lastCameraSectionX;
+  private int lastCameraSectionY;
+  private int lastCameraSectionZ;
+  private double prevCamX;
+  private double prevCamY;
+  private double prevCamZ;
+  private double prevCamRotX;
+  private double prevCamRotY;
+  private boolean lastSmartCull;
+  private net.minecraft.client.renderer.chunk.SectionRenderDispatcher sectionRenderDispatcher;
+  private int lastViewDistance;
+  private net.minecraft.core.BlockPos lastTranslucentSortBlockPos;
+  private int translucencyResortIterationIndex;
+  private final net.minecraft.client.renderer.state.OptionsRenderState optionsRenderState;
+  private final net.minecraft.client.renderer.state.level.LevelRenderState levelRenderState;
+  private final net.minecraft.client.renderer.SubmitNodeStorage submitNodeStorage;
+  private final net.minecraft.client.renderer.feature.FeatureRenderDispatcher featureRenderDispatcher;
+  private com.mojang.blaze3d.textures.GpuSampler chunkLayerSampler;
+  private final net.minecraft.gizmos.SimpleGizmoCollector collectedGizmos;
+  private net.minecraft.client.renderer.LevelRenderer$FinalizedGizmos finalizedGizmos;
+  public net.minecraft.client.renderer.LevelRenderer(net.minecraft.client.Minecraft, net.minecraft.client.renderer.entity.EntityRenderDispatcher, net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher, net.minecraft.client.renderer.RenderBuffers, net.minecraft.client.renderer.state.GameRenderState, net.minecraft.client.renderer.feature.FeatureRenderDispatcher);
+  public void close();
   public void onResourceManagerReload(net.minecraft.server.packs.resources.ResourceManager);
+  public void initOutline();
+  private net.minecraft.client.renderer.PostChain getTransparencyChain();
+  public void doEntityOutline();
+  protected boolean shouldShowEntityOutlines();
+  public void setLevel(net.minecraft.client.multiplayer.ClientLevel);
+  private void clearVisibleSections();
+  public void allChanged();
+  public void resize(int, int);
+  public java.lang.String getSectionStatistics();
+  public net.minecraft.client.renderer.chunk.SectionRenderDispatcher getSectionRenderDispatcher();
+  public double getTotalSections();
+  public double getLastViewDistance();
+  public int countRenderedSections();
+  public void resetSampler();
+  public java.lang.String getEntityStatistics();
+  private void cullTerrain(net.minecraft.client.Camera, net.minecraft.client.renderer.culling.Frustum, boolean);
+  public static net.minecraft.client.renderer.culling.Frustum offsetFrustum(net.minecraft.client.renderer.culling.Frustum);
+  private void applyFrustum(net.minecraft.client.renderer.culling.Frustum);
+  public void addRecentlyCompiledSection(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection);
+  public void update(net.minecraft.client.Camera);
+  public void renderLevel(com.mojang.blaze3d.resource.GraphicsResourceAllocator, net.minecraft.client.DeltaTracker, boolean, net.minecraft.client.renderer.state.level.CameraRenderState, org.joml.Matrix4fc, com.mojang.blaze3d.buffers.GpuBufferSlice, org.joml.Vector4f, boolean, net.minecraft.client.renderer.chunk.ChunkSectionsToRender);
+  public void extractLevel(net.minecraft.client.DeltaTracker, net.minecraft.client.Camera, float);
+  private void addMainPass(com.mojang.blaze3d.framegraph.FrameGraphBuilder, net.minecraft.client.renderer.culling.Frustum, org.joml.Matrix4fc, com.mojang.blaze3d.buffers.GpuBufferSlice, boolean, net.minecraft.client.renderer.state.level.LevelRenderState, net.minecraft.client.DeltaTracker, net.minecraft.util.profiling.ProfilerFiller, net.minecraft.client.renderer.chunk.ChunkSectionsToRender);
+  private void addCloudsPass(com.mojang.blaze3d.framegraph.FrameGraphBuilder, net.minecraft.client.CloudStatus, net.minecraft.world.phys.Vec3, long, float, int, float, int);
+  private void addWeatherPass(com.mojang.blaze3d.framegraph.FrameGraphBuilder, com.mojang.blaze3d.buffers.GpuBufferSlice);
+  private void addLateDebugPass(com.mojang.blaze3d.framegraph.FrameGraphBuilder, net.minecraft.client.renderer.state.level.CameraRenderState, com.mojang.blaze3d.buffers.GpuBufferSlice, org.joml.Matrix4fc);
+  private void extractVisibleEntities(net.minecraft.client.Camera, net.minecraft.client.renderer.culling.Frustum, net.minecraft.client.DeltaTracker, net.minecraft.client.renderer.state.level.LevelRenderState);
+  private void submitEntities(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.state.level.LevelRenderState, net.minecraft.client.renderer.SubmitNodeCollector);
+  private void extractVisibleBlockEntities(net.minecraft.client.Camera, float, net.minecraft.client.renderer.state.level.LevelRenderState);
+  private void submitBlockEntities(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.state.level.LevelRenderState, net.minecraft.client.renderer.SubmitNodeStorage);
+  private void extractBlockDestroyAnimation(net.minecraft.client.Camera, net.minecraft.client.renderer.state.level.LevelRenderState);
+  private void submitBlockDestroyAnimation(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.LevelRenderState);
+  private void extractBlockOutline(net.minecraft.client.Camera, net.minecraft.client.renderer.state.level.LevelRenderState);
+  private void renderBlockOutline(net.minecraft.client.renderer.MultiBufferSource$BufferSource, com.mojang.blaze3d.vertex.PoseStack, boolean, net.minecraft.client.renderer.state.level.LevelRenderState);
+  private void checkPoseStack(com.mojang.blaze3d.vertex.PoseStack);
+  private net.minecraft.client.renderer.entity.state.EntityRenderState extractEntity(net.minecraft.world.entity.Entity, float);
+  private void scheduleTranslucentSectionResort(net.minecraft.world.phys.Vec3);
+  private void scheduleResort(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection, net.minecraft.client.renderer.chunk.TranslucencyPointOfView, net.minecraft.world.phys.Vec3, boolean, boolean);
+  public net.minecraft.client.renderer.chunk.ChunkSectionsToRender prepareChunkRenders(org.joml.Matrix4fc);
+  public void endFrame();
+  public void tick(net.minecraft.client.Camera);
+  private void removeBlockBreakingProgress();
+  private void removeProgress(net.minecraft.server.level.BlockDestructionProgress);
+  private void addSkyPass(com.mojang.blaze3d.framegraph.FrameGraphBuilder, net.minecraft.client.renderer.state.level.CameraRenderState, com.mojang.blaze3d.buffers.GpuBufferSlice);
+  private void compileSections(net.minecraft.client.Camera);
+  private void renderHitOutline(com.mojang.blaze3d.vertex.PoseStack, com.mojang.blaze3d.vertex.VertexConsumer, double, double, double, net.minecraft.client.renderer.state.level.BlockOutlineRenderState, int, float);
+  public void blockChanged(net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.block.state.BlockState, int);
+  private void setBlockDirty(net.minecraft.core.BlockPos, boolean);
+  public void setBlocksDirty(int, int, int, int, int, int);
+  public void setBlockDirty(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.block.state.BlockState);
+  public void setSectionDirtyWithNeighbors(int, int, int);
+  public void setSectionRangeDirty(int, int, int, int, int, int);
+  public void setSectionDirty(int, int, int);
+  private void setSectionDirty(int, int, int, boolean);
+  public void onSectionBecomingNonEmpty(long);
+  public void destroyBlockProgress(int, net.minecraft.core.BlockPos, int);
+  public boolean hasRenderedAllSections();
+  public void onChunkReadyToRender(net.minecraft.world.level.ChunkPos);
+  public void needsUpdate();
+  public static int getLightCoords(net.minecraft.world.level.BlockAndLightGetter, net.minecraft.core.BlockPos);
+  public static int getLightCoords(net.minecraft.client.renderer.LevelRenderer$BrightnessGetter, net.minecraft.world.level.BlockAndLightGetter, net.minecraft.world.level.block.state.BlockState, net.minecraft.core.BlockPos);
+  public boolean isSectionCompiledAndVisible(net.minecraft.core.BlockPos);
+  public com.mojang.blaze3d.pipeline.RenderTarget entityOutlineTarget();
+  public com.mojang.blaze3d.pipeline.RenderTarget getTranslucentTarget();
+  public com.mojang.blaze3d.pipeline.RenderTarget getItemEntityTarget();
+  public com.mojang.blaze3d.pipeline.RenderTarget getParticlesTarget();
+  public com.mojang.blaze3d.pipeline.RenderTarget getWeatherTarget();
+  public com.mojang.blaze3d.pipeline.RenderTarget getCloudsTarget();
+
+=== net.minecraft.client.renderer.SectionRenderDispatcher
+Error: class not found: net.minecraft.client.renderer.SectionRenderDispatcher
+
+=== net.minecraft.client.renderer.ViewArea
+Compiled from "ViewArea.java"
+public class net.minecraft.client.renderer.ViewArea {
+  protected final net.minecraft.client.renderer.LevelRenderer levelRenderer;
+  protected final net.minecraft.world.level.Level level;
+  protected int sectionGridSizeY;
+  protected int sectionGridSizeX;
+  protected int sectionGridSizeZ;
+  private int viewDistance;
+  private net.minecraft.core.SectionPos cameraSectionPos;
+  public net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection[] sections;
+  public net.minecraft.client.renderer.ViewArea(net.minecraft.client.renderer.chunk.SectionRenderDispatcher, net.minecraft.world.level.Level, int, net.minecraft.client.renderer.LevelRenderer);
+  protected void createSections(net.minecraft.client.renderer.chunk.SectionRenderDispatcher);
+  public void releaseAllBuffers();
+  private int getSectionIndex(int, int, int);
+  protected void setViewDistance(int);
+  public int getViewDistance();
+  public net.minecraft.world.level.LevelHeightAccessor getLevelHeightAccessor();
+  public void repositionCamera(net.minecraft.core.SectionPos);
+  public net.minecraft.core.SectionPos getCameraSectionPos();
+  public void setDirty(int, int, int, boolean);
+  protected net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection getRenderSectionAt(net.minecraft.core.BlockPos);
+  protected net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection getRenderSection(long);
+  private net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection getRenderSection(int, int, int);
+  private boolean containsSection(int, int, int);
 }
+
+=== net.minecraft.client.renderer.blockentity.AbstractSignRenderer
+Compiled from "AbstractSignRenderer.java"
+public abstract class net.minecraft.client.renderer.blockentity.AbstractSignRenderer<S extends net.minecraft.client.renderer.blockentity.state.SignRenderState> implements net.minecraft.client.renderer.blockentity.BlockEntityRenderer<net.minecraft.world.level.block.entity.SignBlockEntity, S> {
+  private static final int BLACK_TEXT_OUTLINE_COLOR;
+  private static final int OUTLINE_RENDER_DISTANCE;
+  private final net.minecraft.client.gui.Font font;
+  private final net.minecraft.client.resources.model.sprite.SpriteGetter sprites;
+  public net.minecraft.client.renderer.blockentity.AbstractSignRenderer(net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider$Context);
+  protected abstract net.minecraft.client.model.Model$Simple getSignModel(S);
+  protected abstract net.minecraft.client.resources.model.sprite.SpriteId getSignSprite(net.minecraft.world.level.block.state.properties.WoodType);
+  public void submit(S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
+  private void submitSignWithText(S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay, net.minecraft.client.renderer.SubmitNodeCollector);
+  protected void submitSign(com.mojang.blaze3d.vertex.PoseStack, int, net.minecraft.world.level.block.state.properties.WoodType, net.minecraft.client.model.Model$Simple, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay, net.minecraft.client.renderer.SubmitNodeCollector);
+  private void submitSignText(S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.world.level.block.entity.SignText);
+  private static boolean isOutlineVisible(net.minecraft.core.BlockPos);
+  public static int getDarkColor(net.minecraft.world.level.block.entity.SignText);
+  public void extractRenderState(net.minecraft.world.level.block.entity.SignBlockEntity, S, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
+  public void submit(net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
+  public void extractRenderState(net.minecraft.world.level.block.entity.BlockEntity, net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
+  private net.minecraft.util.FormattedCharSequence lambda$submitSignText$0(net.minecraft.client.renderer.blockentity.state.SignRenderState, net.minecraft.network.chat.Component);
+  static {};
+}
+
+=== net.minecraft.client.renderer.blockentity.SignRenderer
+Error: class not found: net.minecraft.client.renderer.blockentity.SignRenderer
 
 === net.minecraft.client.renderer.blockentity.BeaconRenderer
 Compiled from "BeaconRenderer.java"
@@ -303,6 +473,38 @@ public class net.minecraft.client.renderer.blockentity.BeaconRenderer<T extends 
   private static void lambda$submitBeaconBeam$0(int, int, int, float, float, float, float, float, float, com.mojang.blaze3d.vertex.PoseStack$Pose, com.mojang.blaze3d.vertex.VertexConsumer);
   private static net.minecraft.client.renderer.blockentity.state.BeaconRenderState$Section lambda$extract$0(net.minecraft.world.level.block.entity.BeaconBeamOwner$Section);
   static {};
+}
+
+=== net.minecraft.client.renderer.blockentity.BlockEntityRenderer
+Compiled from "BlockEntityRenderer.java"
+public interface net.minecraft.client.renderer.blockentity.BlockEntityRenderer<T extends net.minecraft.world.level.block.entity.BlockEntity, S extends net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState> {
+  public abstract S createRenderState();
+  public default void extractRenderState(T, S, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
+  public abstract void submit(S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
+  public default boolean shouldRenderOffScreen();
+  public default int getViewDistance();
+  public default boolean shouldRender(T, net.minecraft.world.phys.Vec3);
+}
+
+=== net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher
+Compiled from "BlockEntityRenderDispatcher.java"
+public class net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher implements net.minecraft.server.packs.resources.ResourceManagerReloadListener {
+  private java.util.Map<net.minecraft.world.level.block.entity.BlockEntityType<?>, net.minecraft.client.renderer.blockentity.BlockEntityRenderer<?, ?>> renderers;
+  private final net.minecraft.client.gui.Font font;
+  private final java.util.function.Supplier<net.minecraft.client.model.geom.EntityModelSet> entityModelSet;
+  private net.minecraft.world.phys.Vec3 cameraPos;
+  private final net.minecraft.client.renderer.block.BlockModelResolver blockModelResolver;
+  private final net.minecraft.client.renderer.item.ItemModelResolver itemModelResolver;
+  private final net.minecraft.client.renderer.entity.EntityRenderDispatcher entityRenderer;
+  private final net.minecraft.client.resources.model.sprite.SpriteGetter sprites;
+  private final net.minecraft.client.renderer.PlayerSkinRenderCache playerSkinRenderCache;
+  public net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher(net.minecraft.client.gui.Font, java.util.function.Supplier<net.minecraft.client.model.geom.EntityModelSet>, net.minecraft.client.renderer.block.BlockModelResolver, net.minecraft.client.renderer.item.ItemModelResolver, net.minecraft.client.renderer.entity.EntityRenderDispatcher, net.minecraft.client.resources.model.sprite.SpriteGetter, net.minecraft.client.renderer.PlayerSkinRenderCache);
+  public <E extends net.minecraft.world.level.block.entity.BlockEntity, S extends net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState> net.minecraft.client.renderer.blockentity.BlockEntityRenderer<E, S> getRenderer(E);
+  public <E extends net.minecraft.world.level.block.entity.BlockEntity, S extends net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState> net.minecraft.client.renderer.blockentity.BlockEntityRenderer<E, S> getRenderer(S);
+  public void prepare(net.minecraft.world.phys.Vec3);
+  public <E extends net.minecraft.world.level.block.entity.BlockEntity, S extends net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState> S tryExtractRenderState(E, float, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
+  public <S extends net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState> void submit(S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
+  public void onResourceManagerReload(net.minecraft.server.packs.resources.ResourceManager);
 }
 
 === net.minecraft.client.renderer.entity.EntityRenderDispatcher
@@ -341,24 +543,156 @@ public class net.minecraft.client.renderer.entity.EntityRenderDispatcher impleme
   public void onResourceManagerReload(net.minecraft.server.packs.resources.ResourceManager);
 }
 
-=== net.minecraft.world.level.LevelHeightAccessor
-Compiled from "LevelHeightAccessor.java"
-public interface net.minecraft.world.level.LevelHeightAccessor {
-  public abstract int getHeight();
-  public abstract int getMinY();
-  public default int getMaxY();
-  public default int getSectionsCount();
-  public default int getMinSectionY();
-  public default int getMaxSectionY();
-  public default boolean isInsideBuildHeight(net.minecraft.core.BlockPos);
-  public default boolean isInsideBuildHeight(int);
-  public default boolean isOutsideBuildHeight(net.minecraft.core.BlockPos);
-  public default boolean isOutsideBuildHeight(int);
-  public default int getSectionIndex(int);
-  public default int getSectionIndexFromSectionY(int);
-  public default int getSectionYFromSectionIndex(int);
-  public static net.minecraft.world.level.LevelHeightAccessor create(int, int);
+=== net.minecraft.client.particle.ParticleEngine
+Compiled from "ParticleEngine.java"
+public class net.minecraft.client.particle.ParticleEngine {
+  private static final java.util.List<net.minecraft.client.particle.ParticleRenderType> RENDER_ORDER;
+  protected net.minecraft.client.multiplayer.ClientLevel level;
+  private final java.util.Map<net.minecraft.client.particle.ParticleRenderType, net.minecraft.client.particle.ParticleGroup<?>> particles;
+  private final java.util.Queue<net.minecraft.client.particle.TrackingEmitter> trackingEmitters;
+  private final java.util.Queue<net.minecraft.client.particle.Particle> particlesToAdd;
+  private final it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap<net.minecraft.core.particles.ParticleLimit> trackedParticleCounts;
+  private final net.minecraft.client.particle.ParticleResources resourceManager;
+  private final net.minecraft.util.RandomSource random;
+  public net.minecraft.client.particle.ParticleEngine(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.particle.ParticleResources);
+  public void createTrackingEmitter(net.minecraft.world.entity.Entity, net.minecraft.core.particles.ParticleOptions);
+  public void createTrackingEmitter(net.minecraft.world.entity.Entity, net.minecraft.core.particles.ParticleOptions, int);
+  public net.minecraft.client.particle.Particle createParticle(net.minecraft.core.particles.ParticleOptions, double, double, double, double, double, double);
+  private <T extends net.minecraft.core.particles.ParticleOptions> net.minecraft.client.particle.Particle makeParticle(T, double, double, double, double, double, double);
+  public void add(net.minecraft.client.particle.Particle);
+  public void tick();
+  private net.minecraft.client.particle.ParticleGroup<?> createParticleGroup(net.minecraft.client.particle.ParticleRenderType);
+  protected void updateCount(net.minecraft.core.particles.ParticleLimit, int);
+  public void extract(net.minecraft.client.renderer.state.level.ParticlesRenderState, net.minecraft.client.renderer.culling.Frustum, net.minecraft.client.Camera, float);
+  public void setLevel(net.minecraft.client.multiplayer.ClientLevel);
+  public java.lang.String countParticles();
+  private boolean hasSpaceInParticleLimit(net.minecraft.core.particles.ParticleLimit);
+  public void clearParticles();
+  private static void lambda$tick$0(net.minecraft.client.particle.ParticleRenderType, net.minecraft.client.particle.ParticleGroup);
+  static {};
 }
+
+=== net.minecraft.world.entity.Entity
+Compiled from "Entity.java"
+public abstract class net.minecraft.world.entity.Entity implements net.minecraft.world.Nameable, net.minecraft.world.level.entity.EntityAccess, net.minecraft.world.scores.ScoreHolder, net.minecraft.network.syncher.SyncedDataHolder, net.minecraft.core.component.DataComponentGetter, net.minecraft.world.entity.ItemOwner, net.minecraft.world.entity.SlotProvider, net.minecraft.util.debug.DebugValueSource, net.minecraft.core.TypedInstance<net.minecraft.world.entity.EntityType<?>> {
+  private static final org.slf4j.Logger LOGGER;
+  public static final java.lang.String TAG_ID;
+  public static final java.lang.String TAG_UUID;
+  public static final java.lang.String TAG_PASSENGERS;
+  public static final java.lang.String TAG_DATA;
+  public static final java.lang.String TAG_POS;
+  public static final java.lang.String TAG_MOTION;
+  public static final java.lang.String TAG_ROTATION;
+  public static final java.lang.String TAG_PORTAL_COOLDOWN;
+  public static final java.lang.String TAG_NO_GRAVITY;
+  public static final java.lang.String TAG_AIR;
+  public static final java.lang.String TAG_ON_GROUND;
+  public static final java.lang.String TAG_FALL_DISTANCE;
+  public static final java.lang.String TAG_FIRE;
+  public static final java.lang.String TAG_SILENT;
+  public static final java.lang.String TAG_GLOWING;
+  public static final java.lang.String TAG_INVULNERABLE;
+  public static final java.lang.String TAG_CUSTOM_NAME;
+  private static final java.util.concurrent.atomic.AtomicInteger ENTITY_COUNTER;
+  public static final int CONTENTS_SLOT_INDEX;
+  public static final int BOARDING_COOLDOWN;
+  public static final int TOTAL_AIR_SUPPLY;
+  public static final int MAX_ENTITY_TAG_COUNT;
+  private static final com.mojang.serialization.Codec<java.util.List<java.lang.String>> TAG_LIST_CODEC;
+  public static final float DELTA_AFFECTED_BY_BLOCKS_BELOW_0_2;
+  public static final double DELTA_AFFECTED_BY_BLOCKS_BELOW_0_5;
+  public static final double DELTA_AFFECTED_BY_BLOCKS_BELOW_1_0;
+  public static final int BASE_TICKS_REQUIRED_TO_FREEZE;
+  public static final int FREEZE_HURT_FREQUENCY;
+  public static final int BASE_SAFE_FALL_DISTANCE;
+  private static final net.minecraft.world.phys.AABB INITIAL_AABB;
+  private static final double WATER_FLOW_SCALE;
+  private static final double LAVA_FAST_FLOW_SCALE;
+  private static final double LAVA_SLOW_FLOW_SCALE;
+  private static final int MAX_BLOCK_ITERATIONS_ALONG_TRAVEL_PER_TICK;
+  private static final double MAX_MOVEMENT_RESETTING_TRACE_DISTANCE;
+  private static double viewScale;
+  private final net.minecraft.world.entity.EntityType<?> type;
+  private boolean requiresPrecisePosition;
+  private int id;
+  public boolean blocksBuilding;
+  private com.google.common.collect.ImmutableList<net.minecraft.world.entity.Entity> passengers;
+  protected int boardingCooldown;
+  private net.minecraft.world.entity.Entity vehicle;
+  private net.minecraft.world.level.Level level;
+  public double xo;
+  public double yo;
+  public double zo;
+  private net.minecraft.world.phys.Vec3 position;
+  private net.minecraft.core.BlockPos blockPosition;
+  private net.minecraft.world.level.ChunkPos chunkPosition;
+  private net.minecraft.world.phys.Vec3 deltaMovement;
+  private float yRot;
+  private float xRot;
+  public float yRotO;
+  public float xRotO;
+  private net.minecraft.world.phys.AABB bb;
+  private boolean onGround;
+  public boolean horizontalCollision;
+  public boolean verticalCollision;
+  public boolean verticalCollisionBelow;
+  public boolean minorHorizontalCollision;
+  public boolean hurtMarked;
+  protected net.minecraft.world.phys.Vec3 stuckSpeedMultiplier;
+  private net.minecraft.world.entity.Entity$RemovalReason removalReason;
+  public static final float DEFAULT_BB_WIDTH;
+  public static final float DEFAULT_BB_HEIGHT;
+  public float moveDist;
+  public float flyDist;
+  public double fallDistance;
+  private float nextStep;
+  public double xOld;
+  public double yOld;
+  public double zOld;
+  public boolean noPhysics;
+  protected final net.minecraft.util.RandomSource random;
+  public int tickCount;
+  private int remainingFireTicks;
+  private final net.minecraft.world.entity.EntityFluidInteraction fluidInteraction;
+  protected boolean wasTouchingWater;
+  protected boolean wasEyeInWater;
+  public int invulnerableTime;
+  protected boolean firstTick;
+  protected final net.minecraft.network.syncher.SynchedEntityData entityData;
+  protected static final net.minecraft.network.syncher.EntityDataAccessor<java.lang.Byte> DATA_SHARED_FLAGS_ID;
+  protected static final int FLAG_ONFIRE;
+  private static final int FLAG_SHIFT_KEY_DOWN;
+  private static final int FLAG_SPRINTING;
+  private static final int FLAG_SWIMMING;
+  private static final int FLAG_INVISIBLE;
+  protected static final int FLAG_GLOWING;
+  protected static final int FLAG_FALL_FLYING;
+  private static final net.minecraft.network.syncher.EntityDataAccessor<java.lang.Integer> DATA_AIR_SUPPLY_ID;
+  private static final net.minecraft.network.syncher.EntityDataAccessor<java.util.Optional<net.minecraft.network.chat.Component>> DATA_CUSTOM_NAME;
+  private static final net.minecraft.network.syncher.EntityDataAccessor<java.lang.Boolean> DATA_CUSTOM_NAME_VISIBLE;
+  private static final net.minecraft.network.syncher.EntityDataAccessor<java.lang.Boolean> DATA_SILENT;
+  private static final net.minecraft.network.syncher.EntityDataAccessor<java.lang.Boolean> DATA_NO_GRAVITY;
+  protected static final net.minecraft.network.syncher.EntityDataAccessor<net.minecraft.world.entity.Pose> DATA_POSE;
+  private static final net.minecraft.network.syncher.EntityDataAccessor<java.lang.Integer> DATA_TICKS_FROZEN;
+  private net.minecraft.world.level.entity.EntityInLevelCallback levelCallback;
+  private final net.minecraft.network.protocol.game.VecDeltaCodec packetPositionCodec;
+  public boolean needsSync;
+  public net.minecraft.world.entity.PortalProcessor portalProcess;
+  private int portalCooldown;
+  private boolean invulnerable;
+  protected java.util.UUID uuid;
+  protected java.lang.String stringUUID;
+  private boolean hasGlowingTag;
+  private final java.util.Set<java.lang.String> tags;
+  private final double[] pistonDeltas;
+  private long pistonDeltasGameTime;
+  private net.minecraft.world.entity.EntityDimensions dimensions;
+  private float eyeHeight;
+  public boolean isInPowderSnow;
+  public boolean wasInPowderSnow;
+  public java.util.Optional<net.minecraft.core.BlockPos> mainSupportingBlockPos;
+  private boolean onGroundNoBlocks;
+  private float crystalSoundIntensity;
 
 === net.minecraft.world.level.Level
 Compiled from "Level.java"
@@ -441,143 +775,310 @@ public abstract class net.minecraft.world.level.Level implements net.minecraft.w
   public void playLocalSound(net.minecraft.core.BlockPos, net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource, float, float, boolean);
   public void playLocalSound(net.minecraft.world.entity.Entity, net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource, float, float);
   public void playLocalSound(double, double, double, net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource, float, float, boolean);
+  public void playPlayerSound(net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource, float, float);
+  public void addParticle(net.minecraft.core.particles.ParticleOptions, double, double, double, double, double, double);
+  public void addParticle(net.minecraft.core.particles.ParticleOptions, boolean, boolean, double, double, double, double, double, double);
+  public void addAlwaysVisibleParticle(net.minecraft.core.particles.ParticleOptions, double, double, double, double, double, double);
+  public void addAlwaysVisibleParticle(net.minecraft.core.particles.ParticleOptions, boolean, double, double, double, double, double, double);
+  public void addBlockEntityTicker(net.minecraft.world.level.block.entity.TickingBlockEntity);
+  public void tickBlockEntities();
+  public <T extends net.minecraft.world.entity.Entity> void guardEntityTick(java.util.function.Consumer<T>, T);
+  public boolean shouldTickDeath(net.minecraft.world.entity.Entity);
+  public boolean shouldTickBlocksAt(long);
+  public boolean shouldTickBlocksAt(net.minecraft.core.BlockPos);
+  public void explode(net.minecraft.world.entity.Entity, double, double, double, float, net.minecraft.world.level.Level$ExplosionInteraction);
+  public void explode(net.minecraft.world.entity.Entity, double, double, double, float, boolean, net.minecraft.world.level.Level$ExplosionInteraction);
+  public void explode(net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource, net.minecraft.world.level.ExplosionDamageCalculator, net.minecraft.world.phys.Vec3, float, boolean, net.minecraft.world.level.Level$ExplosionInteraction);
+  public void explode(net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource, net.minecraft.world.level.ExplosionDamageCalculator, double, double, double, float, boolean, net.minecraft.world.level.Level$ExplosionInteraction);
+  public abstract void explode(net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource, net.minecraft.world.level.ExplosionDamageCalculator, double, double, double, float, boolean, net.minecraft.world.level.Level$ExplosionInteraction, net.minecraft.core.particles.ParticleOptions, net.minecraft.core.particles.ParticleOptions, net.minecraft.util.random.WeightedList<net.minecraft.core.particles.ExplosionParticleInfo>, net.minecraft.core.Holder<net.minecraft.sounds.SoundEvent>);
+  public abstract java.lang.String gatherChunkSourceStats();
+  public net.minecraft.world.level.block.entity.BlockEntity getBlockEntity(net.minecraft.core.BlockPos);
+  public void setBlockEntity(net.minecraft.world.level.block.entity.BlockEntity);
+  public void removeBlockEntity(net.minecraft.core.BlockPos);
+  public boolean isLoaded(net.minecraft.core.BlockPos);
+  public boolean loadedAndEntityCanStandOnFace(net.minecraft.core.BlockPos, net.minecraft.world.entity.Entity, net.minecraft.core.Direction);
+  public boolean loadedAndEntityCanStandOn(net.minecraft.core.BlockPos, net.minecraft.world.entity.Entity);
+  public void updateSkyBrightness();
+  public void setSpawnSettings(boolean);
+  public abstract void setRespawnData(net.minecraft.world.level.storage.LevelData$RespawnData);
+  public abstract net.minecraft.world.level.storage.LevelData$RespawnData getRespawnData();
+  public net.minecraft.world.level.storage.LevelData$RespawnData getWorldBorderAdjustedRespawnData(net.minecraft.world.level.storage.LevelData$RespawnData);
+  public void close() throws java.io.IOException;
+  public net.minecraft.world.level.BlockGetter getChunkForCollisions(int, int);
+  public java.util.List<net.minecraft.world.entity.Entity> getEntities(net.minecraft.world.entity.Entity, net.minecraft.world.phys.AABB, java.util.function.Predicate<? super net.minecraft.world.entity.Entity>);
+  public <T extends net.minecraft.world.entity.Entity> java.util.List<T> getEntities(net.minecraft.world.level.entity.EntityTypeTest<net.minecraft.world.entity.Entity, T>, net.minecraft.world.phys.AABB, java.util.function.Predicate<? super T>);
+  public <T extends net.minecraft.world.entity.Entity> void getEntities(net.minecraft.world.level.entity.EntityTypeTest<net.minecraft.world.entity.Entity, T>, net.minecraft.world.phys.AABB, java.util.function.Predicate<? super T>, java.util.List<? super T>);
+  public <T extends net.minecraft.world.entity.Entity> void getEntities(net.minecraft.world.level.entity.EntityTypeTest<net.minecraft.world.entity.Entity, T>, net.minecraft.world.phys.AABB, java.util.function.Predicate<? super T>, java.util.List<? super T>, int);
+  public <T extends net.minecraft.world.entity.Entity> boolean hasEntities(net.minecraft.world.level.entity.EntityTypeTest<net.minecraft.world.entity.Entity, T>, net.minecraft.world.phys.AABB, java.util.function.Predicate<? super T>);
+  public java.util.List<net.minecraft.world.entity.Entity> getPushableEntities(net.minecraft.world.entity.Entity, net.minecraft.world.phys.AABB);
+  public abstract net.minecraft.world.entity.Entity getEntity(int);
+  public net.minecraft.world.entity.Entity getEntity(java.util.UUID);
+  public net.minecraft.world.entity.Entity getEntityInAnyDimension(java.util.UUID);
+  public net.minecraft.world.entity.player.Player getPlayerInAnyDimension(java.util.UUID);
 
-=== net.minecraft.util.FormattedText
-Error: class not found: net.minecraft.util.FormattedText
+=== net.minecraft.server.level.ServerLevel
+Compiled from "ServerLevel.java"
+public class net.minecraft.server.level.ServerLevel extends net.minecraft.world.level.Level implements net.minecraft.world.level.WorldGenLevel,net.minecraft.server.level.ServerEntityGetter {
+  public static final net.minecraft.core.BlockPos END_SPAWN_POINT;
+  public static final net.minecraft.util.valueproviders.IntProvider RAIN_DELAY;
+  public static final net.minecraft.util.valueproviders.IntProvider RAIN_DURATION;
+  private static final net.minecraft.util.valueproviders.IntProvider THUNDER_DELAY;
+  public static final net.minecraft.util.valueproviders.IntProvider THUNDER_DURATION;
+  private static final org.slf4j.Logger LOGGER;
+  private static final int EMPTY_TIME_NO_TICK;
+  private static final int MAX_SCHEDULED_TICKS_PER_TICK;
+  private final java.util.List<net.minecraft.server.level.ServerPlayer> players;
+  private final net.minecraft.server.level.ServerChunkCache chunkSource;
+  private final net.minecraft.server.MinecraftServer server;
+  private final net.minecraft.world.level.storage.ServerLevelData serverLevelData;
+  private final net.minecraft.world.level.entity.EntityTickList entityTickList;
+  private final net.minecraft.server.waypoints.ServerWaypointManager waypointManager;
+  private net.minecraft.world.attribute.EnvironmentAttributeSystem environmentAttributes;
+  private final net.minecraft.world.level.entity.PersistentEntitySectionManager<net.minecraft.world.entity.Entity> entityManager;
+  private final net.minecraft.world.level.gameevent.GameEventDispatcher gameEventDispatcher;
+  public boolean noSave;
+  private final net.minecraft.server.players.SleepStatus sleepStatus;
+  private int emptyTime;
+  private final net.minecraft.world.level.portal.PortalForcer portalForcer;
+  private final net.minecraft.world.ticks.LevelTicks<net.minecraft.world.level.block.Block> blockTicks;
+  private final net.minecraft.world.ticks.LevelTicks<net.minecraft.world.level.material.Fluid> fluidTicks;
+  private final net.minecraft.world.level.pathfinder.PathTypeCache pathTypesByPosCache;
+  private final java.util.Set<net.minecraft.world.entity.Mob> navigatingMobs;
+  private volatile boolean isUpdatingNavigations;
+  protected final net.minecraft.world.entity.raid.Raids raids;
+  private final it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet<net.minecraft.world.level.BlockEventData> blockEvents;
+  private final java.util.List<net.minecraft.world.level.BlockEventData> blockEventsToReschedule;
+  private boolean handlingTick;
+  private final java.util.List<net.minecraft.world.level.CustomSpawner> customSpawners;
+  private net.minecraft.world.level.dimension.end.EnderDragonFight dragonFight;
+  private final it.unimi.dsi.fastutil.ints.Int2ObjectMap<net.minecraft.world.entity.boss.enderdragon.EnderDragonPart> dragonParts;
+  private final net.minecraft.world.level.StructureManager structureManager;
+  private final net.minecraft.world.level.levelgen.structure.StructureCheck structureCheck;
+  private final boolean tickTime;
+  private final net.minecraft.util.debug.LevelDebugSynchronizers debugSynchronizers;
+  public net.minecraft.server.level.ServerLevel(net.minecraft.server.MinecraftServer, java.util.concurrent.Executor, net.minecraft.world.level.storage.LevelStorageSource$LevelStorageAccess, net.minecraft.world.level.storage.ServerLevelData, net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level>, net.minecraft.world.level.dimension.LevelStem, boolean, long, java.util.List<net.minecraft.world.level.CustomSpawner>, boolean);
+  public void setDragonFight(net.minecraft.world.level.dimension.end.EnderDragonFight);
+  public net.minecraft.core.Holder<net.minecraft.world.level.biome.Biome> getUncachedNoiseBiome(int, int, int);
+  public net.minecraft.world.level.StructureManager structureManager();
+  public net.minecraft.world.clock.ServerClockManager clockManager();
+  public net.minecraft.world.attribute.EnvironmentAttributeSystem environmentAttributes();
+  public net.minecraft.world.attribute.EnvironmentAttributeSystem setEnvironmentAttributes(net.minecraft.world.attribute.EnvironmentAttributeSystem);
+  public void tick(java.util.function.BooleanSupplier);
+  public boolean shouldTickBlocksAt(long);
+  protected void tickTime();
+  public void tickCustomSpawners(boolean);
+  private void wakeUpAllPlayers();
+  public void tickChunk(net.minecraft.world.level.chunk.LevelChunk, int);
+  public void tickThunder(net.minecraft.world.level.chunk.LevelChunk);
+  public void tickPrecipitation(net.minecraft.core.BlockPos);
+  private java.util.Optional<net.minecraft.core.BlockPos> findLightningRod(net.minecraft.core.BlockPos);
+  protected net.minecraft.core.BlockPos findLightningTargetAround(net.minecraft.core.BlockPos);
+  public boolean isHandlingTick();
+  public boolean canSleepThroughNights();
+  private void announceSleepStatus();
+  public void updateSleepingPlayerList();
+  public net.minecraft.server.ServerScoreboard getScoreboard();
+  public net.minecraft.server.waypoints.ServerWaypointManager getWaypointManager();
+  public net.minecraft.world.DifficultyInstance getCurrentDifficultyAt(net.minecraft.core.BlockPos);
+  public float getMoonBrightness(net.minecraft.core.BlockPos);
+  private void prepareWeather(net.minecraft.world.level.saveddata.WeatherData);
+  private void advanceWeatherCycle();
+  public void resetWeatherCycle();
+  public void resetEmptyTime();
+  private void tickFluid(net.minecraft.core.BlockPos, net.minecraft.world.level.material.Fluid);
+  private void tickBlock(net.minecraft.core.BlockPos, net.minecraft.world.level.block.Block);
+  public void tickNonPassenger(net.minecraft.world.entity.Entity);
+  private void tickPassenger(net.minecraft.world.entity.Entity, net.minecraft.world.entity.Entity);
+  public void updateNeighboursOnBlockSet(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState);
+  public boolean mayInteract(net.minecraft.world.entity.Entity, net.minecraft.core.BlockPos);
+  public void save(net.minecraft.util.ProgressListener, boolean, boolean);
+  private void saveLevelData(boolean);
+  public <T extends net.minecraft.world.entity.Entity> java.util.List<? extends T> getEntities(net.minecraft.world.level.entity.EntityTypeTest<net.minecraft.world.entity.Entity, T>, java.util.function.Predicate<? super T>);
+  public <T extends net.minecraft.world.entity.Entity> void getEntities(net.minecraft.world.level.entity.EntityTypeTest<net.minecraft.world.entity.Entity, T>, java.util.function.Predicate<? super T>, java.util.List<? super T>);
+  public <T extends net.minecraft.world.entity.Entity> void getEntities(net.minecraft.world.level.entity.EntityTypeTest<net.minecraft.world.entity.Entity, T>, java.util.function.Predicate<? super T>, java.util.List<? super T>, int);
+  public java.util.List<? extends net.minecraft.world.entity.boss.enderdragon.EnderDragon> getDragons();
+  public java.util.List<net.minecraft.server.level.ServerPlayer> getPlayers(java.util.function.Predicate<? super net.minecraft.server.level.ServerPlayer>);
+  public java.util.List<net.minecraft.server.level.ServerPlayer> getPlayers(java.util.function.Predicate<? super net.minecraft.server.level.ServerPlayer>, int);
+  public net.minecraft.server.level.ServerPlayer getRandomPlayer();
+  public boolean addFreshEntity(net.minecraft.world.entity.Entity);
+  public boolean addWithUUID(net.minecraft.world.entity.Entity);
+  public void addDuringTeleport(net.minecraft.world.entity.Entity);
+  public void addNewPlayer(net.minecraft.server.level.ServerPlayer);
+  public void addRespawnedPlayer(net.minecraft.server.level.ServerPlayer);
+  private void addPlayer(net.minecraft.server.level.ServerPlayer);
+  private boolean addEntity(net.minecraft.world.entity.Entity);
+  public boolean tryAddFreshEntityWithPassengers(net.minecraft.world.entity.Entity);
+  public void unload(net.minecraft.world.level.chunk.LevelChunk);
+  public void removePlayerImmediately(net.minecraft.server.level.ServerPlayer, net.minecraft.world.entity.Entity$RemovalReason);
+  public void destroyBlockProgress(int, net.minecraft.core.BlockPos, int);
+  public void playSeededSound(net.minecraft.world.entity.Entity, double, double, double, net.minecraft.core.Holder<net.minecraft.sounds.SoundEvent>, net.minecraft.sounds.SoundSource, float, float, long);
+  public void playSeededSound(net.minecraft.world.entity.Entity, net.minecraft.world.entity.Entity, net.minecraft.core.Holder<net.minecraft.sounds.SoundEvent>, net.minecraft.sounds.SoundSource, float, float, long);
+  public void globalLevelEvent(int, net.minecraft.core.BlockPos, int);
+  public void levelEvent(net.minecraft.world.entity.Entity, int, net.minecraft.core.BlockPos, int);
+  public int getLogicalHeight();
+  public void gameEvent(net.minecraft.core.Holder<net.minecraft.world.level.gameevent.GameEvent>, net.minecraft.world.phys.Vec3, net.minecraft.world.level.gameevent.GameEvent$Context);
+  public void sendBlockUpdated(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.block.state.BlockState, int);
+  public void updateNeighborsAt(net.minecraft.core.BlockPos, net.minecraft.world.level.block.Block);
+  public void updateNeighborsAt(net.minecraft.core.BlockPos, net.minecraft.world.level.block.Block, net.minecraft.world.level.redstone.Orientation);
+  public void updateNeighborsAtExceptFromFacing(net.minecraft.core.BlockPos, net.minecraft.world.level.block.Block, net.minecraft.core.Direction, net.minecraft.world.level.redstone.Orientation);
+  public void neighborChanged(net.minecraft.core.BlockPos, net.minecraft.world.level.block.Block, net.minecraft.world.level.redstone.Orientation);
+  public void neighborChanged(net.minecraft.world.level.block.state.BlockState, net.minecraft.core.BlockPos, net.minecraft.world.level.block.Block, net.minecraft.world.level.redstone.Orientation, boolean);
+  public void broadcastEntityEvent(net.minecraft.world.entity.Entity, byte);
+  public void broadcastDamageEvent(net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource);
+  public net.minecraft.server.level.ServerChunkCache getChunkSource();
+  public void explode(net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource, net.minecraft.world.level.ExplosionDamageCalculator, double, double, double, float, boolean, net.minecraft.world.level.Level$ExplosionInteraction, net.minecraft.core.particles.ParticleOptions, net.minecraft.core.particles.ParticleOptions, net.minecraft.util.random.WeightedList<net.minecraft.core.particles.ExplosionParticleInfo>, net.minecraft.core.Holder<net.minecraft.sounds.SoundEvent>);
+  private net.minecraft.world.level.Explosion$BlockInteraction getDestroyType(net.minecraft.world.level.gamerules.GameRule<java.lang.Boolean>);
+  public void blockEvent(net.minecraft.core.BlockPos, net.minecraft.world.level.block.Block, int, int);
+  private void runBlockEvents();
+  private boolean doBlockEvent(net.minecraft.world.level.BlockEventData);
+  public net.minecraft.world.ticks.LevelTicks<net.minecraft.world.level.block.Block> getBlockTicks();
+  public net.minecraft.world.ticks.LevelTicks<net.minecraft.world.level.material.Fluid> getFluidTicks();
+  public net.minecraft.server.MinecraftServer getServer();
+  public net.minecraft.world.level.portal.PortalForcer getPortalForcer();
+  public net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager getStructureManager();
+  public <T extends net.minecraft.core.particles.ParticleOptions> int sendParticles(T, double, double, double, int, double, double, double, double);
 
-=== net.minecraft.network.chat.FormattedText
-Compiled from "FormattedText.java"
-public interface net.minecraft.network.chat.FormattedText {
-  public static final java.util.Optional<net.minecraft.util.Unit> STOP_ITERATION;
-  public static final net.minecraft.network.chat.FormattedText EMPTY;
-  public abstract <T> java.util.Optional<T> visit(net.minecraft.network.chat.FormattedText$ContentConsumer<T>);
-  public abstract <T> java.util.Optional<T> visit(net.minecraft.network.chat.FormattedText$StyledContentConsumer<T>, net.minecraft.network.chat.Style);
-  public static net.minecraft.network.chat.FormattedText of(java.lang.String);
-  public static net.minecraft.network.chat.FormattedText of(java.lang.String, net.minecraft.network.chat.Style);
-  public static net.minecraft.network.chat.FormattedText composite(net.minecraft.network.chat.FormattedText...);
-  public static net.minecraft.network.chat.FormattedText composite(java.util.List<? extends net.minecraft.network.chat.FormattedText>);
-  public default java.lang.String getString();
-  private static java.util.Optional lambda$getString$0(java.lang.StringBuilder, java.lang.String);
+=== net.minecraft.world.level.chunk.LevelChunk
+Compiled from "LevelChunk.java"
+public class net.minecraft.world.level.chunk.LevelChunk extends net.minecraft.world.level.chunk.ChunkAccess implements net.minecraft.util.debug.DebugValueSource {
+  private static final org.slf4j.Logger LOGGER;
+  private static final net.minecraft.world.level.block.entity.TickingBlockEntity NULL_TICKER;
+  private final java.util.Map<net.minecraft.core.BlockPos, net.minecraft.world.level.chunk.LevelChunk$RebindableTickingBlockEntityWrapper> tickersInLevel;
+  private boolean loaded;
+  private final net.minecraft.world.level.Level level;
+  private java.util.function.Supplier<net.minecraft.server.level.FullChunkStatus> fullStatus;
+  private net.minecraft.world.level.chunk.LevelChunk$PostLoadProcessor postLoad;
+  private final it.unimi.dsi.fastutil.ints.Int2ObjectMap<net.minecraft.world.level.gameevent.GameEventListenerRegistry> gameEventListenerRegistrySections;
+  private final net.minecraft.world.ticks.LevelChunkTicks<net.minecraft.world.level.block.Block> blockTicks;
+  private final net.minecraft.world.ticks.LevelChunkTicks<net.minecraft.world.level.material.Fluid> fluidTicks;
+  private net.minecraft.world.level.chunk.LevelChunk$UnsavedListener unsavedListener;
+  public net.minecraft.world.level.chunk.LevelChunk(net.minecraft.world.level.Level, net.minecraft.world.level.ChunkPos);
+  public net.minecraft.world.level.chunk.LevelChunk(net.minecraft.world.level.Level, net.minecraft.world.level.ChunkPos, net.minecraft.world.level.chunk.UpgradeData, net.minecraft.world.ticks.LevelChunkTicks<net.minecraft.world.level.block.Block>, net.minecraft.world.ticks.LevelChunkTicks<net.minecraft.world.level.material.Fluid>, long, net.minecraft.world.level.chunk.LevelChunkSection[], net.minecraft.world.level.chunk.LevelChunk$PostLoadProcessor, net.minecraft.world.level.levelgen.blending.BlendingData);
+  public net.minecraft.world.level.chunk.LevelChunk(net.minecraft.server.level.ServerLevel, net.minecraft.world.level.chunk.ProtoChunk, net.minecraft.world.level.chunk.LevelChunk$PostLoadProcessor);
+  public void setUnsavedListener(net.minecraft.world.level.chunk.LevelChunk$UnsavedListener);
+  public void markUnsaved();
+  public net.minecraft.world.ticks.TickContainerAccess<net.minecraft.world.level.block.Block> getBlockTicks();
+  public net.minecraft.world.ticks.TickContainerAccess<net.minecraft.world.level.material.Fluid> getFluidTicks();
+  public net.minecraft.world.level.chunk.ChunkAccess$PackedTicks getTicksForSerialization(long);
+  public net.minecraft.world.level.gameevent.GameEventListenerRegistry getListenerRegistry(int);
+  public net.minecraft.world.level.block.state.BlockState getBlockState(net.minecraft.core.BlockPos);
+  public net.minecraft.world.level.material.FluidState getFluidState(net.minecraft.core.BlockPos);
+  public net.minecraft.world.level.material.FluidState getFluidState(int, int, int);
+  public net.minecraft.world.level.block.state.BlockState setBlockState(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, int);
+  public void addEntity(net.minecraft.world.entity.Entity);
+  private net.minecraft.world.level.block.entity.BlockEntity createBlockEntity(net.minecraft.core.BlockPos);
+  public net.minecraft.world.level.block.entity.BlockEntity getBlockEntity(net.minecraft.core.BlockPos);
+  public net.minecraft.world.level.block.entity.BlockEntity getBlockEntity(net.minecraft.core.BlockPos, net.minecraft.world.level.chunk.LevelChunk$EntityCreationType);
+  public void addAndRegisterBlockEntity(net.minecraft.world.level.block.entity.BlockEntity);
+  private boolean isInLevel();
+  private boolean isTicking(net.minecraft.core.BlockPos);
+  public void setBlockEntity(net.minecraft.world.level.block.entity.BlockEntity);
+  public net.minecraft.nbt.CompoundTag getBlockEntityNbtForSaving(net.minecraft.core.BlockPos, net.minecraft.core.HolderLookup$Provider);
+  public void removeBlockEntity(net.minecraft.core.BlockPos);
+  private <T extends net.minecraft.world.level.block.entity.BlockEntity> void removeGameEventListener(T, net.minecraft.server.level.ServerLevel);
+  private void removeGameEventListenerRegistry(int);
+  private void removeBlockEntityTicker(net.minecraft.core.BlockPos);
+  public void runPostLoad();
+  public boolean isEmpty();
+  public void replaceWithPacketData(net.minecraft.network.FriendlyByteBuf, java.util.Map<net.minecraft.world.level.levelgen.Heightmap$Types, long[]>, java.util.function.Consumer<net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData$BlockEntityTagOutput>);
+  public void replaceBiomes(net.minecraft.network.FriendlyByteBuf);
+  public void setLoaded(boolean);
+  public net.minecraft.world.level.Level getLevel();
+  public java.util.Map<net.minecraft.core.BlockPos, net.minecraft.world.level.block.entity.BlockEntity> getBlockEntities();
+  public void postProcessGeneration(net.minecraft.server.level.ServerLevel);
+  private net.minecraft.world.level.block.entity.BlockEntity promotePendingBlockEntity(net.minecraft.core.BlockPos, net.minecraft.nbt.CompoundTag);
+  public void unpackTicks(long);
+  public void registerTickContainerInLevel(net.minecraft.server.level.ServerLevel);
+  public void unregisterTickContainerFromLevel(net.minecraft.server.level.ServerLevel);
+  public void registerDebugValues(net.minecraft.server.level.ServerLevel, net.minecraft.util.debug.DebugValueSource$Registration);
+  public net.minecraft.world.level.chunk.status.ChunkStatus getPersistedStatus();
+  public net.minecraft.server.level.FullChunkStatus getFullStatus();
+  public void setFullStatus(java.util.function.Supplier<net.minecraft.server.level.FullChunkStatus>);
+  public void clearAllBlockEntities();
+  public void registerAllBlockEntitiesAfterLevelLoad();
+  private <T extends net.minecraft.world.level.block.entity.BlockEntity> void addGameEventListener(T, net.minecraft.server.level.ServerLevel);
+  private <T extends net.minecraft.world.level.block.entity.BlockEntity> void updateBlockEntityTicker(T);
+  private <T extends net.minecraft.world.level.block.entity.BlockEntity> net.minecraft.world.level.block.entity.TickingBlockEntity createTicker(T, net.minecraft.world.level.block.entity.BlockEntityTicker<T>);
+  private net.minecraft.world.level.chunk.LevelChunk$RebindableTickingBlockEntityWrapper lambda$updateBlockEntityTicker$0(net.minecraft.world.level.block.entity.BlockEntity, net.minecraft.world.level.block.entity.BlockEntityTicker, net.minecraft.core.BlockPos, net.minecraft.world.level.chunk.LevelChunk$RebindableTickingBlockEntityWrapper);
+  private void lambda$registerAllBlockEntitiesAfterLevelLoad$0(net.minecraft.world.level.block.entity.BlockEntity);
+  private static void lambda$clearAllBlockEntities$0(net.minecraft.world.level.chunk.LevelChunk$RebindableTickingBlockEntityWrapper);
+  private java.util.List lambda$registerDebugValues$1(net.minecraft.server.level.ServerLevel);
+  private java.util.List lambda$registerDebugValues$0();
+  private void lambda$replaceWithPacketData$0(net.minecraft.util.ProblemReporter$ScopedCollector, net.minecraft.core.BlockPos, net.minecraft.world.level.block.entity.BlockEntityType, net.minecraft.nbt.CompoundTag);
+  private java.lang.String lambda$getFluidState$0(int, int, int) throws java.lang.Exception;
+  private java.lang.String lambda$getBlockState$0(int, int, int) throws java.lang.Exception;
+  private net.minecraft.world.level.gameevent.GameEventListenerRegistry lambda$getListenerRegistry$0(net.minecraft.server.level.ServerLevel, int, int);
+  private static void lambda$new$0(net.minecraft.world.level.ChunkPos);
   static {};
 }
 
-=== com.mojang.blaze3d.vertex.Matrix4f
-Error: class not found: com.mojang.blaze3d.vertex.Matrix4f
-
-=== com.mojang.math.Matrix4f
-Error: class not found: com.mojang.math.Matrix4f
-
-=== org.joml.Matrix4f
-Compiled from "Matrix4f.java"
-public class org.joml.Matrix4f implements java.io.Externalizable,java.lang.Cloneable,org.joml.Matrix4fc {
-  private static final long serialVersionUID;
-  int properties;
-  float m00;
-  float m01;
-  float m02;
-  float m03;
-  float m10;
-  float m11;
-  float m12;
-  float m13;
-  float m20;
-  float m21;
-  float m22;
-  float m23;
-  float m30;
-  float m31;
-  float m32;
-  float m33;
-  public org.joml.Matrix4f();
-  public org.joml.Matrix4f(org.joml.Matrix3fc);
-  public org.joml.Matrix4f(org.joml.Matrix4fc);
-  public org.joml.Matrix4f(org.joml.Matrix4x3fc);
-  public org.joml.Matrix4f(org.joml.Matrix4dc);
-  public org.joml.Matrix4f(float, float, float, float, float, float, float, float, float, float, float, float, float, float, float, float);
-  public org.joml.Matrix4f(java.nio.FloatBuffer);
-  public org.joml.Matrix4f(org.joml.Vector4fc, org.joml.Vector4fc, org.joml.Vector4fc, org.joml.Vector4fc);
-  org.joml.Matrix4f _properties(int);
-  public org.joml.Matrix4f assume(int);
-  public org.joml.Matrix4f determineProperties();
-  public int properties();
-  public float m00();
-  public float m01();
-  public float m02();
-  public float m03();
-  public float m10();
-  public float m11();
-  public float m12();
-  public float m13();
-  public float m20();
-  public float m21();
-  public float m22();
-  public float m23();
-  public float m30();
-  public float m31();
-  public float m32();
-  public float m33();
-  public org.joml.Matrix4f m00(float);
-  public org.joml.Matrix4f m01(float);
-  public org.joml.Matrix4f m02(float);
-  public org.joml.Matrix4f m03(float);
-  public org.joml.Matrix4f m10(float);
-  public org.joml.Matrix4f m11(float);
-  public org.joml.Matrix4f m12(float);
-  public org.joml.Matrix4f m13(float);
-  public org.joml.Matrix4f m20(float);
-  public org.joml.Matrix4f m21(float);
-  public org.joml.Matrix4f m22(float);
-  public org.joml.Matrix4f m23(float);
-  public org.joml.Matrix4f m30(float);
-  public org.joml.Matrix4f m31(float);
-  public org.joml.Matrix4f m32(float);
-  public org.joml.Matrix4f m33(float);
-  org.joml.Matrix4f _m00(float);
-  org.joml.Matrix4f _m01(float);
-  org.joml.Matrix4f _m02(float);
-  org.joml.Matrix4f _m03(float);
-  org.joml.Matrix4f _m10(float);
-  org.joml.Matrix4f _m11(float);
-  org.joml.Matrix4f _m12(float);
-  org.joml.Matrix4f _m13(float);
-  org.joml.Matrix4f _m20(float);
-  org.joml.Matrix4f _m21(float);
-  org.joml.Matrix4f _m22(float);
-  org.joml.Matrix4f _m23(float);
-  org.joml.Matrix4f _m30(float);
-  org.joml.Matrix4f _m31(float);
-  org.joml.Matrix4f _m32(float);
-  org.joml.Matrix4f _m33(float);
-
-=== com.mojang.blaze3d.vertex.PoseStack
-Compiled from "PoseStack.java"
-public class com.mojang.blaze3d.vertex.PoseStack {
-  private final java.util.List<com.mojang.blaze3d.vertex.PoseStack$Pose> poses;
-  private int lastIndex;
-  public com.mojang.blaze3d.vertex.PoseStack();
-  public void translate(double, double, double);
-  public void translate(float, float, float);
-  public void translate(net.minecraft.world.phys.Vec3);
-  public void scale(float, float, float);
-  public void mulPose(org.joml.Quaternionfc);
-  public void rotateAround(org.joml.Quaternionfc, float, float, float);
-  public void pushPose();
-  public void popPose();
-  public com.mojang.blaze3d.vertex.PoseStack$Pose last();
-  public boolean isEmpty();
-  public void setIdentity();
-  public void mulPose(org.joml.Matrix4fc);
-  public void mulPose(com.mojang.math.Transformation);
+=== net.minecraft.world.level.ChunkPos
+Compiled from "ChunkPos.java"
+public final class net.minecraft.world.level.ChunkPos extends java.lang.Record {
+  private final int x;
+  private final int z;
+  public static final com.mojang.serialization.Codec<net.minecraft.world.level.ChunkPos> CODEC;
+  public static final net.minecraft.network.codec.StreamCodec<io.netty.buffer.ByteBuf, net.minecraft.world.level.ChunkPos> STREAM_CODEC;
+  private static final int SAFETY_MARGIN;
+  public static final long INVALID_CHUNK_POS;
+  private static final int SAFETY_MARGIN_CHUNKS;
+  public static final int MAX_COORDINATE_VALUE;
+  public static final net.minecraft.world.level.ChunkPos ZERO;
+  private static final long COORD_BITS;
+  private static final long COORD_MASK;
+  private static final int REGION_BITS;
+  public static final int REGION_SIZE;
+  private static final int REGION_MASK;
+  public static final int REGION_MAX_INDEX;
+  private static final int HASH_A;
+  private static final int HASH_C;
+  private static final int HASH_Z_XOR;
+  public net.minecraft.world.level.ChunkPos(int, int);
+  public static net.minecraft.world.level.ChunkPos containing(net.minecraft.core.BlockPos);
+  public static net.minecraft.world.level.ChunkPos unpack(long);
+  public static net.minecraft.world.level.ChunkPos minFromRegion(int, int);
+  public static net.minecraft.world.level.ChunkPos maxFromRegion(int, int);
+  public boolean isValid();
+  public static boolean isValid(int, int);
+  public long pack();
+  public static long pack(int, int);
+  public static long pack(net.minecraft.core.BlockPos);
+  public static int getX(long);
+  public static int getZ(long);
+  public int hashCode();
+  public static int hash(int, int);
+  public int getMiddleBlockX();
+  public int getMiddleBlockZ();
+  public int getMinBlockX();
+  public int getMinBlockZ();
+  public int getMaxBlockX();
+  public int getMaxBlockZ();
+  public int getRegionX();
+  public int getRegionZ();
+  public static int getRegionX(long);
+  public static int getRegionZ(long);
+  public int getRegionLocalX();
+  public int getRegionLocalZ();
+  public net.minecraft.core.BlockPos getBlockAt(int, int, int);
+  public int getBlockX(int);
+  public int getBlockZ(int);
+  public net.minecraft.core.BlockPos getMiddleBlockPosition(int);
+  public boolean contains(net.minecraft.core.BlockPos);
+  public java.lang.String toString();
+  public net.minecraft.core.BlockPos getWorldPosition();
+  public int getChessboardDistance(net.minecraft.world.level.ChunkPos);
+  public int getChessboardDistance(int, int);
+  public int distanceSquared(net.minecraft.world.level.ChunkPos);
+  public int distanceSquared(long);
+  private int distanceSquared(int, int);
+  public static java.util.stream.Stream<net.minecraft.world.level.ChunkPos> rangeClosed(net.minecraft.world.level.ChunkPos, int);
+  public static java.util.stream.Stream<net.minecraft.world.level.ChunkPos> rangeClosed(net.minecraft.world.level.ChunkPos, net.minecraft.world.level.ChunkPos);
+  public final boolean equals(java.lang.Object);
+  public int x();
+  public int z();
+  private static java.util.stream.IntStream lambda$static$2(net.minecraft.world.level.ChunkPos);
+  private static com.mojang.serialization.DataResult lambda$static$0(java.util.stream.IntStream);
+  private static net.minecraft.world.level.ChunkPos lambda$static$1(int[]);
+  static {};
 }
 
-=== net.minecraft.client.renderer.MultiBufferSource
-Compiled from "MultiBufferSource.java"
-public interface net.minecraft.client.renderer.MultiBufferSource {
-  public static net.minecraft.client.renderer.MultiBufferSource$BufferSource immediate(com.mojang.blaze3d.vertex.ByteBufferBuilder);
-  public static net.minecraft.client.renderer.MultiBufferSource$BufferSource immediateWithBuffers(java.util.SequencedMap<net.minecraft.client.renderer.rendertype.RenderType, com.mojang.blaze3d.vertex.ByteBufferBuilder>, com.mojang.blaze3d.vertex.ByteBufferBuilder);
-  public abstract com.mojang.blaze3d.vertex.VertexConsumer getBuffer(net.minecraft.client.renderer.rendertype.RenderType);
-}
-
-=== net.minecraft.world.level.Level (height + beacon members)
-  private static boolean isOutsideSpawnableHeight(int);
-  public int getHeight(net.minecraft.world.level.levelgen.Heightmap$Types, int, int);

@@ -1,25 +1,47 @@
 ## minecraft 26.1
-## gradle exit: 1
+## commit: bb80ca8
+## gradle exit: 0, validate exit: 0
+## compile errors: 0
+## access widener: accessWidener v2 official
+## packaged widener: accessWidener v2 official
+## validate output: validated 1 artifact(s) pinned to Minecraft 26.1 
 
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
 Daemon will be stopped at the end of the build 
 
 > Configure project :
 Fabric Loom: 1.17.21
-Previous process has disowned the lock due to abrupt termination.
-Found existing cache lock file (ACQUIRED_PREVIOUS_OWNER_DISOWNED), rebuilding loom cache. This may have been caused by a failed or canceled build.
 Failed to parse fabric.mod.json: /home/runner/work/Beryllium/Beryllium/src/main/resources/fabric.mod.json
 
-FAILURE: Build failed with an exception.
+> Task :clean
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :compileClientJava
+> Task :processClientResources
+> Task :processIncludeJars
+> Task :clientClasses
+> Task :compileTestJava NO-SOURCE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test NO-SOURCE
+> Task :jar
+> Task :assemble
+> Task :validateAccessWidener
+> Task :check
 
-* What went wrong:
-A problem occurred configuring root project 'beryllium'.
-> Failed to setup Minecraft, java.io.IOException: Failed to process jar when running jar processor: fabric-loom:access-widener - Expected official namespace for access widener entry, found: named
+> Task :printBuildTarget
+Beryllium target: Minecraft 26.1; full optimization set; unobfuscated Loom pipeline; ViewArea=true, drawInBatch text hooks=false
 
-* Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
-> Run with --scan to get full insights from a Build Scan (powered by Develocity).
-> Get more help at https://help.gradle.org.
+> Task :build
 
-BUILD FAILED in 9s
+[Incubating] Problems report is available at: file:///home/runner/work/Beryllium/Beryllium/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 16s
+9 actionable tasks: 9 executed
