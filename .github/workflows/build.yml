@@ -58,7 +58,23 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: build exact-version artifact
-        run: ./gradlew --no-daemon clean build -Pminecraft_version=${{ matrix.minecraft }}
+        run: |
+          set -o pipefail
+          ./gradlew --no-daemon clean build -Pminecraft_version=${{ matrix.minecraft }} 2>&1 | tee build-output.log
+
+      # The raw Actions log blobs expire/unavailable in some API clients; the job summary
+      # is served by the Checks API, so the Gradle failure (compile errors) stays readable
+      # from any environment that can reach api.github.com.
+      - name: publish failure diagnostics
+        if: failure()
+        run: |
+          {
+            echo "## Build failed — Minecraft ${{ matrix.minecraft }} (${{ matrix.loom_pipeline }})"
+            echo
+            echo '```'
+            tail -c 24000 build-output.log 2>/dev/null || echo "(no build output captured)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: validate generated mod metadata
         run: python3 scripts/validate_built_mod.py build/libs '${{ matrix.minecraft }}'

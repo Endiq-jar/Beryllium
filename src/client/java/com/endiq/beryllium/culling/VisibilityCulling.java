@@ -11,6 +11,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -158,14 +159,65 @@ public final class VisibilityCulling {
 	/** @return the world's build height, used to size beam columns. */
 	public static double ceilingOf(Level level, BlockPos pos) {
 		if (level != null) {
-			try {
-				return level.getMaxBuildHeight();
-			} catch (Throwable ignored) {
-				// fall through to the conservative default
+			Double top = buildCeilingY(level);
+			if (top != null) {
+				return top;
 			}
 		}
 		return pos == null ? 256.0 : pos.getY() + 256.0;
 	}
+
+	/**
+	 * The top of the world's build volume, or {@code null} when it cannot be determined.
+	 *
+	 * <p>Looked up reflectively because the accessor was renamed across the supported
+	 * range ({@code getMaxBuildHeight} on older releases, {@code getMaxY} on 1.21.5+), and
+	 * Beryllium builds one source tree for all of them. Either name answers the same
+	 * question closely enough for a beam-column bound; a miss falls back to the
+	 * conservative default in {@link #ceilingOf(Level, BlockPos)}.
+	 */
+	private static Double buildCeilingY(Level level) {
+		try {
+			if (!buildCeilingResolved) {
+				synchronized (VisibilityCulling.class) {
+					if (!buildCeilingResolved) {
+						buildCeilingMethod = findFirstMethod(level.getClass(), "getMaxY", "getMaxBuildHeight");
+						buildCeilingResolved = true;
+					}
+				}
+			}
+			Method method = buildCeilingMethod;
+			if (method == null) {
+				return null;
+			}
+			Object value = method.invoke(level);
+			return value instanceof Number number ? number.doubleValue() : null;
+		} catch (Throwable t) {
+			return null;
+		}
+	}
+
+	/** Walks the class hierarchy for the first declared no-arg method with one of the
+	 *  given names; {@code null} when none exists. */
+	private static Method findFirstMethod(Class<?> clazz, String... names) {
+		for (String name : names) {
+			for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
+				try {
+					Method method = current.getDeclaredMethod(name);
+					method.setAccessible(true);
+					return method;
+				} catch (NoSuchMethodException ignored) {
+					// try the next class up the hierarchy
+				} catch (Throwable ignored) {
+					break;
+				}
+			}
+		}
+		return null;
+	}
+
+	private static volatile Method buildCeilingMethod;
+	private static volatile boolean buildCeilingResolved;
 
 	/** The per-frame memo is a pure optimisation; it can be switched off without changing
 	 *  what is culled, only how often the frustum is asked. */

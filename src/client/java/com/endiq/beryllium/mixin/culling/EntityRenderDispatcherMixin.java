@@ -2,6 +2,7 @@ package com.endiq.beryllium.mixin.culling;
 
 import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.culling.BehindCameraCulling;
+import com.endiq.beryllium.config.BerylliumConfig;
 import com.endiq.beryllium.culling.RenderDistanceSync;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.culling.Frustum;

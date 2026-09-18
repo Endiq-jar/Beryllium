@@ -1,7 +1,7 @@
 package com.endiq.beryllium.mixin.text;
 
 import com.endiq.beryllium.text.SignTextState;
-import com.mojang.blaze3d.vertex.Matrix4f;
+import org.joml.Matrix4f;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
@@ -42,7 +42,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class FontSignTextMixin {
 
 	@Inject(
-		method = "drawInBatch(Lnet/minecraft/network/chat/Component;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I",
+		method = "drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I",
 		at = @At("HEAD"),
 		cancellable = true,
 		require = 0
@@ -56,7 +56,7 @@ public abstract class FontSignTextMixin {
 	}
 
 	@Inject(
-		method = "drawInBatch(Lnet/minecraft/util/FormattedText;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I",
+		method = "drawInBatch(Lnet/minecraft/util/FormattedText;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I",
 		at = @At("HEAD"),
 		cancellable = true,
 		require = 0
@@ -70,7 +70,7 @@ public abstract class FontSignTextMixin {
 	}
 
 	@Inject(
-		method = "drawInBatch(Ljava/lang/String;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I",
+		method = "drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I",
 		at = @At("HEAD"),
 		cancellable = true,
 		require = 0

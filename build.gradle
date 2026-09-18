@@ -72,6 +72,26 @@ def fontHasDisplayMode = mcAtLeast(1, 20, 0)
 // ViewArea replaced SectionRenderDispatcher in the 1.21.2 renderer refactor.
 def hasViewArea = mcAtLeast(1, 21, 2)
 
+loom {
+	accessWidenerPath = file('src/main/resources/beryllium.accesswidener')
+	splitEnvironmentSourceSets()
+
+	mods {
+		"beryllium" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+}
+
+/*
+ * The per-release source excludes live AFTER the loom block, on purpose. The Groovy DSL
+ * *creates* the named source set on first reference, so a `sourceSets { client { ... } }`
+ * block that runs before `splitEnvironmentSourceSets()` would register `client` first —
+ * and Loom's own `sourceSets.create("client")` would then fail at configuration time
+ * ("Cannot add a SourceSet with name 'client' ... already exists") on every Minecraft
+ * release, before any compilation starts.
+ */
 sourceSets {
 	client {
 		java {
@@ -84,18 +104,6 @@ sourceSets {
 				// SectionDirtyBridge (reflection) already cover those releases.
 				exclude 'com/endiq/beryllium/mixin/chunk/ViewAreaMixin.java'
 			}
-		}
-	}
-}
-
-loom {
-	accessWidenerPath = file('src/main/resources/beryllium.accesswidener')
-	splitEnvironmentSourceSets()
-
-	mods {
-		"beryllium" {
-			sourceSet sourceSets.main
-			sourceSet sourceSets.client
 		}
 	}
 }
