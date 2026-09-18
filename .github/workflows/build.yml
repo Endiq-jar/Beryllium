@@ -62,19 +62,30 @@ jobs:
           set -o pipefail
           ./gradlew --no-daemon clean build -Pminecraft_version=${{ matrix.minecraft }} 2>&1 | tee build-output.log
 
-      # The raw Actions log blobs expire/unavailable in some API clients; the job summary
-      # is served by the Checks API, so the Gradle failure (compile errors) stays readable
-      # from any environment that can reach api.github.com.
+      # The raw Actions log blobs are unavailable to some API clients; publish the
+      # Gradle failure (compile errors) through the Checks API instead: patch the
+      # check-run summary and emit compact annotations.
       - name: publish failure diagnostics
         if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          {
-            echo "## Build failed — Minecraft ${{ matrix.minecraft }} (${{ matrix.loom_pipeline }})"
-            echo
-            echo '```'
-            tail -c 24000 build-output.log 2>/dev/null || echo "(no build output captured)"
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          # Compact per-error annotations (symbol + location on one line each).
+          grep -E "error: |Caused by: |What went wrong: |Cannot add |Could not |Failed to" build-output.log \
+            | sed 's/^[[:space:]]*//' | sort -u | head -10 \
+            | while IFS= read -r line; do echo "::error::${line:0:500}"; done || true
+
+          # Full error section into the check-run summary (readable via the Checks API).
+          errors=$(grep -n -A 3 "error: " build-output.log | head -c 55000 || true)
+          [ -z "$errors" ] && errors=$(tail -c 55000 build-output.log)
+          job_name="Minecraft ${{ matrix.minecraft }} (${{ matrix.loom_pipeline }})"
+          job_id=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs?per_page=100" \
+            --jq --arg n "$job_name" '.jobs[] | select(.name==$n) | .id' | head -1)
+          if [ -n "$job_id" ]; then
+            gh api "repos/${{ github.repository }}/check-runs/$job_id" -X PATCH \
+              -f "output[title]=Gradle failure — ${{ matrix.minecraft }} (${{ matrix.loom_pipeline }})" \
+              -f "output[summary]=$(printf '%s' "$errors" | head -c 60000)" || true
+          fi
 
       - name: validate generated mod metadata
         run: python3 scripts/validate_built_mod.py build/libs '${{ matrix.minecraft }}'
