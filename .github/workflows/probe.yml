@@ -114,6 +114,92 @@ jobs:
               done
             } > "ci-probe/signatures-$V.txt" 2>&1 || true
 
+            # Richer API dump at the era endpoints: the classes every feature added in
+            # this change has to hook, so signatures come from the real jars instead of
+            # documentation. Only a handful of releases need it -- the endpoints of each
+            # renderer/pipeline era -- so the rest of the run is not slowed down.
+            case " $V " in
+              " 1.19.4 "|" 1.20.1 "|" 1.20.6 "|" 1.21.1 "|" 1.21.4 "|" 1.21.8 "|" 26.1 "|" 26.3 ")
+                {
+                  echo "## minecraft $V"
+                  echo "## commit: $COMMIT"
+                  echo "## classpath entries: $(echo "$CP" | tr ':' '\n' | wc -l)"
+                  echo
+                  echo "### class names matching the features under test"
+                  CLIENTJAR="$(echo "$CP" | tr ':' '\n' | grep -E '\.jar$' | while read -r j; do unzip -l "$j" 2>/dev/null | grep -q 'net/minecraft/client/Minecraft.class' && { echo "$j"; break; }; done)"
+                  if [ -n "$CLIENTJAR" ]; then
+                    unzip -l "$CLIENTJAR" 2>/dev/null | awk '{print $4}' | grep -E '\.class$' \
+                      | grep -Ei 'gui/(components|screens)/(chat|command|toast|pack|worldselection)|toasts/|ChatComponent|CommandSuggest|PackVersion|PackCompatibility|PackEntry|Narrator|Telemetry|WeatherEffectRenderer|SubtitleOverlay|Tooltip|Overlay|Loading|KeyMapping|KeyBindsList|SoundEngine|TextureAtlasSprite|ItemModelGenerator|ModelBlockRenderer|ClientLevel|LocalPlayer|CreativeModeInventory|Narrator|Window\.class' \
+                      | sort -u | head -400
+                  else
+                    echo "no client jar found on the classpath"
+                  fi
+                  echo
+                  echo "### signatures"
+                  for CLS in \
+                    net.minecraft.client.Minecraft \
+                    net.minecraft.client.Options \
+                    net.minecraft.client.gui.Gui \
+                    net.minecraft.client.gui.components.ChatComponent \
+                    net.minecraft.client.GuiMessage \
+                    net.minecraft.client.GuiMessageTag \
+                    net.minecraft.client.gui.screens.ChatScreen \
+                    net.minecraft.client.gui.components.CommandSuggestions \
+                    net.minecraft.commands.SharedSuggestionProvider \
+                    net.minecraft.client.gui.components.EditBox \
+                    net.minecraft.client.gui.screens.Screen \
+                    net.minecraft.client.gui.screens.TitleScreen \
+                    net.minecraft.client.gui.screens.LoadingOverlay \
+                    net.minecraft.client.gui.screens.Overlay \
+                    net.minecraft.client.gui.screens.LevelLoadingScreen \
+                    net.minecraft.client.gui.screens.ReceivingLevelScreen \
+                    net.minecraft.client.gui.screens.worldselection.WorldOpenFlows \
+                    'net.minecraft.client.gui.screens.worldselection.WorldSelectionList$WorldListEntry' \
+                    'net.minecraft.client.gui.screens.packs.TransferableSelectionList$PackEntry' \
+                    net.minecraft.server.packs.repository.PackCompatibility \
+                    net.minecraft.server.packs.repository.Pack \
+                    'net.minecraft.world.level.storage.LevelStorageSource$LevelStorageAccess' \
+                    net.minecraft.client.KeyMapping \
+                    net.minecraft.client.KeyboardHandler \
+                    'net.minecraft.client.gui.screens.controls.KeyBindsList$KeyEntry' \
+                    net.minecraft.client.sounds.SoundEngine \
+                    net.minecraft.client.sounds.SoundManager \
+                    net.minecraft.client.renderer.GameRenderer \
+                    net.minecraft.client.particle.ParticleEngine \
+                    net.minecraft.client.multiplayer.ClientLevel \
+                    net.minecraft.client.multiplayer.ClientPacketListener \
+                    net.minecraft.client.renderer.texture.TextureManager \
+                    net.minecraft.client.renderer.texture.TextureAtlasSprite \
+                    net.minecraft.client.renderer.block.model.ItemModelGenerator \
+                    net.minecraft.client.renderer.block.ModelBlockRenderer \
+                    net.minecraft.client.gui.components.SubtitleOverlay \
+                    net.minecraft.client.telemetry.ClientTelemetryManager \
+                    com.mojang.text2speech.Narrator \
+                    net.minecraft.client.player.LocalPlayer \
+                    net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen \
+                    net.minecraft.client.gui.screens.inventory.AbstractContainerScreen \
+                    net.minecraft.world.item.ItemStack \
+                    net.minecraft.client.gui.components.toasts.ToastComponent \
+                    net.minecraft.client.gui.components.toasts.Toast \
+                    net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner \
+                    net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner \
+                    net.minecraft.server.MinecraftServer \
+                    net.minecraft.server.level.ServerLevel \
+                    net.minecraft.world.level.Level \
+                    net.minecraft.util.profiling.ProfilerFiller \
+                    net.minecraft.util.profiling.Profiler \
+                    net.minecraft.util.profiling.ActiveProfiler \
+                    net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher \
+                    net.minecraft.client.renderer.WeatherEffectRenderer \
+                    net.minecraft.client.renderer.LevelRenderer ; do
+                    echo "=== $CLS"
+                    javap -p -cp "$CP" "$CLS" 2>&1 | head -260 || echo "MISSING"
+                    echo
+                  done
+                } > "ci-probe/api-$V.txt" 2>&1 || true
+                ;;
+            esac
+
             # The real thing: the same command CI runs for the artifact.
             set +e
             ./gradlew --no-daemon --console=plain clean build \
