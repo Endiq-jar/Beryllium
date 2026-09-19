@@ -13,7 +13,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Skips drawing a block entity whose (inflated) bounding box is outside the camera's frustum
@@ -25,11 +24,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * redstone comparators this is a large, easy win. See {@link BlockEntityCulling} for the
  * geometry and the safety guards (safe radius, all-or-nothing error handling).
  *
- * <p>There are two hooks because the pipeline was rewritten inside the supported range.
- * Through 1.21.x (and 26.0) a dispatcher call renders a block entity directly; 26.1 replaced
- * that with "extract a render state, then submit it", where returning no state is the way to
- * say nothing should be drawn. Both are installed — whichever the running release has takes
- * effect, and the other is skipped by {@code require = 0}.
+ * <p>This is the direct-render hook: through 1.21.8 the dispatcher draws a block entity when
+ * it is asked to, so cancelling that call is the whole job. From 1.21.9 the pipeline became
+ * "extract a render state, then submit it", where the way to say "nothing to draw" is to
+ * return no state at all — and that needs the render state's type in the callback, so it
+ * lives in its own file ({@code BlockEntityExtractMixin}) and this hook is simply skipped
+ * there by {@code require = 0}.
  *
  * <p>Disabled automatically when the EntityCulling mod is present (it does the same job),
  * and independently toggleable via {@code cullBlockEntities} in beryllium.json.
@@ -51,39 +51,6 @@ public abstract class BlockEntityCullMixin {
 	) {
 		if (beryllium$shouldCull(blockEntity)) {
 			ci.cancel();
-		}
-	}
-
-	// --- 26.1+ (extract/submit): two arities inside the range --------------------------
-
-	@Inject(
-		method = "tryExtractRenderState(Lnet/minecraft/world/level/block/entity/BlockEntity;FLnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)Lnet/minecraft/client/renderer/blockentity/state/BlockEntityRenderState;",
-		at = @At("HEAD"),
-		cancellable = true,
-		require = 0
-	)
-	private void beryllium$cullStateExtraction(
-		BlockEntity blockEntity, float partialTick, @Coerce Object crumblingOverlay,
-		CallbackInfoReturnable<Object> cir
-	) {
-		if (beryllium$shouldCull(blockEntity)) {
-			// No render state means the dispatcher submits nothing for this block entity.
-			cir.setReturnValue(null);
-		}
-	}
-
-	@Inject(
-		method = "tryExtractRenderState(Lnet/minecraft/world/level/block/entity/BlockEntity;FLnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;Z)Lnet/minecraft/client/renderer/blockentity/state/BlockEntityRenderState;",
-		at = @At("HEAD"),
-		cancellable = true,
-		require = 0
-	)
-	private void beryllium$cullStateExtractionOfOverlay(
-		BlockEntity blockEntity, float partialTick, @Coerce Object crumblingOverlay, boolean crumbling,
-		CallbackInfoReturnable<Object> cir
-	) {
-		if (beryllium$shouldCull(blockEntity)) {
-			cir.setReturnValue(null);
 		}
 	}
 

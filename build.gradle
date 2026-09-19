@@ -72,6 +72,37 @@ def hasViewArea = mcAtLeast(1, 21, 2)
 // Font#drawInBatch and org.joml.Matrix4f exist from 1.19.4 to 26.1; 26.2 replaced them with
 // Font#prepareText and Font$PreparedText, so the mixins that hook them are excluded there.
 def textUsesDrawInBatch = !mcAtLeast(1, 26, 2)
+/*
+ * Block entity rendering became an extract/submit pipeline in 1.21.9: the dispatcher stopped
+ * drawing and started *returning* a render state that the caller submits later. Every hook
+ * that answers "there is nothing to draw here" therefore names that render state in its
+ * callback type, and the type only exists from 1.21.9 on. Those releases build the file below;
+ * older ones keep the direct render hook, which needs no such type.
+ */
+def hasExtractRenderState = mcAtLeast(1, 21, 9)
+/*
+ * GuiMessage and GuiMessageTag moved into net.minecraft.client.multiplayer.chat with the 26.x
+ * line. The unsigned-message hook names the tag type as its callback type, so one of the two
+ * package variants is built per release; the entry for the other is removed from the config.
+ */
+def hasMovedChatTypes = unobfuscatedGame || versionParts[0] >= 22
+/*
+ * Mixins that are only built on part of the range, by simple class name as the configs spell
+ * them. Two things follow from this one list: the class file is excluded from the compile, and
+ * its entry is removed from the mixin config that ships -- a config naming a class that is not
+ * in the jar is a load failure on exactly the releases the class was excluded for.
+ */
+def eraExcludedMixins = [] as Set
+if (!textUsesDrawInBatch) {
+	eraExcludedMixins << 'text.FontSignTextMixin'
+}
+if (!hasViewArea) {
+	eraExcludedMixins << 'chunk.ViewAreaMixin'
+}
+if (!hasExtractRenderState) {
+	eraExcludedMixins << 'render.BlockEntityExtractMixin'
+}
+eraExcludedMixins << (hasMovedChatTypes ? 'chat.ChatUnsignedIconLegacyMixin' : 'chat.ChatUnsignedIconModernMixin')
 
 /*
  * The access widener is generated, not shipped as a literal resource, because the namespace
@@ -139,6 +170,17 @@ sourceSets {
 				// SectionDirtyBridge (reflection) already cover those releases.
 				exclude 'com/endiq/beryllium/mixin/chunk/ViewAreaMixin.java'
 			}
+			if (!hasExtractRenderState) {
+				// Before 1.21.9 there is no render state to return; BlockEntityCullMixin
+				// hooks the direct render call on those releases instead.
+				exclude 'com/endiq/beryllium/mixin/render/BlockEntityExtractMixin.java'
+			}
+			// Exactly one of these names the chat tag type, and its package depends on the
+			// release: net.minecraft.client before the 26.x line, net.minecraft.client.
+			// multiplayer.chat from there on.
+			exclude (hasMovedChatTypes
+					? 'com/endiq/beryllium/mixin/chat/ChatUnsignedIconLegacyMixin.java'
+					: 'com/endiq/beryllium/mixin/chat/ChatUnsignedIconModernMixin.java')
 		}
 	}
 }
@@ -214,6 +256,56 @@ processResources {
  * newer Minecraft versions can load Java-17 mod bytecode unchanged.  CI itself uses
  * Java 25 because 26.1+ requires it to prepare the development game jars.
  */
+/*
+ * Remove the era-excluded entries from the mixin configs that ship.
+ *
+ * Run after the resource has been copied, on the copied file, because Gradle's text filter is
+ * line based -- and a value removed from the middle of a JSON array leaves a comma behind that
+ * is no longer valid JSON. Rewriting the whole file through the JSON reader and writer cannot
+ * leave a trailing comma behind.
+ *
+ * Every release that excludes nothing packages the checked-in configs untouched, so the files
+ * in the repository are exactly what most of the artifacts contain.
+ */
+def removeEraExcludedMixins = { File config ->
+	if (eraExcludedMixins.isEmpty()) {
+		return
+	}
+	try {
+		def root = new groovy.json.JsonSlurper().parseText(config.getText('UTF-8'))
+		boolean changed = false
+		['mixins', 'client', 'server'].each { key ->
+			def declared = root[key]
+			if (declared instanceof List) {
+				def kept = declared.findAll { entry -> !eraExcludedMixins.contains(entry) }
+				if (kept.size() != declared.size()) {
+					root[key] = kept
+					changed = true
+				}
+			}
+		}
+		if (changed) {
+			config.setText(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(root)), 'UTF-8')
+		}
+	} catch (Throwable ignored) {
+		// A config that cannot be read is left for Mixin to report; it is never half-written.
+	}
+}
+
+tasks.matching { task -> task.name == 'processResources' || task.name == 'processClientResources' }
+		.configureEach { task ->
+			// Re-run when this release's exclusion set changes, not only when the resource changed.
+			task.inputs.property('berylliumEraExcludedMixins', eraExcludedMixins.toList().sort().join(','))
+			task.doLast {
+				def destination = task.destinationDir
+				if (destination != null && destination.isDirectory()) {
+					fileTree(destination) { include '*.mixins.json' }.each { config ->
+						removeEraExcludedMixins(config)
+					}
+				}
+			}
+		}
+
 tasks.withType(JavaCompile).configureEach {
 	it.options.release.set(17)
 	it.options.encoding = 'UTF-8'
@@ -240,7 +332,9 @@ tasks.register('printBuildTarget') {
 	doLast {
 		println "Beryllium target: Minecraft ${minecraftVersion}; full optimization set" +
 			"; ${unobfuscatedGame ? 'unobfuscated' : 'remapped'} Loom pipeline" +
-			"; ViewArea=${hasViewArea}, drawInBatch text hooks=${textUsesDrawInBatch}"
+			"; ViewArea=${hasViewArea}, drawInBatch text hooks=${textUsesDrawInBatch}" +
+			"; extract render state=${hasExtractRenderState}, moved chat types=${hasMovedChatTypes}" +
+			"; excluded mixins=${eraExcludedMixins.sort().join(',') ?: 'none'}"
 	}
 }
 

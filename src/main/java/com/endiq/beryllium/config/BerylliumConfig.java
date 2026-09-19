@@ -418,6 +418,171 @@ public class BerylliumConfig {
 	 *  = better load balancing. */
 	public int parallelEntityTickChunkSize = 8;
 
+	// -------------------------------------------------------------------------------------
+	// Client quality-of-life set
+	//
+	// Every switch below is on. They are the "keep everything enabled" set: each one names the
+	// vanilla behaviour it replaces, so turning one off restores exactly that behaviour on the
+	// next launch. Nothing here changes world data except deleteToTrash, which only decides
+	// where a deleted world goes.
+	// -------------------------------------------------------------------------------------
+
+	/** Matches command suggestions that contain the typed text, not only those that start
+	 *  with it, and keeps arguments whose id carries no namespace prefix. */
+	public boolean improvedCommandSuggestions = true;
+
+	/** Lets a command be longer than the vanilla 256-character limit. Chat messages are not
+	 *  affected: the server kicks for those, so that limit is left alone. */
+	public boolean commandLengthLimit = true;
+
+	/** Master switch for the chat filters below. */
+	public boolean chatFilter = true;
+
+	/** Hides "X has made the advancement Y" and the challenge/goal variants. */
+	public boolean chatAnnounceAdvancements = true;
+
+	/** Hides command feedback and other server-generated admin lines. */
+	public boolean chatAdminMessages = true;
+
+	/** How many chat lines are kept. Vanilla keeps 100; anything lower is ignored. */
+	public int maxChatHistory = 1000;
+
+	/** Merges a repeated chat message into the line before it with a "(xN)" counter. */
+	public boolean compactChat = true;
+
+	/** {@code CONSECUTIVE} only folds a repeat of the newest line; {@code ALWAYS} also folds
+	 *  a repeat of a line further up. */
+	public String compactChatMode = "CONSECUTIVE";
+
+	/** Removes the "unsigned message" marker from chat. */
+	public boolean removeUnsignedChatIcon = true;
+
+	/** Moves a deleted world to the operating system's trash instead of erasing it. */
+	public boolean deleteToTrash = true;
+
+	/** Skips the "this world uses experimental settings" confirmation when opening a world. */
+	public boolean disableWorldAdvice = true;
+
+	/** Allows several keys to be bound to the same action, and one key to several actions. */
+	public boolean multipleBindingsPerKey = true;
+
+	/** Stops the controls screen from warning about a key that is part of a combination, or
+	 *  about a conflict that is Beryllium's own default. */
+	public boolean noReusedModifierKeyWarning = true;
+
+	/** Makes the narrator key rebindable. */
+	public boolean remapNarrator = true;
+
+	/** Keeps the reload background out of the way: the loading overlay is never drawn. */
+	public boolean removeOverlay = true;
+
+	/** Runs the splash/loading overlay without pausing the game: the world behind it keeps
+	 *  ticking and mouse input reaches the game while the overlay is up. */
+	public boolean disableSplashScreen = true;
+
+	/** Hides the loading screen's fade-out entirely, which is what makes a reload finish as
+	 *  soon as the work is done. */
+	public boolean disableLoadingFadeAnimation = true;
+
+	/** Closes the gaps the game leaves between the faces of generated block and item models. */
+	public boolean fixModelGaps = true;
+
+	/** Stops the client from adding, ticking and drawing particles. */
+	public boolean disableParticles = true;
+
+	/** Freezes animated textures (water, lava, fire, portals) on their first frame. */
+	public boolean disableTextureAnimation = true;
+
+	/** Hides advancement, recipe and unverified-chat toasts. */
+	public boolean disableToasts = true;
+
+	/** Stops rain and snow from being drawn, and their splash particles and sounds. */
+	public boolean disableWeather = true;
+
+	/** Shrinks a title or subtitle that is too wide for the screen instead of drawing it off
+	 *  both edges. */
+	public boolean fixTitleSize = true;
+
+	/** Fraction of the screen width a title may use. Clamped to 0.1 - 1.0. */
+	public double maxTitleWidthFraction = 0.9;
+
+	/** Removes the night vision flicker at the end of the effect. */
+	public boolean noNightVisionFlicker = true;
+
+	/** Keeps the current screen open when walking through a portal. */
+	public boolean allowScreensInPortals = true;
+
+	/** Skips the "loading terrain" and "reconfiguring" screens. */
+	public boolean disableLoadingTerrain = true;
+
+	/** Selects a pack built for another game version without the mismatch screen. */
+	public boolean disablePackVersionMismatchScreen = true;
+
+	/** Switches creative inventory tabs on mouse press instead of on mouse release. */
+	public boolean fixInventoryTabSwitching = true;
+
+	/** Suppresses the "narrator not available" error on systems without one. */
+	public boolean noNarratorError = true;
+
+	/** Keeps the client from reporting telemetry. */
+	public boolean noTelemetry = true;
+
+	/** Pauses music while the window is unfocused instead of playing it over everything. */
+	public boolean pauseMusic = true;
+
+	/** Removes the fade-in animation of title-screen widgets. */
+	public boolean removeWidgetFade = true;
+
+	/** Wraps tooltip lines that would not fit on screen, and keeps the whole tooltip inside
+	 *  the screen instead of letting it run off an edge. */
+	public boolean tooltips = true;
+
+	/** Maximum tooltip width in pixels. Lines wider than this are wrapped. */
+	public int maxTooltipWidth = 320;
+
+	/** Lets server resource packs be moved and disabled like normal packs. */
+	public boolean unPinResourcePacks = true;
+
+	/** Lowers the volume of the game while its window is not focused. */
+	public boolean unfocusedVolumeReducer = true;
+
+	/** Volume multiplier used while unfocused. 1.0 disables the reduction. */
+	public double unfocusedVolume = 0.25;
+
+	/** Lets the game's threads be nudged towards the work that is on the critical path. */
+	public boolean threadPriorities = true;
+
+	/** Priority for the client render thread (Java 1-10). */
+	public int renderThreadPriority = 7;
+
+	/** Priority for the client worker pools (Java 1-10). */
+	public int workerThreadPriority = 5;
+
+	/** Priority for the integrated server thread (Java 1-10). */
+	public int serverThreadPriority = 7;
+
+	/** Ticks the dimensions of an integrated server in parallel. Each tick is a barrier: no
+	 *  dimension starts the next tick until all of them have finished this one, and the whole
+	 *  thing falls back to serial ticking when no safe parallel path is found. */
+	public boolean parallelDimensionTicking = true;
+
+	/** Worker threads for parallel dimension ticking. 0 = auto (cores - 2, at most 8). */
+	public int parallelDimensionTickThreads = 0;
+
+	/** Parallel dimension ticking only stays engaged while it measures at least this much
+	 *  faster than ticking in series. */
+	public double parallelDimensionTickMinSpeedup = 1.02;
+
+	/** Renders supported block entities into the terrain while they are idle, and switches
+	 *  back to the game's own block entity rendering while they are animating. */
+	public boolean blockEntityMeshing = true;
+
+	/** Block entities closer than this are never meshed into the terrain. */
+	public double blockEntityMeshMinDistance = 24.0;
+
+	/** How many frames a captured block entity render state stays reusable. */
+	public int blockEntityMeshCacheFrames = 40;
+
 	public static BerylliumConfig load() {
 		if (Files.exists(CONFIG_PATH)) {
 			try {

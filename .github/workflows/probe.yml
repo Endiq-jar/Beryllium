@@ -140,6 +140,22 @@ jobs:
                     net.minecraft.client.Minecraft \
                     net.minecraft.client.Options \
                     net.minecraft.client.gui.Gui \
+                    net.minecraft.client.gui.Hud \
+                    net.minecraft.client.gui.screens.ProgressScreen \
+                    net.minecraft.client.gui.screens.ReconfiguringScreen \
+                    net.minecraft.client.gui.screens.ConnectScreen \
+                    net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner \
+                    net.minecraft.client.multiplayer.chat.GuiMessage \
+                    net.minecraft.client.multiplayer.chat.GuiMessageTag \
+                    net.minecraft.client.gui.components.toasts.ToastManager \
+                    net.minecraft.client.renderer.texture.AbstractTexture \
+                    net.minecraft.client.gui.screens.packs.PackSelectionScreen \
+                    net.minecraft.server.packs.repository.PackRepository \
+                    net.minecraft.client.multiplayer.chat.ChatListener \
+                    net.minecraft.world.entity.player.Player \
+                    net.minecraft.world.item.Item$TooltipContext \
+                    net.minecraft.client.gui.components.AbstractWidget \
+                    net.minecraft.client.gui.screens.worldselection.CreateWorldScreen \
                     net.minecraft.client.gui.components.ChatComponent \
                     net.minecraft.client.GuiMessage \
                     net.minecraft.client.GuiMessageTag \
@@ -193,7 +209,33 @@ jobs:
                     net.minecraft.client.renderer.WeatherEffectRenderer \
                     net.minecraft.client.renderer.LevelRenderer ; do
                     echo "=== $CLS"
-                    javap -p -cp "$CP" "$CLS" 2>&1 | head -260 || echo "MISSING"
+                    javap -p -cp "$CP" "$CLS" 2>&1 || echo "MISSING"
+                    echo
+                  done
+                  echo
+                  echo "### bytecode call map (enclosing method ==> callee)"
+                  for CLS in \
+                    net.minecraft.client.gui.Gui \
+                    net.minecraft.client.gui.Hud \
+                    net.minecraft.client.gui.screens.LoadingOverlay \
+                    net.minecraft.client.gui.screens.Screen \
+                    net.minecraft.client.gui.components.toasts.ToastComponent \
+                    net.minecraft.client.gui.components.toasts.ToastManager \
+                    net.minecraft.client.KeyMapping \
+                    net.minecraft.world.item.ItemStack \
+                    net.minecraft.client.renderer.WeatherEffectRenderer \
+                    net.minecraft.client.renderer.LevelRenderer \
+                    net.minecraft.client.gui.components.ChatComponent \
+                    net.minecraft.client.renderer.GameRenderer \
+                    net.minecraft.client.renderer.texture.TextureAtlasSprite \
+                    net.minecraft.client.particle.ParticleEngine \
+                    net.minecraft.client.gui.components.SubtitleOverlay \
+                    net.minecraft.client.multiplayer.ClientLevel ; do
+                    echo "=== $CLS"
+                    javap -c -p -cp "$CP" "$CLS" 2>/dev/null | awk '
+                      /^  [a-zA-Z][A-Za-z0-9_$.<>,\[\] ]*\(.*\)/ { m=$0; sub(/^ +/, "", m); sub(/;.*/, "", m) }
+                      /\/\/ (Method|Field|InterfaceMethod) / { c=$0; sub(/.*\/\/ /, "", c); print m " ==> " c }
+                    ' | sort -u | head -400
                     echo
                   done
                 } > "ci-probe/api-$V.txt" 2>&1 || true

@@ -5,9 +5,11 @@ import com.endiq.beryllium.chunk.ChunkUploadPacer;
 import com.endiq.beryllium.culling.CameraAccess;
 import com.endiq.beryllium.culling.VisibilityCulling;
 import com.endiq.beryllium.debug.HudOverlayBridge;
+import com.endiq.beryllium.misc.ThreadPriorityTuner;
 import com.endiq.beryllium.performance.FrameMaintenanceScheduler;
 import com.endiq.beryllium.profiler.DebugOverlay;
 import com.endiq.beryllium.profiler.FrameProfiler;
+import com.endiq.beryllium.render.BlockEntityMeshCache;
 import com.endiq.beryllium.text.SignTextState;
 import com.endiq.beryllium.util.BerylliumLog;
 import net.minecraft.client.Camera;
@@ -74,6 +76,12 @@ public final class ClientFrameHooks {
 			VisibilityCulling.onFrameStart();
 			ChunkUploadPacer.instance().onFrameStart(frameProfiler == null ? -1L : frameProfiler.lastFrameNanos());
 
+			// The static block entity meshes expire by frame count, and the priorities of
+			// the render/server/worker threads are re-checked on a timer rather than every
+			// frame (walking the thread tree is not free).
+			BlockEntityMeshCache.tick();
+			ThreadPriorityTuner.applyIfDue();
+
 			drainChunkRebuilds(frameProfiler);
 
 			FrameMaintenanceScheduler scheduler = maintenance;
@@ -107,6 +115,8 @@ public final class ClientFrameHooks {
 		}
 		VisibilityCulling.onFrameStart();
 		SignTextState.onFrame();
+		// Cached block entity render states belong to the world that just went away.
+		BlockEntityMeshCache.invalidateAll();
 	}
 
 	private static void drainChunkRebuilds(FrameProfiler frameProfiler) {
