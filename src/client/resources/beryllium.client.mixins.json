@@ -52,6 +52,7 @@
 		"render.WeatherEffectRendererMixin",
 		"render.WeatherMixin",
 		"text.FontSignTextMixin",
+		"text.FontSignTextLegacyMixin",
 		"text.FontTextShadowMixin",
 		"text.NameTagCullMixin",
 		"text.SignTextScopeMixin",
