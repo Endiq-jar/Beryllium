@@ -1,5 +1,5 @@
 ## minecraft 1.20.6
-## commit: f7aa175
+## commit: 9db89fd
 ## gradle exit: 0, validate exit: 0
 ## compile errors: 0
 ## access widener: accessWidener v1 named
@@ -46,10 +46,10 @@ Cannot remap drawInBatch(Lnet/minecraft/util/FormattedText;FFFFIZLcom/mojang/bla
 Cannot remap drawInBatch(Ljava/lang/String;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
 Cannot remap tickEntities()V because it does not exist in any of the targets [net/minecraft/world/level/Level]
 Cannot remap tickNonPassenger(Lnet/minecraft/world/entity/Entity;)V because it does not exist in any of the targets [net/minecraft/world/level/Level]
+Cannot remap tickEntities()V because it does not exist in any of the targets [net/minecraft/world/level/Level]
 Cannot remap drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;IIZ)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
 Cannot remap drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)V because it does not exist in any of the targets [net/minecraft/client/gui/Font]
 Cannot remap drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)V because it does not exist in any of the targets [net/minecraft/client/gui/Font]
-Cannot remap tickEntities()V because it does not exist in any of the targets [net/minecraft/world/level/Level]
 Cannot remap drawInBatch(Lnet/minecraft/util/FormattedCharSequence;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)V because it does not exist in any of the targets [net/minecraft/client/gui/Font]
 
 > Task :remapJar
@@ -65,5 +65,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 17s
+BUILD SUCCESSFUL in 11s
 10 actionable tasks: 10 executed

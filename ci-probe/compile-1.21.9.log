@@ -1,5 +1,5 @@
 ## minecraft 1.21.9
-## commit: f7aa175
+## commit: 9db89fd
 ## gradle exit: 0, validate exit: 0
 ## compile errors: 0
 ## access widener: accessWidener v1 named
@@ -31,12 +31,12 @@ Failed to parse fabric.mod.json: /home/runner/work/Beryllium/Beryllium/src/main/
 
 > Task :printBuildTarget
 Beryllium target: Minecraft 1.21.9; full optimization set; remapped Loom pipeline; ViewArea=true, drawInBatch text hooks=true
+Cannot remap render(Lnet/minecraft/world/level/block/entity/BlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;)V because it does not exist in any of the targets [net/minecraft/client/renderer/blockentity/BlockEntityRenderDispatcher]
+Cannot remap render(Lnet/minecraft/world/level/block/entity/BlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;)V because it does not exist in any of the targets [net/minecraft/client/renderer/blockentity/BlockEntityRenderDispatcher]
 
 > Task :remapJar
 Cannot remap canStandOnFluid because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext] or their parents.
 
-Cannot remap render(Lnet/minecraft/world/level/block/entity/BlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;)V because it does not exist in any of the targets [net/minecraft/client/renderer/blockentity/BlockEntityRenderDispatcher]
-Cannot remap render(Lnet/minecraft/world/level/block/entity/BlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;)V because it does not exist in any of the targets [net/minecraft/client/renderer/blockentity/BlockEntityRenderDispatcher]
 Cannot remap render(Lnet/minecraft/world/level/block/entity/BlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;)V because it does not exist in any of the targets [net/minecraft/client/renderer/blockentity/BlockEntityRenderDispatcher]
 Cannot remap tryExtractRenderState(Lnet/minecraft/world/level/block/entity/BlockEntity;FLnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;Z)Lnet/minecraft/client/renderer/blockentity/state/BlockEntityRenderState; because it does not exist in any of the targets [net/minecraft/client/renderer/blockentity/BlockEntityRenderDispatcher]
 Cannot remap tick because it does not exist in any of the targets [net/minecraft/server/MinecraftServer]
@@ -44,8 +44,8 @@ Cannot remap tick because it does not exist in any of the targets [net/minecraft
 Cannot remap <init>(Lnet/minecraft/world/entity/Entity;Z)V because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
 Cannot remap <init>(Lnet/minecraft/world/entity/Entity;Z)V because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
 Cannot remap <init>(Lnet/minecraft/world/entity/Entity;Z)V because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
-Cannot remap render(Lnet/minecraft/world/level/block/entity/BeaconBlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V because it does not exist in any of the targets [net/minecraft/client/renderer/blockentity/BeaconRenderer]
 Cannot remap getHeldItem because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
+Cannot remap render(Lnet/minecraft/world/level/block/entity/BeaconBlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V because it does not exist in any of the targets [net/minecraft/client/renderer/blockentity/BeaconRenderer]
 Cannot remap drawInBatch(Lnet/minecraft/network/chat/Component;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
 Cannot remap drawInBatch(Lnet/minecraft/util/FormattedText;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
 Cannot remap drawInBatch(Ljava/lang/String;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
@@ -71,5 +71,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 21s
+BUILD SUCCESSFUL in 12s
 10 actionable tasks: 10 executed
