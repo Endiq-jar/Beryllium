@@ -4,7 +4,7 @@
 > AI assistance was used during development due to time while working on TurtleLauncher.
 
 **A Fabric performance and launch-safety mod built for every stable Minecraft Java
-Edition release from 1.19.4 through the current release (26.2 on 2026-09-07), focused
+Edition release from 1.19.4 through the current release (26.3), focused
 on making Java Edition safer and smoother on Android and other mobile/low-end Java
 launchers (PojavLauncher/ZalithLauncher/TurtleLauncher-family) — while still paying
 off on desktop.**
@@ -21,14 +21,18 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
 
 ✦ Features
 
-> **Verification status of this release:** the sign, beacon, chest, particle, entity
-> render-distance, visibility, chunk pacing, tick-throttle and off-thread-ticking work was
-> written against Mojang-mapped 1.21.x signatures from a machine with no JDK and no
-> Maven/Gradle network access, so **none of it has been compiled or run** — the same caveat
-> the existing mixins carry in their javadoc. Every injector is `require = 0` and every
-> subsystem is wrapped, so a wrong guess degrades to vanilla behaviour for that feature.
-> The pure-Java pieces (throttle tables, tick governor, worker pool, chunk scheduling and
-> upload pacing, the colouring maths) carry no such caveat; read them as ordinary code.
+> **Verification status of this release:**
+> **Compiled and built:** every covered release builds, and each jar passes the metadata
+> validator (it checks the Minecraft pin, and that the declared access widener, mixin configs,
+> entrypoints and mod classes are really inside the jar). That is what CI enforces on every
+> push, and it is how the per-release API differences below were found and fixed.
+> **Not yet done:** nobody has *played* it. A clean compile proves the hooks resolve and the
+> API calls exist; it cannot prove that a culled sign looked right, that a beacon beam
+> reappeared when it should, or that the experimental off-thread ticking is safe under a real
+> workload. Treat the first in-game session as the real test, and start with a copy of a world.
+> Every injector is `require = 0` and every subsystem is wrapped, so a hook that does not
+> match a given release degrades to vanilla behaviour for that feature instead of breaking
+> the launch; the ones that currently do that are listed per feature below.
 
 ### Performance engine
 
@@ -251,13 +255,16 @@ At the time of this update, that means:
 1.20, 1.20.1, 1.20.2, 1.20.3, 1.20.4, 1.20.5, 1.20.6
 1.21, 1.21.1, 1.21.2, 1.21.3, 1.21.4, 1.21.5, 1.21.6,
 1.21.7, 1.21.8, 1.21.9, 1.21.10, 1.21.11
-26.1, 26.1.1, 26.1.2, 26.2
+26.1, 26.1.1, 26.1.2, 26.2, 26.3
 ```
 
+That is the full list CI builds, and every entry in it compiles and produces a jar whose
+`fabric.mod.json` validates against its own version.
+
 Snapshots and pre-releases are intentionally not called supported releases: their mapping
-and renderer changes are not stable enough to make a launch-safety promise. When `26.3`
-or a later **stable** release arrives, the CI resolver adds it automatically and the build
-must pass before it can be called covered.
+and renderer changes are not stable enough to make a launch-safety promise. When a later
+**stable** release arrives, the CI resolver adds it automatically and the build must pass
+before it can be called covered.
 
 ### One source tree, every release
 
@@ -285,6 +292,7 @@ What this means per release:
 | Artifact target | What loads |
 |---|---|
 | Every covered release | The full optimization set. Anything whose hook does not match that exact release degrades to vanilla behaviour *for that feature* — visibly, in the log, rather than silently. |
+| 26.1+ (the extract/submit renderer) | Block entity and chest culling hook `tryExtractRenderState` instead of the old dispatcher `render` call, because that is where a block entity's draw now comes from. Sign text is the one feature that switches itself off there: 26.2 replaced `Font#drawInBatch` with a prepare-then-submit pipeline that has no per-draw hook to make the decision at. |
 | Any release on an Android/Pojav/Zalith/TurtleLauncher host | Still governed by `androidSafeMode`, which suppresses Beryllium's mixins entirely before the title screen. |
 
 No artifact depends on Fabric API on any release (see below).
