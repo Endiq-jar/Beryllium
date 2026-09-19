@@ -35,21 +35,21 @@ public abstract class OverlayMixin {
 	 *  from there on; both names are listed so either release is covered. */
 	@Inject(method = {"render", "extractRenderState"}, at = @At("HEAD"), cancellable = true, require = 0)
 	private void beryllium$hideOverlay(CallbackInfo ci) {
-		if (beryllium$config(Config.REMOVE_OVERLAY)) {
+		if (beryllium$removeOverlay()) {
 			ci.cancel();
 		}
 	}
 
 	@Inject(method = "isPauseScreen", at = @At("HEAD"), cancellable = true, require = 0)
 	private void beryllium$doNotPause(CallbackInfoReturnable<Boolean> cir) {
-		if (beryllium$config(Config.DO_NOT_PAUSE)) {
+		if (beryllium$doNotPause()) {
 			cir.setReturnValue(Boolean.FALSE);
 		}
 	}
 
 	@Inject(method = "isReadyToFadeOut", at = @At("HEAD"), cancellable = true, require = 0)
 	private void beryllium$readyToFadeOut(CallbackInfoReturnable<Boolean> cir) {
-		if (beryllium$config(Config.NO_FADE)) {
+		if (beryllium$noFade()) {
 			cir.setReturnValue(Boolean.TRUE);
 		}
 	}
@@ -61,25 +61,35 @@ public abstract class OverlayMixin {
 	 */
 	@ModifyConstant(method = {"render", "extractRenderState"}, constant = @Constant(floatValue = 2.0F), require = 0)
 	private float beryllium$noFade(float original) {
-		return beryllium$config(Config.NO_FADE) ? 1.0F : original;
+		return beryllium$noFade() ? 1.0F : original;
 	}
 
-	/** Which switch this call answers to. */
-	private enum Config {
-		REMOVE_OVERLAY, DO_NOT_PAUSE, NO_FADE
+	/** The three switches, read through one helper so a broken config reads as "off". */
+	private boolean beryllium$removeOverlay() {
+		return beryllium$switch(0);
 	}
 
-	private boolean beryllium$config(Config which) {
+	private boolean beryllium$doNotPause() {
+		return beryllium$switch(1);
+	}
+
+	private boolean beryllium$noFade() {
+		return beryllium$switch(2);
+	}
+
+	private boolean beryllium$switch(int which) {
 		try {
 			BerylliumConfig config = Beryllium.config();
 			if (config == null || !config.enabled) {
 				return false;
 			}
-			return switch (which) {
-				case REMOVE_OVERLAY -> config.removeOverlay;
-				case DO_NOT_PAUSE -> config.disableSplashScreen;
-				case NO_FADE -> config.disableLoadingFadeAnimation;
-			};
+			if (which == 0) {
+				return config.removeOverlay;
+			}
+			if (which == 1) {
+				return config.disableSplashScreen;
+			}
+			return config.disableLoadingFadeAnimation;
 		} catch (Throwable t) {
 			// Whatever the game was going to do is what happens.
 			return false;
