@@ -1,5 +1,5 @@
 ## minecraft 1.20
-## commit: db9eca7
+## commit: 4678239
 ## source files: 148
 
 === net.minecraft.client.gui.Font

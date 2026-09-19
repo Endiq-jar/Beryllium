@@ -1,7 +1,7 @@
 ## minecraft 1.20.6
-## commit: db9eca7
+## commit: 4678239
 ## gradle exit: 1, validate exit: 1
-## compile errors: 2
+## compile errors: 4
 ## access widener: accessWidener v1 named
 ## packaged widener: 
 ## validate output: no non-sources jar found in build/libs 
@@ -14,36 +14,51 @@ Fabric Loom: 1.17.21
 Failed to parse fabric.mod.json: /home/runner/work/Beryllium/Beryllium/src/main/resources/fabric.mod.json
 
 > Task :clean
-
 > Task :compileJava
-/home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/dimension/ParallelDimensionTicker.java:341: error: method warn in class BerylliumLog cannot be applied to given types;
-			BerylliumLog.warn("[BERYLLIUM] Parallel dimension ticking disabled for this session: "
-			            ^
-  required: String
-  found:    String,Throwable
-  reason: actual and formal argument lists differ in length
-1 error
+> Task :processResources
+> Task :classes
 
-> Task :compileJava FAILED
+> Task :compileClientJava FAILED
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/WorldAdviceMixin.java:9: error: cannot find symbol
+import org.spongepowered.asm.mixin.injection.Local;
+                                            ^
+  symbol:   class Local
+  location: package org.spongepowered.asm.mixin.injection
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/WorldAdviceMixin.java:40: error: cannot find symbol
+			@Local(argsOnly = true) Runnable openWorld) {
+			 ^
+  symbol:   class Local
+  location: class WorldAdviceMixin
+2 errors
 
 [Incubating] Problems report is available at: file:///home/runner/work/Beryllium/Beryllium/build/reports/problems/problems-report.html
 
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
+Execution failed for task ':compileClientJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
 > Compilation failed; see the compiler output below.
-  /home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/dimension/ParallelDimensionTicker.java:341: error: method warn in class BerylliumLog cannot be applied to given types;
-  			BerylliumLog.warn("[BERYLLIUM] Parallel dimension ticking disabled for this session: "
-  			            ^
-    required: String
-    found:    String,Throwable
-    reason: actual and formal argument lists differ in length
-  1 error
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/WorldAdviceMixin.java:9: error: cannot find symbol
+  import org.spongepowered.asm.mixin.injection.Local;
+                                              ^
+    symbol:   class Local
+    location: package org.spongepowered.asm.mixin.injection
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/WorldAdviceMixin.java:40: error: cannot find symbol
+  			@Local(argsOnly = true) Runnable openWorld) {
+  			 ^
+    symbol:   class Local
+    location: class WorldAdviceMixin
+  2 errors
 
 * Try:
 > Check your code and dependencies to fix the compilation error(s)
 > Run with --scan to get full insights from a Build Scan (powered by Develocity).
 
-BUILD FAILED in 9s
-2 actionable tasks: 2 executed
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 12s
+4 actionable tasks: 4 executed
