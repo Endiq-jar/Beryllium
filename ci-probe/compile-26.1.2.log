@@ -1,10 +1,10 @@
 ## minecraft 26.1.2
-## commit: 9db89fd
-## gradle exit: 0, validate exit: 0
-## compile errors: 0
+## commit: db9eca7
+## gradle exit: 1, validate exit: 1
+## compile errors: 2
 ## access widener: accessWidener v2 official
-## packaged widener: accessWidener v2 official
-## validate output: validated 1 artifact(s) pinned to Minecraft 26.1.2 
+## packaged widener: 
+## validate output: no non-sources jar found in build/libs 
 
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
 Daemon will be stopped at the end of the build 
@@ -14,34 +14,36 @@ Fabric Loom: 1.17.21
 Failed to parse fabric.mod.json: /home/runner/work/Beryllium/Beryllium/src/main/resources/fabric.mod.json
 
 > Task :clean
+
 > Task :compileJava
-> Task :processResources
-> Task :classes
-> Task :compileClientJava
-> Task :processClientResources
-> Task :processIncludeJars
-> Task :clientClasses
-> Task :jar
-> Task :compileTestJava NO-SOURCE
-> Task :assemble
-> Task :processTestResources NO-SOURCE
-> Task :testClasses UP-TO-DATE
-> Task :test NO-SOURCE
-> Task :validateAccessWidener
-> Task :check
+/home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/dimension/ParallelDimensionTicker.java:341: error: method warn in class BerylliumLog cannot be applied to given types;
+			BerylliumLog.warn("[BERYLLIUM] Parallel dimension ticking disabled for this session: "
+			            ^
+  required: String
+  found:    String,Throwable
+  reason: actual and formal argument lists differ in length
+1 error
 
-> Task :printBuildTarget
-Beryllium target: Minecraft 26.1.2; full optimization set; unobfuscated Loom pipeline; ViewArea=true, drawInBatch text hooks=false
-
-> Task :build
+> Task :compileJava FAILED
 
 [Incubating] Problems report is available at: file:///home/runner/work/Beryllium/Beryllium/build/reports/problems/problems-report.html
 
-Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+FAILURE: Build failed with an exception.
 
-You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+* What went wrong:
+Execution failed for task ':compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
+> Compilation failed; see the compiler output below.
+  /home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/dimension/ParallelDimensionTicker.java:341: error: method warn in class BerylliumLog cannot be applied to given types;
+  			BerylliumLog.warn("[BERYLLIUM] Parallel dimension ticking disabled for this session: "
+  			            ^
+    required: String
+    found:    String,Throwable
+    reason: actual and formal argument lists differ in length
+  1 error
 
-For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
 
-BUILD SUCCESSFUL in 10s
-9 actionable tasks: 9 executed
+BUILD FAILED in 8s
+2 actionable tasks: 2 executed
