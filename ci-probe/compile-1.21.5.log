@@ -1,10 +1,10 @@
 ## minecraft 1.21.5
-## commit: 4678239
-## gradle exit: 1, validate exit: 1
-## compile errors: 4
+## commit: adbae69
+## gradle exit: 0, validate exit: 0
+## compile errors: 0
 ## access widener: accessWidener v1 named
-## packaged widener: 
-## validate output: no non-sources jar found in build/libs 
+## packaged widener: accessWidener	v1	intermediary
+## validate output: validated 1 artifact(s) pinned to Minecraft 1.21.5 
 
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
 Daemon will be stopped at the end of the build 
@@ -17,42 +17,67 @@ Failed to parse fabric.mod.json: /home/runner/work/Beryllium/Beryllium/src/main/
 > Task :compileJava
 > Task :processResources
 > Task :classes
+> Task :compileClientJava
+> Task :processClientResources
+> Task :jar
+> Task :processIncludeJars
+> Task :clientClasses
+> Task :compileTestJava NO-SOURCE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test NO-SOURCE
+> Task :validateAccessWidener
+> Task :check
 
-> Task :compileClientJava FAILED
-/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/WorldAdviceMixin.java:9: error: cannot find symbol
-import org.spongepowered.asm.mixin.injection.Local;
-                                            ^
-  symbol:   class Local
-  location: package org.spongepowered.asm.mixin.injection
-/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/WorldAdviceMixin.java:40: error: cannot find symbol
-			@Local(argsOnly = true) Runnable openWorld) {
-			 ^
-  symbol:   class Local
-  location: class WorldAdviceMixin
-2 errors
+> Task :printBuildTarget
+Beryllium target: Minecraft 1.21.5; full optimization set; remapped Loom pipeline; ViewArea=true, drawInBatch text hooks=true; extract render state=false, moved chat types=false; excluded mixins=chat.ChatUnsignedIconModernMixin,render.BlockEntityExtractMixin
+Cannot remap extractTitle because it does not exist in any of the targets [net/minecraft/client/gui/Gui]
+Cannot remap extractTitle because it does not exist in any of the targets [net/minecraft/client/gui/Gui]
+Cannot remap extractTitle because it does not exist in any of the targets [net/minecraft/client/gui/Gui]
+Cannot remap extractTitle because it does not exist in any of the targets [net/minecraft/client/gui/Gui]
+Cannot remap extract because it does not exist in any of the targets [net/minecraft/client/particle/ParticleEngine]
+Cannot remap createWorldSessionEventSender because it does not exist in any of the targets [net/minecraft/client/telemetry/ClientTelemetryManager]
+Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;ILnet/minecraft/client/GuiMessageTag;Z)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;Lnet/minecraft/client/multiplayer/chat/GuiMessageSource;Lnet/minecraft/client/multiplayer/chat/GuiMessageTag;)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;ILnet/minecraft/client/GuiMessageTag;Z)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;Lnet/minecraft/client/multiplayer/chat/GuiMessageSource;Lnet/minecraft/client/multiplayer/chat/GuiMessageTag;)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap refreshTrimmedMessage because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap getTooltipLines(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/TooltipFlag;)Ljava/util/List; because it does not exist in any of the targets [net/minecraft/world/item/ItemStack]
+Cannot remap tick because it does not exist in any of the targets [net/minecraft/server/MinecraftServer]
+Cannot remap tick because it does not exist in any of the targets [net/minecraft/server/MinecraftServer]
+Cannot remap renderSnowAndRain because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer]
+Cannot remap setLevel(Lnet/minecraft/client/multiplayer/ClientLevel;)V because it does not exist in any of the targets [net/minecraft/client/Minecraft]
+Cannot remap <init>(Lnet/minecraft/world/entity/Entity;Z)V because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
+Cannot remap <init>(Lnet/minecraft/world/entity/Entity;Z)V because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
+Cannot remap <init>(Lnet/minecraft/world/entity/Entity;Z)V because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
+Cannot remap tickRain because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer]
+Cannot remap shouldShowName(Lnet/minecraft/world/entity/Entity;)Z because it does not exist in any of the targets [net/minecraft/client/renderer/entity/EntityRenderer]
+Cannot remap getHeldItem because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
+Cannot remap render(Lnet/minecraft/world/level/block/entity/BeaconBlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V because it does not exist in any of the targets [net/minecraft/client/renderer/blockentity/BeaconRenderer]
+Cannot remap handleNetherPortalClient because it does not exist in any of the targets [net/minecraft/client/player/LocalPlayer]
+Cannot remap handleConfusionTransitionEffect because it does not exist in any of the targets [net/minecraft/client/player/LocalPlayer]
+Cannot remap drawInBatch(Lnet/minecraft/network/chat/Component;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
+Cannot remap drawInBatch(Lnet/minecraft/util/FormattedText;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
+Cannot remap drawInBatch(Ljava/lang/String;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
+Cannot remap extractRenderState because it does not exist in any of the targets [net/minecraft/client/gui/screens/LoadingOverlay]
+Cannot remap isReadyToFadeOut because it does not exist in any of the targets [net/minecraft/client/gui/screens/LoadingOverlay]
+Cannot remap extractRenderState because it does not exist in any of the targets [net/minecraft/client/gui/screens/LoadingOverlay]
+Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;ILnet/minecraft/client/GuiMessageTag;Z)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;Lnet/minecraft/client/multiplayer/chat/GuiMessageSource;Lnet/minecraft/client/multiplayer/chat/GuiMessageTag;)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap tickEntities()V because it does not exist in any of the targets [net/minecraft/world/level/Level]
+Cannot remap tickNonPassenger(Lnet/minecraft/world/entity/Entity;)V because it does not exist in any of the targets [net/minecraft/world/level/Level]
+Cannot remap drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;IIZ)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
+Cannot remap drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)V because it does not exist in any of the targets [net/minecraft/client/gui/Font]
+Cannot remap tickEntities()V because it does not exist in any of the targets [net/minecraft/world/level/Level]
+Cannot remap drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)V because it does not exist in any of the targets [net/minecraft/client/gui/Font]
+Cannot remap drawInBatch(Lnet/minecraft/util/FormattedCharSequence;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)V because it does not exist in any of the targets [net/minecraft/client/gui/Font]
+
+> Task :remapJar
+> Task :remapSourcesJar SKIPPED
+> Task :assemble
+> Task :build
 
 [Incubating] Problems report is available at: file:///home/runner/work/Beryllium/Beryllium/build/reports/problems/problems-report.html
-
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':compileClientJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
-> Compilation failed; see the compiler output below.
-  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/WorldAdviceMixin.java:9: error: cannot find symbol
-  import org.spongepowered.asm.mixin.injection.Local;
-                                              ^
-    symbol:   class Local
-    location: package org.spongepowered.asm.mixin.injection
-  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/WorldAdviceMixin.java:40: error: cannot find symbol
-  			@Local(argsOnly = true) Runnable openWorld) {
-  			 ^
-    symbol:   class Local
-    location: class WorldAdviceMixin
-  2 errors
-
-* Try:
-> Check your code and dependencies to fix the compilation error(s)
-> Run with --scan to get full insights from a Build Scan (powered by Develocity).
 
 Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
 
@@ -60,5 +85,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD FAILED in 13s
-4 actionable tasks: 4 executed
+BUILD SUCCESSFUL in 18s
+10 actionable tasks: 10 executed

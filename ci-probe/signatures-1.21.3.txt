@@ -1,5 +1,5 @@
 ## minecraft 1.21.3
-## commit: 4678239
+## commit: adbae69
 ## source files: 148
 
 === net.minecraft.client.gui.Font

@@ -1,5 +1,5 @@
 ## minecraft 26.1.1
-## commit: 4678239
+## commit: adbae69
 ## source files: 148
 
 === net.minecraft.client.gui.Font
