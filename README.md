@@ -125,6 +125,107 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
   whole queue after a flight, a world load or a redstone flood. Uploads are deferred, never
   dropped, and the allowance shrinks automatically when frames are already expensive.
 
+### Client quality-of-life
+
+One flat set of switches, all on by default ("keep everything enabled"). Each one names
+the vanilla behaviour it replaces, so turning it off restores exactly that behaviour.
+
+**Chat**
+
+- **Improved command suggestions** — arguments that *contain* the typed text match, not
+  only arguments that start with it, and suggestions whose id has no namespace prefix
+  are kept. Prefix matches still rank above substring matches.
+- **Command length** — commands may be longer than vanilla's 256 characters. Chat
+  *messages* keep the vanilla limit on purpose: a server kicks for an over-long chat
+  message, so raising that would be a way to get kicked, not a feature.
+- **Deduplicate ("compact chat")** — a repeated message folds into the line above it
+  with a `(xN)` counter, reached through the game's own history so the count survives
+  the message being trimmed. `CONSECUTIVE` folds only a repeat of the newest line,
+  `ALWAYS` also folds a repeat of a line further up; separator-only lines are never
+  folded.
+- **Chat filter** — hides "X has made the advancement Y" announcements and the
+  server-generated admin/command-feedback lines, decided from the message's translation
+  key rather than its text.
+- **More history** — the chat keeps `maxChatHistory` lines instead of 100.
+- **Unsigned-message icon** — the "cannot be verified" marker is removed.
+
+**Keybinds**
+
+- **Multiple bindings per key** — one action may have several keys and one key may
+  drive several actions. Vanilla's arrays assume one key per action; Beryllium keeps its
+  own index and applies a key press to every binding it owns, and only if every one of
+  them accepted it.
+- **No reused-modifier-key warning** — the controls screen stops flagging a key in the
+  creative category (the combination keys) and stops flagging a conflict between two
+  untouched defaults of one category. Real collisions between player-set keys still warn.
+- **Narrator rebinding** — the narrator key is rebindable instead of hardcoded.
+
+**Loading and screens**
+
+- **Remove overlay** — the loading/reload overlay is never installed: nothing is drawn
+  over the world, the mouse is not captured by it, and the game stays interactive while
+  a reload or a world load runs. `disableSplashScreen` and
+  `disableLoadingFadeAnimation` cover the same behaviour from inside the overlay for the
+  case where it is still installed.
+- **Loading terrain** — the "loading terrain" screen is skipped.
+- **Pack version mismatch** — a pack built for another game version can be selected
+  without the mismatch screen.
+- **World advice** — opening a world that uses experimental settings no longer stops at
+  the confirmation screen; the world opens the way the confirmation would have opened
+  it. Back up a world before opening it with a newer game version.
+- **Inventory tabs** — creative inventory tabs switch on mouse press instead of release.
+- **Portal screens** — a screen stays open while walking through a portal.
+
+**Rendering switches**
+
+- **Model gaps** — the inset the game applies to atlas sprites inside a block atlas is
+  removed, closing the seams between the faces of generated models.
+- **Particles** — particles are not added, ticked or drawn.
+- **Texture animation** — animated textures hold their first frame.
+- **Toasts** — advancement, recipe and unverified-chat toasts are hidden.
+- **Weather** — rain and snow are neither drawn nor given their splash particles and
+  sounds.
+- **Title size** — a title or subtitle wider than the screen is scaled down instead of
+  running off both edges.
+- **Tooltips** — tooltip lines wider than `maxTooltipWidth` are wrapped onto several
+  lines, which keeps the game's own positioner able to keep the tooltip on screen.
+- **Night vision flicker** — the last second of the effect ramps smoothly instead of
+  flashing.
+- **Widget fade** — the title screen widgets do not fade in.
+
+**Threads and worlds**
+
+- **Thread priorities** — the render, server and worker threads are nudged to the
+  priorities in the config. More is not always better: the defaults are close to normal,
+  and the tuner re-checks on a timer rather than every frame.
+- **Parallel dimension ticking** — an integrated server's dimensions tick in parallel,
+  each tick is a barrier so no dimension runs ahead of another, and the whole thing falls
+  back to ticking them in series when no safe parallel path was found. Every world
+  mutation a worker makes is deferred to the server thread in tick order, so redstone and
+  chunk loading see exactly the order they would see in vanilla.
+- **Conditional block entity meshing** — supported block entities (signs, hanging signs,
+  banners, beds) are drawn by the game while they are animating and reused as a captured
+  render state while they are idle and far enough away, which is what makes them
+  effectively part of the terrain. Cached states are dropped when the block entity
+  reports a change, when the world changes, and after `blockEntityMeshCacheFrames`
+  frames.
+
+**Worlds**
+
+- **Delete to trash** — a deleted world is moved to the operating system's trash
+  (freedesktop trash on Linux, `~/.Trash` on macOS, a `.trash` folder inside the saves
+  directory when neither is available; on Windows the world is deleted as before, because
+  there is no portable trash API).
+- **Resource packs** — the server's resource packs are no longer pinned in place, so they
+  can be moved and disabled like any other pack.
+- **Telemetry** — the game is handed a telemetry sender that does nothing.
+- **Narrator error** — asking for a narrator on a machine that has none no longer logs an
+  error.
+- **Paused music** — music stops while the window is unfocused and resumes when it is
+  focused again.
+- **Unfocused volume** — the game plays at `unfocusedVolume` of its volume while the
+  window is unfocused.
+
 ### Sign optimization
 
 - **Sign text hidden at distance** — beyond `signTextCullDistance` (default 16 blocks) the
@@ -337,6 +438,9 @@ optimization should never prevent Minecraft from reaching the title screen.
 | 20 — worker pool / parallel entity processing | ✅ done — real, but experimental; see below |
 | 21 — async random ticks | ✅ done — real, but experimental; see below |
 
+| 22 — client quality-of-life set | ✅ done — chat, keybinds, overlay/loading, rendering switches, worlds, toasts/weather, tooltips, thread priorities |
+| 23 — parallel dimension ticking | ✅ done — per-tick barrier, deferred mutations, measured speedup gate, serial fallback |
+| 24 — conditional block entity meshing | ✅ done — captured render states for idle block entities on the extract pipeline (1.21.9+); the pre-1.21.9 path keeps the direct cull |
 ## Experimental & self-checking behaviour
 
 Two features on the list are genuinely risky, and they are the reason this section exists:
@@ -533,6 +637,55 @@ transcribed constants nobody could check.
 | `autoTuneWeakDevices` | `true` | One-shot low-end video preset on COMPATIBILITY/STANDARD-tier devices |
 | `autoTuneApplied` | `false` | Internal: set automatically once the preset has run (set `false` to re-apply) |
 | `compatibilityModeEnabled` | `true` | Detect known optimization mods and defer overlapping features (Sodium → chunk work, EntityCulling → entity & block entity culling) |
+
+| `improvedCommandSuggestions` | `true` | Match command arguments that contain the typed text, and keep namespace-less suggestions |
+| `commandLengthLimit` | `true` | Allow commands longer than 256 characters (chat messages keep the vanilla limit) |
+| `chatFilter` | `true` | Master switch for the two chat filters below |
+| `chatAnnounceAdvancements` | `true` | Hide "X has made the advancement Y" announcements |
+| `chatAdminMessages` | `true` | Hide command feedback / server-generated admin lines |
+| `maxChatHistory` | `1000` | Chat lines kept (values below vanilla's 100 are ignored) |
+| `compactChat` | `true` | Fold a repeated chat message into the previous line with a `(xN)` counter |
+| `compactChatMode` | `CONSECUTIVE` | `CONSECUTIVE` = fold repeats of the newest line only; `ALWAYS` = fold any repeat still in history |
+| `removeUnsignedChatIcon` | `true` | Remove the "unsigned message" marker |
+| `deleteToTrash` | `true` | Move a deleted world to the OS trash instead of erasing it |
+| `disableWorldAdvice` | `true` | Open a world with experimental settings without the confirmation screen |
+| `multipleBindingsPerKey` | `true` | Several keys per action, and several actions per key |
+| `noReusedModifierKeyWarning` | `true` | No warning for creative-category keys or for two untouched defaults of one category |
+| `remapNarrator` | `true` | Make the narrator key rebindable |
+| `removeOverlay` | `true` | The loading/reload overlay is never installed (no background, not paused, interactive) |
+| `disableSplashScreen` | `true` | The overlay does not pause the game while it is installed |
+| `disableLoadingFadeAnimation` | `true` | Skip the loading fade and end the overlay as soon as the game is ready |
+| `disableLoadingTerrain` | `true` | Skip the "loading terrain" screen |
+| `disablePackVersionMismatchScreen` | `true` | Select a pack built for another version without the mismatch screen |
+| `fixModelGaps` | `true` | Close the seams between faces of generated block/item models |
+| `disableParticles` | `true` | Do not add, tick or draw particles |
+| `disableTextureAnimation` | `true` | Hold animated textures on their first frame |
+| `disableToasts` | `true` | Hide advancement, recipe and unverified-chat toasts |
+| `disableWeather` | `true` | No rain/snow drawing, splash particles or rain sounds |
+| `fixTitleSize` | `true` | Scale down a title/subtitle that would not fit on screen |
+| `maxTitleWidthFraction` | `0.9` | Fraction of the screen width a title may use (clamped to 0.1 - 1.0) |
+| `noNightVisionFlicker` | `true` | Smooth ramp instead of the night vision flicker |
+| `allowScreensInPortals` | `true` | Keep the current screen open through a portal |
+| `fixInventoryTabSwitching` | `true` | Creative inventory tabs switch on mouse press |
+| `noNarratorError` | `true` | Do not log an error when no narrator is available |
+| `noTelemetry` | `true` | Hand the game a telemetry sender that does nothing |
+| `pauseMusic` | `true` | Pause music while the window is unfocused |
+| `removeWidgetFade` | `true` | No fade-in for title-screen widgets |
+| `tooltips` | `true` | Wrap tooltip lines that are too wide to fit |
+| `maxTooltipWidth` | `320` | Tooltip width in pixels before lines are wrapped |
+| `unPinResourcePacks` | `true` | Server resource packs can be moved and disabled |
+| `unfocusedVolumeReducer` | `true` | Lower the volume while the window is unfocused |
+| `unfocusedVolume` | `0.25` | Volume multiplier used while unfocused (`1.0` = off) |
+| `threadPriorities` | `true` | Nudge the render/server/worker thread priorities |
+| `renderThreadPriority` | `7` | Priority for the client render thread (1-10) |
+| `workerThreadPriority` | `5` | Priority for the client worker pools (1-10) |
+| `serverThreadPriority` | `7` | Priority for the integrated server thread (1-10) |
+| `parallelDimensionTicking` | `true` | Tick the server's dimensions in parallel with a per-tick barrier and a serial fallback |
+| `parallelDimensionTickThreads` | `0` | Worker threads for parallel dimension ticking (`0` = auto: cores - 2, max 8) |
+| `parallelDimensionTickMinSpeedup` | `1.02` | Parallel ticking only stays engaged while it measures this much faster than serial |
+| `blockEntityMeshing` | `true` | Reuse captured block entity render states while they are idle and far away |
+| `blockEntityMeshMinDistance` | `24.0` | Block entities closer than this are always drawn by the game |
+| `blockEntityMeshCacheFrames` | `40` | How many frames a captured render state stays reusable |
 
 ## Compatibility
 
