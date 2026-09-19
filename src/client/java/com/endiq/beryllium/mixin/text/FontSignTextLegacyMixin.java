@@ -1,10 +1,10 @@
 package com.endiq.beryllium.mixin.text;
 
 import com.endiq.beryllium.text.SignTextState;
-import org.joml.Matrix4f;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
+import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -12,13 +12,17 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Sign text optimisation for releases that predate {@code Font.DisplayMode} (1.19.4),
- * where the see-through/glow layer is selected by a plain {@code boolean} instead.
+ * Sign text optimisation for the releases before the display-mode overloads.
  *
- * <p>Identical logic to {@code FontSignTextMixin} — the only difference is which argument
- * identifies the outline layer. On 1.20+ these descriptors simply do not resolve and the
- * mixin is a no-op ({@code require = 0}), which is why both variants can live in the same
- * source tree.
+ * <p>The two {@code drawInBatch} overloads that sign text goes through on 1.19.x carry a plain
+ * {@code seeThrough} boolean instead of a {@link Font.DisplayMode}; the optimisation decides the
+ * same three things there — hide text that is too far away or out of view, hide the glowing
+ * outline pass, and drop it entirely for a sign that is not glowing — and answers with the same
+ * "drew nothing" value vanilla returns for an empty draw.
+ *
+ * <p>Both injectors name a full descriptor and are allowed not to match
+ * ({@code require = 0}), so every release that carries the display-mode overloads instead
+ * simply skips this file and is handled by {@code FontSignTextMixin}.
  */
 @Mixin(Font.class)
 public abstract class FontSignTextLegacyMixin {
@@ -34,7 +38,7 @@ public abstract class FontSignTextLegacyMixin {
 		MultiBufferSource bufferSource, boolean seeThrough, int backgroundColor,
 		int packedLightCoords, CallbackInfoReturnable<Integer> cir
 	) {
-		beryllium$decideLegacy(seeThrough, cir);
+		beryllium$decideLegacy(seeThrough, y, cir);
 	}
 
 	@Inject(
@@ -48,16 +52,20 @@ public abstract class FontSignTextLegacyMixin {
 		MultiBufferSource bufferSource, boolean seeThrough, int backgroundColor,
 		int packedLightCoords, CallbackInfoReturnable<Integer> cir
 	) {
-		beryllium$decideLegacy(seeThrough, cir);
+		beryllium$decideLegacy(seeThrough, y, cir);
 	}
 
 	@Unique
-	private void beryllium$decideLegacy(boolean seeThrough, CallbackInfoReturnable<Integer> cir) {
+	private void beryllium$decideLegacy(boolean seeThrough, float y, CallbackInfoReturnable<Integer> cir) {
+		if (SignTextState.isDrawingShadowPass()) {
+			// Our own replacement pass: never cancel it.
+			return;
+		}
 		if (!SignTextState.isInSignText()) {
 			return;
 		}
 
-		SignTextState.noteDraw(seeThrough);
+		SignTextState.noteDraw(seeThrough, y);
 
 		if (SignTextState.shouldHideText()) {
 			cir.setReturnValue(0);

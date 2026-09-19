@@ -1,32 +1,33 @@
+# TEMPORARY diagnostic workflow — removed before merge.
+#
+# The workspace this change is developed in has no JDK and no Maven/Gradle network access, and
+# neither GitHub's log-download endpoint nor the artifact blob store is reachable from it, so
+# the real vanilla API and the real compile results cannot be inspected locally. This workflow
+# builds every covered release with the exact CI command and commits the results to the branch
+# so they can be read with a normal `git show`.
+#
+# It is deliberately ONE job with a sequential loop: an earlier version used a matrix plus
+# upload/download-artifact to collect the logs, and the collection step silently lost most of
+# them. A single job writing straight into the working tree cannot lose anything.
 name: probe
 
-# Dumps the mapped Minecraft class members for the selected release into the check-run
-# summary. The mapped jar only exists where Mojang's servers are reachable (CI), so this
-# is the way to answer "what does class X look like on version Y" without guessing
-# during cross-version maintenance.
-
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Minecraft version (e.g. 1.21.11 or 26.2)"
-        required: true
-      classes:
-        description: "Fully-qualified classes to inspect, comma-separated"
-        required: true
-        default: "net.minecraft.client.Camera"
+  push:
+    branches:
+      - "arena/**"
 
 permissions:
-  contents: read
-  checks: write
+  contents: write
 
 concurrency:
   group: beryllium-probe-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   probe:
-    name: Probe Minecraft ${{ inputs.version }} API
+    name: probe every covered release
+    # The commit at the end of this job would otherwise re-trigger the whole thing, forever.
+    if: ${{ !contains(github.event.head_commit.message, 'ci-probe:') }}
     runs-on: ubuntu-24.04
     steps:
       - name: checkout repository
@@ -42,47 +43,246 @@ jobs:
       - name: make Gradle wrapper executable
         run: chmod +x ./gradlew
 
-      - name: resolve mapped Minecraft jar
+      - name: write the classpath probe init script
         run: |
-          set -x
-          ./gradlew --no-daemon -Pminecraft_version="${{ inputs.version }}" \
-            dependencies --configuration compileClasspath > gradle-resolve.log 2>&1 || true
-          tail -5 gradle-resolve.log
+          cat > /tmp/probe-init.gradle <<'EOF'
+          allprojects { proj ->
+              proj.tasks.register('berylliumProbeClasspath') {
+                  doLast {
+                      def cp = new LinkedHashSet()
+                      for (String name : ['main', 'client']) {
+                          try {
+                              cp.addAll(proj.extensions.getByName('sourceSets').getByName(name).compileClasspath.files)
+                          } catch (Throwable ignored) {
+                              // source set does not exist on this release
+                          }
+                      }
+                      new File(proj.projectDir, 'probe-cp.txt').text =
+                          cp.findAll { it != null && it.exists() }.collect { it.absolutePath }.join(':')
+                  }
+              }
+          }
+          EOF
 
-      - name: inspect classes
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: build every release exactly like CI does
         run: |
-          jar=$(find ~/.gradle/caches/fabric-loom -name "*.jar" \
-            -path "*minecraft*" ! -name "*sources*" ! -name "*mappings*" \
-            | sort | tail -5)
-          echo "candidate jars:" | tee probe-output.txt
-          echo "$jar" | tee -a probe-output.txt
-          mapped=""
-          for j in $jar; do
-            if unzip -l "$j" 'net/minecraft/client/Camera.class' > /dev/null 2>&1; then
-              mapped="$j"; break
-            fi
+          set -u
+          COMMIT="$(git rev-parse --short HEAD)"
+          mkdir -p ci-probe
+          rm -rf ci-probe/*
+          python3 scripts/resolve_minecraft_releases.py > /tmp/matrix.json
+          VERSIONS=$(python3 -c "import json;print(' '.join(e['minecraft'] for e in json.load(open('/tmp/matrix.json'))['include']))")
+          echo "probing: $VERSIONS"
+
+          for V in $VERSIONS; do
+            echo "=================== $V"
+            LOG="ci-probe/compile-$V.log"
+            rm -f probe-cp.txt
+
+            # Vanilla signatures, so an API that moved can be read directly.
+            ./gradlew --no-daemon --console=plain -I /tmp/probe-init.gradle \
+              -Pminecraft_version="$V" berylliumProbeClasspath > /tmp/setup.txt 2>&1 || true
+            CP="$(cat probe-cp.txt 2>/dev/null || true)"
+            {
+              echo "## minecraft $V"
+              echo "## commit: $COMMIT"
+              echo "## source files: $(find src -name '*.java' | wc -l)"
+              echo
+              for CLS in \
+                net.minecraft.client.gui.Font \
+                'net.minecraft.client.gui.Font$DisplayMode' \
+                net.minecraft.client.Camera \
+                net.minecraft.client.Minecraft \
+                net.minecraft.client.renderer.LevelRenderer \
+                net.minecraft.client.renderer.SectionRenderDispatcher \
+                net.minecraft.client.renderer.ViewArea \
+                net.minecraft.client.renderer.blockentity.AbstractSignRenderer \
+                net.minecraft.client.renderer.blockentity.SignRenderer \
+                net.minecraft.client.renderer.blockentity.BeaconRenderer \
+                net.minecraft.client.renderer.blockentity.BlockEntityRenderer \
+                net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher \
+                net.minecraft.client.renderer.entity.EntityRenderDispatcher \
+                net.minecraft.client.particle.ParticleEngine \
+                net.minecraft.world.entity.Entity \
+                net.minecraft.world.level.Level \
+                net.minecraft.server.level.ServerLevel \
+                net.minecraft.world.level.chunk.LevelChunk \
+                net.minecraft.world.level.ChunkPos ; do
+                echo "=== $CLS"
+                javap -p -cp "$CP" "$CLS" 2>&1 | head -120 || echo "MISSING"
+                echo
+              done
+            } > "ci-probe/signatures-$V.txt" 2>&1 || true
+
+            # Richer API dump at the era endpoints: the classes every feature added in
+            # this change has to hook, so signatures come from the real jars instead of
+            # documentation. Only a handful of releases need it -- the endpoints of each
+            # renderer/pipeline era -- so the rest of the run is not slowed down.
+            case " $V " in
+              " 1.19.4 "|" 1.20.1 "|" 1.20.6 "|" 1.21.1 "|" 1.21.4 "|" 1.21.8 "|" 26.1 "|" 26.3 ")
+                {
+                  echo "## minecraft $V"
+                  echo "## commit: $COMMIT"
+                  echo "## classpath entries: $(echo "$CP" | tr ':' '\n' | wc -l)"
+                  echo
+                  echo "### class names matching the features under test"
+                  CLIENTJAR="$(echo "$CP" | tr ':' '\n' | grep -E '\.jar$' | while read -r j; do unzip -l "$j" 2>/dev/null | grep -q 'net/minecraft/client/Minecraft.class' && { echo "$j"; break; }; done)"
+                  if [ -n "$CLIENTJAR" ]; then
+                    unzip -l "$CLIENTJAR" 2>/dev/null | awk '{print $4}' | grep -E '\.class$' \
+                      | grep -Ei 'gui/(components|screens)/(chat|command|toast|pack|worldselection)|toasts/|ChatComponent|CommandSuggest|PackVersion|PackCompatibility|PackEntry|Narrator|Telemetry|WeatherEffectRenderer|SubtitleOverlay|Tooltip|Overlay|Loading|KeyMapping|KeyBindsList|SoundEngine|TextureAtlasSprite|ItemModelGenerator|ModelBlockRenderer|ClientLevel|LocalPlayer|CreativeModeInventory|Narrator|Window\.class' \
+                      | sort -u | head -400
+                  else
+                    echo "no client jar found on the classpath"
+                  fi
+                  echo
+                  echo "### signatures"
+                  for CLS in \
+                    net.minecraft.client.Minecraft \
+                    net.minecraft.client.Options \
+                    net.minecraft.client.gui.Gui \
+                    net.minecraft.client.gui.Hud \
+                    net.minecraft.client.gui.screens.ProgressScreen \
+                    net.minecraft.client.gui.screens.ReconfiguringScreen \
+                    net.minecraft.client.gui.screens.ConnectScreen \
+                    net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner \
+                    net.minecraft.client.multiplayer.chat.GuiMessage \
+                    net.minecraft.client.multiplayer.chat.GuiMessageTag \
+                    net.minecraft.client.gui.components.toasts.ToastManager \
+                    net.minecraft.client.renderer.texture.AbstractTexture \
+                    net.minecraft.client.gui.screens.packs.PackSelectionScreen \
+                    net.minecraft.server.packs.repository.PackRepository \
+                    net.minecraft.client.multiplayer.chat.ChatListener \
+                    net.minecraft.world.entity.player.Player \
+                    'net.minecraft.world.item.Item$TooltipContext' \
+                    net.minecraft.client.gui.components.AbstractWidget \
+                    net.minecraft.client.gui.screens.worldselection.CreateWorldScreen \
+                    net.minecraft.client.gui.components.ChatComponent \
+                    net.minecraft.client.GuiMessage \
+                    net.minecraft.client.GuiMessageTag \
+                    net.minecraft.client.gui.screens.ChatScreen \
+                    net.minecraft.client.gui.components.CommandSuggestions \
+                    net.minecraft.commands.SharedSuggestionProvider \
+                    net.minecraft.client.gui.components.EditBox \
+                    net.minecraft.client.gui.screens.Screen \
+                    net.minecraft.client.gui.screens.TitleScreen \
+                    net.minecraft.client.gui.screens.LoadingOverlay \
+                    net.minecraft.client.gui.screens.Overlay \
+                    net.minecraft.client.gui.screens.LevelLoadingScreen \
+                    net.minecraft.client.gui.screens.ReceivingLevelScreen \
+                    net.minecraft.client.gui.screens.worldselection.WorldOpenFlows \
+                    'net.minecraft.client.gui.screens.worldselection.WorldSelectionList$WorldListEntry' \
+                    'net.minecraft.client.gui.screens.packs.TransferableSelectionList$PackEntry' \
+                    net.minecraft.server.packs.repository.PackCompatibility \
+                    net.minecraft.server.packs.repository.Pack \
+                    'net.minecraft.world.level.storage.LevelStorageSource$LevelStorageAccess' \
+                    net.minecraft.client.KeyMapping \
+                    net.minecraft.client.KeyboardHandler \
+                    'net.minecraft.client.gui.screens.controls.KeyBindsList$KeyEntry' \
+                    net.minecraft.client.sounds.SoundEngine \
+                    net.minecraft.client.sounds.SoundManager \
+                    net.minecraft.client.renderer.GameRenderer \
+                    net.minecraft.client.particle.ParticleEngine \
+                    net.minecraft.client.multiplayer.ClientLevel \
+                    net.minecraft.client.multiplayer.ClientPacketListener \
+                    net.minecraft.client.renderer.texture.TextureManager \
+                    net.minecraft.client.renderer.texture.TextureAtlasSprite \
+                    net.minecraft.client.renderer.block.model.ItemModelGenerator \
+                    net.minecraft.client.renderer.block.ModelBlockRenderer \
+                    net.minecraft.client.gui.components.SubtitleOverlay \
+                    net.minecraft.client.telemetry.ClientTelemetryManager \
+                    com.mojang.text2speech.Narrator \
+                    net.minecraft.client.player.LocalPlayer \
+                    net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen \
+                    net.minecraft.client.gui.screens.inventory.AbstractContainerScreen \
+                    net.minecraft.world.item.ItemStack \
+                    net.minecraft.client.gui.components.toasts.ToastComponent \
+                    net.minecraft.client.gui.components.toasts.Toast \
+                    net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner \
+                    net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner \
+                    net.minecraft.server.MinecraftServer \
+                    net.minecraft.server.level.ServerLevel \
+                    net.minecraft.world.level.Level \
+                    net.minecraft.util.profiling.ProfilerFiller \
+                    net.minecraft.util.profiling.Profiler \
+                    net.minecraft.util.profiling.ActiveProfiler \
+                    net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher \
+                    net.minecraft.client.renderer.WeatherEffectRenderer \
+                    net.minecraft.client.renderer.LevelRenderer ; do
+                    echo "=== $CLS"
+                    javap -p -cp "$CP" "$CLS" 2>&1 || echo "MISSING"
+                    echo
+                  done
+                  echo
+                  echo "### bytecode call map (enclosing method ==> callee)"
+                  for CLS in \
+                    net.minecraft.client.gui.Gui \
+                    net.minecraft.client.gui.Hud \
+                    net.minecraft.client.gui.screens.LoadingOverlay \
+                    net.minecraft.client.gui.screens.Screen \
+                    net.minecraft.client.gui.components.toasts.ToastComponent \
+                    net.minecraft.client.gui.components.toasts.ToastManager \
+                    net.minecraft.client.KeyMapping \
+                    net.minecraft.world.item.ItemStack \
+                    net.minecraft.client.renderer.WeatherEffectRenderer \
+                    net.minecraft.client.renderer.LevelRenderer \
+                    net.minecraft.client.gui.components.ChatComponent \
+                    net.minecraft.client.renderer.GameRenderer \
+                    net.minecraft.client.renderer.texture.TextureAtlasSprite \
+                    net.minecraft.client.particle.ParticleEngine \
+                    net.minecraft.client.gui.components.SubtitleOverlay \
+                    net.minecraft.client.multiplayer.ClientLevel ; do
+                    echo "=== $CLS"
+                    javap -c -p -cp "$CP" "$CLS" 2>/dev/null | awk '
+                      /^  [a-zA-Z][A-Za-z0-9_$.<>,\[\] ]*\(.*\)/ { m=$0; sub(/^ +/, "", m); sub(/;.*/, "", m) }
+                      /\/\/ (Method|Field|InterfaceMethod) / { c=$0; sub(/.*\/\/ /, "", c); print m " ==> " c }
+                    ' | sort -u | head -400
+                    echo
+                  done
+                } > "ci-probe/api-$V.txt" 2>&1 || true
+                ;;
+            esac
+
+            # The real thing: the same command CI runs for the artifact.
+            set +e
+            ./gradlew --no-daemon --console=plain clean build \
+              -Pminecraft_version="$V" > /tmp/gradle-out.txt 2>&1
+            GRADLE_EXIT=$?
+            python3 scripts/validate_built_mod.py build/libs "$V" > /tmp/validate.txt 2>&1
+            VALIDATE_EXIT=$?
+            set -e
+
+            {
+              echo "## minecraft $V"
+              echo "## commit: $COMMIT"
+              echo "## gradle exit: $GRADLE_EXIT, validate exit: $VALIDATE_EXIT"
+              echo "## compile errors: $(grep -c 'error:' /tmp/gradle-out.txt || true)"
+              echo "## access widener: $(head -1 .gradle/beryllium/beryllium.accesswidener 2>/dev/null || echo MISSING)"
+              echo "## packaged widener: $(unzip -p build/libs/*.jar beryllium.accesswidener 2>/dev/null | head -1 || echo MISSING)"
+              echo "## validate output: $(cat /tmp/validate.txt | tr '\n' ' ')"
+              echo
+              tail -c 200000 /tmp/gradle-out.txt
+            } > "$LOG"
+            echo "$V done: gradle=$GRADLE_EXIT validate=$VALIDATE_EXIT"
+            rm -f probe-cp.txt
           done
-          echo "mapped jar: $mapped" | tee -a probe-output.txt
-          if [ -z "$mapped" ]; then
-            echo "no mapped jar found" | tee -a probe-output.txt
-            echo "--- gradle-resolve.log tail ---" | tee -a probe-output.txt
-            tail -c 4000 gradle-resolve.log | tee -a probe-output.txt || true
-          else
-            echo "$inputs.classes" | tr ',' '\n' | tr -d ' ' | while read -r cls; do
-              [ -z "$cls" ] && continue
-              echo "" | tee -a probe-output.txt
-              echo "=== $cls" | tee -a probe-output.txt
-              "$JAVA_HOME/bin/javap" -classpath "$mapped" "$cls" 2>&1 | tee -a probe-output.txt
-            done
-          fi
 
-          # Publish through the Checks API so the output is readable without log access.
-          summary=$(head -c 55000 probe-output.txt)
-          job_id=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs?per_page=100" \
-            --jq '.jobs[] | [.id, .name] | @tsv' \
-            | awk -F'\t' -v target="Probe Minecraft ${{ inputs.version }} API" '$2 == target {print $1; exit}')
-          gh api "repos/${{ github.repository }}/check-runs/$job_id" -X PATCH \
-            -f "output[title]=Minecraft ${{ inputs.version }} API probe" \
-            -f "output[summary]=$(printf '%s' "$summary")" || true
+      - name: publish the probe output
+        run: |
+          git config user.name "beryllium-ci-debug"
+          git config user.email "ci-debug@users.noreply.github.com"
+          git add -A ci-probe
+          if git diff --cached --quiet; then
+            echo "nothing to commit"
+            exit 0
+          fi
+          git commit -m "ci-probe: build every covered release ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase -q origin "${GITHUB_REF_NAME}" && \
+               git push -q origin "HEAD:${GITHUB_REF_NAME}"; then
+              echo "published"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "could not publish the probe output" >&2
+          exit 1

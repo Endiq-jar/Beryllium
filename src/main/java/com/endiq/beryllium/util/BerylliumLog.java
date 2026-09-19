@@ -33,6 +33,10 @@ public final class BerylliumLog {
 		LOGGER.warn("[BERYLLIUM] {}", message);
 	}
 
+	public static void warn(String message, Throwable cause) {
+		LOGGER.warn("[BERYLLIUM] {}", message, cause);
+	}
+
 	public static void error(String message, Throwable cause) {
 		LOGGER.error("[BERYLLIUM] {}", message, cause);
 	}

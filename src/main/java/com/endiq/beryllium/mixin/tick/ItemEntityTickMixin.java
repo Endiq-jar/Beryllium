@@ -51,8 +51,8 @@ public abstract class ItemEntityTickMixin {
 		}
 
 		ItemEntity self = (ItemEntity) (Object) this;
-		Level world = VanillaBridges.entityLevel(self);
-		if (world == null || world.isClientSide()) {
+		Level level = VanillaBridges.levelOf(self);
+		if (level == null || level.isClientSide()) {
 			return;
 		}
 

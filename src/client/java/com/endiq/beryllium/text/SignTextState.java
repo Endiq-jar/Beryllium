@@ -37,8 +37,18 @@ import net.minecraft.world.level.block.entity.BlockEntity;
  * passes are the text. That check runs once and only ever protects the player's signs.
  */
 public final class SignTextState {
-	/** Vanilla signs render four lines; NORMAL mode keeps one outline pass per line. */
-	private static final int LINES_PER_SIGN = 4;
+	/**
+	 * NORMAL mode keeps one outline pass per sign line (it reads as a shadow); vanilla
+	 * draws eight per line, so that is seven fewer draws for every line of glowing text.
+	 */
+	private static final int SHADOW_PASSES_PER_LINE = 1;
+
+	/**
+	 * Vertical distance in text space that separates one sign line from the next. Vanilla's
+	 * eight outline passes sit within one unit of their line's baseline, so anything larger
+	 * than a couple of units is a new line.
+	 */
+	private static final float LINE_SEPARATION = 2.5f;
 
 	private static boolean inSignText = false;
 	private static boolean hideText = false;
@@ -49,6 +59,13 @@ public final class SignTextState {
 	private static int seeThroughSeen = 0;
 	private static int mainPassSeen = 0;
 	private static boolean outlineDroppingUnsafe = false;
+
+	// Per-line accounting. Vanilla emits the outline of one line as a burst of eight draws
+	// at +/- one unit around the same base position, so a jump bigger than that means the
+	// next line has started and its "keep one pass" allowance resets with it.
+	private static float lastLineY = Float.NaN;
+	private static int outlinePassesThisLine = 0;
+	private static boolean drawingShadowPass = false;
 
 	private SignTextState() {
 	}
@@ -62,6 +79,9 @@ public final class SignTextState {
 		dropGlow = false;
 		seeThroughSeen = 0;
 		mainPassSeen = 0;
+		lastLineY = Float.NaN;
+		outlinePassesThisLine = 0;
+		drawingShadowPass = false;
 
 		BerylliumConfig config = Beryllium.config();
 		if (config == null || !config.enabled || !config.signOptimization || blockEntity == null) {
@@ -109,16 +129,78 @@ public final class SignTextState {
 	 * Records that a text draw happened inside the current sign text pass.
 	 *
 	 * @param seeThrough true when the draw is a see-through pass (the outline/glow layer)
+	 * @param y          the draw position, used to tell one sign line from the next
 	 */
-	public static void noteDraw(boolean seeThrough) {
-		if (!inSignText) {
+	public static void noteDraw(boolean seeThrough, float y) {
+		if (!inSignText || drawingShadowPass) {
 			return;
 		}
+		beryllium$line(y);
 		if (seeThrough) {
 			seeThroughSeen++;
+			outlinePassesThisLine++;
+			glowing = true;
 		} else {
 			mainPassSeen++;
 		}
+	}
+
+	/**
+	 * Records that vanilla's whole eight-pass outline ran for one line
+	 * ({@code Font#drawInBatch8xOutline}), which is how 1.20+ draws glowing sign text.
+	 */
+	public static void noteOutline(float y) {
+		if (!inSignText) {
+			return;
+		}
+		beryllium$line(y);
+		seeThroughSeen += 8;
+		glowing = true;
+	}
+
+	private static void beryllium$line(float y) {
+		if (!(Math.abs(y - lastLineY) > LINE_SEPARATION)) {
+			return;
+		}
+		lastLineY = y;
+		outlinePassesThisLine = 0;
+	}
+
+	/** True while Beryllium is drawing its own replacement shadow pass. */
+	public static boolean isDrawingShadowPass() {
+		return drawingShadowPass;
+	}
+
+	public static void setDrawingShadowPass(boolean value) {
+		drawingShadowPass = value;
+	}
+
+	/**
+	 * @return true when vanilla's multi-pass outline should not run at all for this line
+	 */
+	public static boolean shouldDropOutline() {
+		if (!inSignText || outlineDroppingUnsafe) {
+			return false;
+		}
+		BerylliumConfig config = Beryllium.config();
+		if (config == null || !config.enabled || !config.signOptimization
+				|| !config.signTextGlowOptimization) {
+			return false;
+		}
+		return shouldDropGlow() || config.signTextHideGlowOutline;
+	}
+
+	/** @return true when the dropped outline should be replaced with one shadow pass */
+	public static boolean shouldKeepOneShadowPass() {
+		if (shouldDropGlow() || outlineDroppingUnsafe) {
+			// Glow is off for this sign entirely: a shadow would be glow by another name.
+			return false;
+		}
+		BerylliumConfig config = Beryllium.config();
+		if (config == null) {
+			return false;
+		}
+		return OutlineMode.of(config.signTextOutlineMode) == OutlineMode.NORMAL;
 	}
 
 	/** Marks the current sign text as glowing (vanilla's outline/see-through path). */
@@ -182,7 +264,9 @@ public final class SignTextState {
 		if (OutlineMode.of(config.signTextOutlineMode) == OutlineMode.FAST) {
 			return true;
 		}
-		return seeThroughSeen >= LINES_PER_SIGN;
+		// NORMAL: keep the first outline pass of every line, drop the rest. What survives
+		// reads as a shadow behind the text instead of an eight-draw halo.
+		return outlinePassesThisLine >= SHADOW_PASSES_PER_LINE;
 	}
 
 	public static boolean isOutlineDroppingUnsafe() {

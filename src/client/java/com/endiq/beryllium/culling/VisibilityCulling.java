@@ -9,7 +9,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Vector3f;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -145,317 +144,65 @@ public final class VisibilityCulling {
 	}
 
 	public static Vec3 cameraPosition() {
-		Vec3 position = cameraAccessorPosition();
-		if (position != null) {
-			return position;
-		}
-		// Fallback for releases whose Camera carries its state elsewhere (26.x): the
-		// player's eye position. In third person the camera pulls back a few blocks from
-		// the eye, so the anchor is slightly different — the culling ranges already treat
-		// distances as approximate, and the alternative is not culling at all.
-		return playerEyePosition();
-	}
-
-	private static Vec3 cameraAccessorPosition() {
 		try {
-			Camera camera = mainCamera();
-			if (camera == null) {
+			Minecraft minecraft = Minecraft.getInstance();
+			if (minecraft == null || minecraft.gameRenderer == null) {
 				return null;
 			}
-			// Looked up reflectively: the accessor was renamed late in the supported range
-			// (getPosition existed through 1.21.10). A miss means "cannot determine" and the
-			// callers fall back to not culling.
-			if (!cameraPositionResolved) {
-				synchronized (VisibilityCulling.class) {
-					if (!cameraPositionResolved) {
-						cameraPositionMethod = findFirstMethod(Camera.class, "getPosition");
-						cameraPositionResolved = true;
-					}
-				}
-			}
-			Method method = cameraPositionMethod;
-			if (method == null) {
-				return null;
-			}
-			Object value = method.invoke(camera);
-			return value instanceof Vec3 vec ? vec : null;
+			Camera camera = CameraAccess.current();
+			return camera == null ? null : CameraAccess.position(camera);
 		} catch (Throwable t) {
 			return null;
 		}
 	}
-
-	private static Vec3 playerEyePosition() {
-		try {
-			Object player = Minecraft.getInstance() == null ? null : Minecraft.getInstance().player;
-			if (player == null) {
-				return null;
-			}
-			if (!playerEyeResolved) {
-				synchronized (VisibilityCulling.class) {
-					if (!playerEyeResolved) {
-						playerEyeMethod = findFirstMethod(player.getClass(), "getEyePosition");
-						playerEyeResolved = true;
-					}
-				}
-			}
-			Method method = playerEyeMethod;
-			if (method == null) {
-				return null;
-			}
-			Object value = method.invoke(player);
-			return value instanceof Vec3 vec ? vec : null;
-		} catch (Throwable t) {
-			return null;
-		}
-	}
-
-	/**
-	 * The direction the camera is looking, or {@code null} when it cannot be determined.
-	 *
-	 * <p>Reflective for the same reason as {@link #cameraPosition()}; the result is
-	 * normalised to a JOML vector because the accessor's return type changed across the
-	 * range (a {@code Vector3f} on older releases). The fallback for state-carrying
-	 * cameras is the player's view vector at full tick delta.
-	 */
-	public static Vector3f cameraLookVector() {
-		try {
-			Camera camera = mainCamera();
-			if (camera != null) {
-				if (!cameraLookResolved) {
-					synchronized (VisibilityCulling.class) {
-						if (!cameraLookResolved) {
-							cameraLookMethod = findFirstMethod(Camera.class, "getLookVector", "getLookDirection");
-							cameraLookResolved = true;
-						}
-					}
-				}
-				Method method = cameraLookMethod;
-				if (method != null) {
-					Object value = method.invoke(camera);
-					if (value instanceof Vector3f vec) {
-						return vec;
-					}
-					if (value instanceof Vec3 vec) {
-						return new Vector3f((float) vec.x, (float) vec.y, (float) vec.z);
-					}
-				}
-			}
-
-			Object player = Minecraft.getInstance() == null ? null : Minecraft.getInstance().player;
-			if (player == null) {
-				return null;
-			}
-			if (!playerLookResolved) {
-				synchronized (VisibilityCulling.class) {
-					if (!playerLookResolved) {
-						// getViewVector takes a partial-tick float; getLookAngle is no-arg.
-						playerLookMethod = findFirstMethod(player.getClass(), float.class, "getViewVector");
-						if (playerLookMethod == null) {
-							playerLookMethod = findFirstMethod(player.getClass(), "getLookAngle");
-						}
-						playerLookResolved = true;
-					}
-				}
-			}
-			Method method = playerLookMethod;
-			if (method == null) {
-				return null;
-			}
-			Object value = method.getParameterCount() == 1 ? method.invoke(player, 1.0F) : method.invoke(player);
-			if (value instanceof Vector3f vec) {
-				return vec;
-			}
-			if (value instanceof Vec3 vec) {
-				return new Vector3f((float) vec.x, (float) vec.y, (float) vec.z);
-			}
-			return null;
-		} catch (Throwable t) {
-			return null;
-		}
-	}
-
-	private static Camera mainCamera() {
-		Minecraft minecraft = Minecraft.getInstance();
-		if (minecraft == null) {
-			return null;
-		}
-		try {
-			// 1) The historical path: a no-arg method on GameRenderer returning the camera
-			//    (named getMainCamera through 26.1). Found by return type so a rename does
-			//    not matter.
-			if (minecraft.gameRenderer != null) {
-				if (!gameRendererCameraResolved) {
-					synchronized (VisibilityCulling.class) {
-						if (!gameRendererCameraResolved) {
-							gameRendererCameraMethod = findMethodReturning(
-									minecraft.gameRenderer.getClass(), Camera.class);
-							gameRendererCameraResolved = true;
-						}
-					}
-				}
-				Method method = gameRendererCameraMethod;
-				if (method != null) {
-					Object value = method.invoke(minecraft.gameRenderer);
-					if (value instanceof Camera camera) {
-						return camera;
-					}
-				}
-				// 2) A Camera-typed field on the game renderer itself.
-				Object byField = firstFieldValueOfType(minecraft.gameRenderer, Camera.class);
-				if (byField instanceof Camera camera) {
-					return camera;
-				}
-			}
-			// 3) The entity render dispatcher also carries the live camera (public field on
-			//    every release inspected). Located by type rather than by mapped name.
-			Object dispatcher = firstFieldValueOfType(minecraft, net.minecraft.client.renderer.entity.EntityRenderDispatcher.class);
-			if (dispatcher != null) {
-				Object byField = firstFieldValueOfType(dispatcher, Camera.class);
-				if (byField instanceof Camera camera) {
-					return camera;
-				}
-			}
-			return null;
-		} catch (Throwable t) {
-			return null;
-		}
-	}
-
-	/** First no-arg method whose return type is exactly {@code type}, anywhere up the
-	 *  hierarchy; {@code null} when none exists. */
-	private static Method findMethodReturning(Class<?> clazz, Class<?> type) {
-		for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-			for (Method method : current.getDeclaredMethods()) {
-				if (method.getParameterCount() == 0 && method.getReturnType() == type) {
-					try {
-						method.setAccessible(true);
-						return method;
-					} catch (Throwable ignored) {
-						// keep looking
-					}
-				}
-			}
-		}
-		return null;
-	}
-
-	/** First readable field value assignable to {@code type}, anywhere up the hierarchy;
-	 *  {@code null} when none exists or nothing is readable. */
-	private static Object firstFieldValueOfType(Object holder, Class<?> type) {
-		if (holder == null) {
-			return null;
-		}
-		for (Class<?> current = holder.getClass(); current != null && current != Object.class; current = current.getSuperclass()) {
-			for (Field field : current.getDeclaredFields()) {
-				if (!type.isAssignableFrom(field.getType())) {
-					continue;
-				}
-				try {
-					field.setAccessible(true);
-					Object value = field.get(holder);
-					if (type.isInstance(value)) {
-						return value;
-					}
-				} catch (Throwable ignored) {
-					// try the next candidate
-				}
-			}
-		}
-		return null;
-	}
-
-	private static volatile Method gameRendererCameraMethod;
-	private static volatile boolean gameRendererCameraResolved;
 
 	/** @return the world's build height, used to size beam columns. */
 	public static double ceilingOf(Level level, BlockPos pos) {
 		if (level != null) {
-			Double top = buildCeilingY(level);
-			if (top != null) {
-				return top;
+			int height = buildHeightOf(level);
+			if (height > 0) {
+				return height;
 			}
 		}
 		return pos == null ? 256.0 : pos.getY() + 256.0;
 	}
 
 	/**
-	 * The top of the world's build volume, or {@code null} when it cannot be determined.
-	 *
-	 * <p>Looked up reflectively because the accessor was renamed across the supported
-	 * range ({@code getMaxBuildHeight} on older releases, {@code getMaxY} on 1.21.5+), and
-	 * Beryllium builds one source tree for all of them. Either name answers the same
-	 * question closely enough for a beam-column bound; a miss falls back to the
-	 * conservative default in {@link #ceilingOf(Level, BlockPos)}.
+	 * The build-height accessor has been renamed more than once across the releases
+	 * Beryllium ships on, so it is resolved reflectively: whichever of the known names
+	 * this version carries wins, and if none of them exist the caller falls back to a
+	 * conservative default. That keeps beam columns sized correctly everywhere without
+	 * pinning the build to one release's mapping.
 	 */
-	private static Double buildCeilingY(Level level) {
-		try {
-			if (!buildCeilingResolved) {
-				synchronized (VisibilityCulling.class) {
-					if (!buildCeilingResolved) {
-						buildCeilingMethod = findFirstMethod(level.getClass(), "getMaxY", "getMaxBuildHeight");
-						buildCeilingResolved = true;
+	private static Method buildHeightMethod;
+	private static boolean buildHeightMethodResolved;
+
+	private static int buildHeightOf(Level level) {
+		if (!buildHeightMethodResolved) {
+			buildHeightMethodResolved = true;
+			for (String name : new String[] {"getMaxBuildHeight", "getMaxY"}) {
+				try {
+					Method method = Level.class.getMethod(name);
+					if (method.getReturnType() == int.class) {
+						buildHeightMethod = method;
+						break;
 					}
-				}
-			}
-			Method method = buildCeilingMethod;
-			if (method == null) {
-				return null;
-			}
-			Object value = method.invoke(level);
-			return value instanceof Number number ? number.doubleValue() : null;
-		} catch (Throwable t) {
-			return null;
-		}
-	}
-
-	/** Walks the class hierarchy for the first declared no-arg method with one of the
-	 *  given names; {@code null} when none exists. */
-	private static Method findFirstMethod(Class<?> clazz, String... names) {
-		for (String name : names) {
-			for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-				try {
-					Method method = current.getDeclaredMethod(name);
-					method.setAccessible(true);
-					return method;
-				} catch (NoSuchMethodException ignored) {
-					// try the next class up the hierarchy
 				} catch (Throwable ignored) {
-					break;
+					// try the next name this release might use
 				}
 			}
 		}
-		return null;
-	}
-
-	/** Same walk, but for a single-{@code float} method. */
-	private static Method findFirstMethod(Class<?> clazz, Class<?> parameter, String... names) {
-		for (String name : names) {
-			for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-				try {
-					Method method = current.getDeclaredMethod(name, parameter);
-					method.setAccessible(true);
-					return method;
-				} catch (NoSuchMethodException ignored) {
-					// try the next class up the hierarchy
-				} catch (Throwable ignored) {
-					break;
-				}
+		if (buildHeightMethod != null) {
+			try {
+				int value = (Integer) buildHeightMethod.invoke(level);
+				// getMaxY() returns the topmost *inhabitable* Y, one below the ceiling.
+				return "getMaxY".equals(buildHeightMethod.getName()) ? value + 1 : value;
+			} catch (Throwable ignored) {
+				// fall through to the default
 			}
 		}
-		return null;
+		return 0;
 	}
-
-	private static volatile Method buildCeilingMethod;
-	private static volatile boolean buildCeilingResolved;
-
-	private static volatile Method cameraPositionMethod;
-	private static volatile boolean cameraPositionResolved;
-	private static volatile Method cameraLookMethod;
-	private static volatile boolean cameraLookResolved;
-	private static volatile Method playerEyeMethod;
-	private static volatile boolean playerEyeResolved;
-	private static volatile Method playerLookMethod;
-	private static volatile boolean playerLookResolved;
 
 	/** The per-frame memo is a pure optimisation; it can be switched off without changing
 	 *  what is culled, only how often the frustum is asked. */

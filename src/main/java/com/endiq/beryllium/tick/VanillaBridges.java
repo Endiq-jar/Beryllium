@@ -6,6 +6,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 /**
@@ -24,6 +25,13 @@ import java.lang.reflect.Method;
  */
 public final class VanillaBridges {
 	private static volatile Method tickChunkMethod;
+	private static volatile Method chunkMinBlockXMethod;
+	private static volatile Method chunkMinBlockZMethod;
+	private static volatile Method chunkXMethod;
+	private static volatile Method chunkZMethod;
+	private static volatile Field chunkXField;
+	private static volatile Field chunkZField;
+	private static volatile boolean resolvedChunkPos;
 	private static volatile Method tickNonPassengerMethod;
 	private static volatile Method entityLevelMethod;
 	private static volatile boolean resolvedTickChunk;
@@ -76,33 +84,153 @@ public final class VanillaBridges {
 	}
 
 	/**
-	 * The world an entity is in, or {@code null} when it cannot be determined.
+	 * The entity's own level.
 	 *
-	 * <p>Resolved reflectively because the accessor was renamed in the middle of the
-	 * supported range ({@code getCommandSenderWorld} on older releases, {@code level} on
-	 * 1.21.6+), and Beryllium compiles one source tree for all of them.
+	 * <p>{@code Entity#getCommandSenderWorld()} is the name this was written against, but the
+	 * getter Mojang uses for "the level I am in" has been renamed since, and Beryllium is
+	 * compiled against one release at a time while shipping every release. The accessor is
+	 * therefore resolved once by name against whichever of the known spellings the running
+	 * version carries, and cached; if none of them exist the caller treats the entity as
+	 * "no level" and leaves it to vanilla.
 	 */
-	public static Level entityLevel(Entity entity) {
+	public static Level levelOf(Entity entity) {
 		if (entity == null) {
 			return null;
 		}
+		Method method = resolveEntityLevel(entity.getClass());
+		if (method == null) {
+			return null;
+		}
 		try {
-			if (!resolvedEntityLevel) {
-				synchronized (VanillaBridges.class) {
-					if (!resolvedEntityLevel) {
-						entityLevelMethod = findNoArg(entity.getClass(), "level", "getCommandSenderWorld");
-						resolvedEntityLevel = true;
-					}
-				}
-			}
-			Method method = entityLevelMethod;
-			if (method == null) {
-				return null;
-			}
-			Object world = method.invoke(entity);
-			return world instanceof Level level ? level : null;
+			return (Level) method.invoke(entity);
 		} catch (Throwable t) {
 			return null;
+		}
+	}
+
+	private static final String[] LEVEL_ACCESSORS = {
+		"getCommandSenderWorld", "level", "getLevel", "getWorld", "commandSenderWorld"
+	};
+
+	/**
+	 * A chunk's X coordinate.
+	 *
+	 * <p>{@code ChunkPos#x} is a public field on most releases but not all of them, so the
+	 * value is read through whichever accessor this release actually has
+	 * ({@code getMinBlockX()} and friends). If none resolves, every chunk reports 0 — which
+	 * puts every chunk in the same colouring round and therefore runs them one at a time,
+	 * exactly like vanilla. Wrong answers would be dangerous; a slow answer is not.
+	 */
+	public static int chunkX(LevelChunk chunk) {
+		return chunkCoordinate(chunk, true);
+	}
+
+	/** A chunk's Z coordinate. See {@link #chunkX(LevelChunk)}. */
+	public static int chunkZ(LevelChunk chunk) {
+		return chunkCoordinate(chunk, false);
+	}
+
+	private static int chunkCoordinate(LevelChunk chunk, boolean xAxis) {
+		if (chunk == null) {
+			return 0;
+		}
+		resolveChunkPos();
+		Object pos;
+		try {
+			pos = chunk.getPos();
+		} catch (Throwable t) {
+			return 0;
+		}
+		if (pos == null) {
+			return 0;
+		}
+		try {
+			if (xAxis) {
+				if (chunkMinBlockXMethod != null) {
+					return ((Number) chunkMinBlockXMethod.invoke(pos)).intValue() >> 4;
+				}
+				if (chunkXMethod != null) {
+					return ((Number) chunkXMethod.invoke(pos)).intValue();
+				}
+				if (chunkXField != null) {
+					return chunkXField.getInt(pos);
+				}
+			} else {
+				if (chunkMinBlockZMethod != null) {
+					return ((Number) chunkMinBlockZMethod.invoke(pos)).intValue() >> 4;
+				}
+				if (chunkZMethod != null) {
+					return ((Number) chunkZMethod.invoke(pos)).intValue();
+				}
+				if (chunkZField != null) {
+					return chunkZField.getInt(pos);
+				}
+			}
+		} catch (Throwable ignored) {
+			// fall through to the conservative answer below
+		}
+		return 0;
+	}
+
+	private static void resolveChunkPos() {
+		if (resolvedChunkPos) {
+			return;
+		}
+		synchronized (VanillaBridges.class) {
+			if (resolvedChunkPos) {
+				return;
+			}
+			Class<?> posClass = null;
+			try {
+				posClass = Class.forName("net.minecraft.world.level.ChunkPos");
+			} catch (Throwable ignored) {
+				// leave everything null
+			}
+			if (posClass != null) {
+				chunkMinBlockXMethod = find(posClass, "getMinBlockX");
+				chunkMinBlockZMethod = find(posClass, "getMinBlockZ");
+				chunkXMethod = find(posClass, "getX");
+				chunkZMethod = find(posClass, "getZ");
+				chunkXField = findField(posClass, "x");
+				chunkZField = findField(posClass, "z");
+			}
+			resolvedChunkPos = true;
+		}
+	}
+
+	private static Field findField(Class<?> clazz, String name) {
+		for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
+			try {
+				Field field = current.getDeclaredField(name);
+				field.setAccessible(true);
+				return field;
+			} catch (Throwable ignored) {
+				// keep walking the hierarchy
+			}
+		}
+		return null;
+	}
+
+	private static Method resolveEntityLevel(Class<?> type) {
+		if (resolvedEntityLevel) {
+			return entityLevelMethod;
+		}
+		synchronized (VanillaBridges.class) {
+			if (!resolvedEntityLevel) {
+				for (String name : LEVEL_ACCESSORS) {
+					Method candidate = find(type, name);
+					if (candidate != null && Level.class.isAssignableFrom(candidate.getReturnType())) {
+						entityLevelMethod = candidate;
+						break;
+					}
+				}
+				resolvedEntityLevel = true;
+				if (entityLevelMethod == null) {
+					BerylliumLog.warn("[BERYLLIUM-TICK] no Entity level accessor found; "
+							+ "parallel entity ticking and item throttling stay disabled for this session.");
+				}
+			}
+			return entityLevelMethod;
 		}
 	}
 
@@ -151,17 +279,6 @@ public final class VanillaBridges {
 				return method;
 			} catch (NoSuchMethodException ignored) {
 				// keep walking the hierarchy
-			}
-		}
-		return null;
-	}
-
-	/** First declared no-arg method matching one of the names anywhere up the hierarchy. */
-	private static Method findNoArg(Class<?> clazz, String... names) {
-		for (String name : names) {
-			Method method = find(clazz, name);
-			if (method != null) {
-				return method;
 			}
 		}
 		return null;
