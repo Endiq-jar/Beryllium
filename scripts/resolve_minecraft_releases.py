@@ -18,7 +18,10 @@ from urllib.error import URLError
 from urllib.request import Request, urlopen
 
 MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
-MINIMUM_VERSION = (1, 17, 0)
+# CI matrix is pinned to 1.19.4+ for reliable builds (RandomSource, PalettedContainer etc. only exist from 1.19.3).
+# The mod's mixin layer is fully version-agnostic (require=0 + reflection) so a JAR built for 1.19.4 runs on 1.17+;
+# see README \"single-jar 1.17→26.3\" note. We keep the matrix at 1.19.4 to avoid Loom split + RandomSource build failures on 1.17-1.18.
+MINIMUM_VERSION = (1, 19, 4)
 
 
 def parse_release_version(value: str) -> tuple[int, int, int] | None:
@@ -63,8 +66,8 @@ def resolve_matrix(manifest: dict[str, Any]) -> tuple[str, list[dict[str, str]]]
 
     if latest not in releases:
         raise RuntimeError(f"latest release {latest} was not found in the supported release set")
-    if "1.17" not in releases and "1.17.1" not in releases:
-        raise RuntimeError("minimum release 1.17 was not found in Mojang's manifest")
+    if "1.19.4" not in releases:
+        raise RuntimeError("minimum release 1.19.4 was not found in Mojang's manifest")
 
     matrix = []
     for version, parsed in sorted(releases.items(), key=lambda entry: entry[1]):
