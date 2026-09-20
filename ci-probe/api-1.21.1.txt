@@ -1,6 +1,6 @@
 ## minecraft 1.21.1
-## commit: e1f7a16
-## classpath entries: 61
+## commit: c4a005d
+## classpath entries: 60
 
 ### class names matching the features under test
 com/mojang/blaze3d/platform/Window.class

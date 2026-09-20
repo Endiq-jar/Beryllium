@@ -1,6 +1,6 @@
 ## minecraft 1.20.1
-## commit: e1f7a16
-## classpath entries: 58
+## commit: c4a005d
+## classpath entries: 57
 
 ### class names matching the features under test
 com/mojang/blaze3d/platform/Window.class
@@ -7296,8 +7296,6 @@ public static net.minecraft.client.renderer.ShaderInstance getRendertypeEntityGl
 public static net.minecraft.client.renderer.ShaderInstance getRendertypeEntityGlintShader() ==> Field rendertypeEntityGlintShader:Lnet/minecraft/client/renderer/ShaderInstance;
 public static net.minecraft.client.renderer.ShaderInstance getRendertypeEntityNoOutlineShader() ==> Field rendertypeEntityNoOutlineShader:Lnet/minecraft/client/renderer/ShaderInstance;
 public static net.minecraft.client.renderer.ShaderInstance getRendertypeEntityShadowShader() ==> Field rendertypeEntityShadowShader:Lnet/minecraft/client/renderer/ShaderInstance;
-sort: write failed: 'standard output': Broken pipe
-sort: write error
 
 === net.minecraft.client.renderer.texture.TextureAtlasSprite
 private float atlasSize() ==> Field contents:Lnet/minecraft/client/renderer/texture/SpriteContents;

@@ -1,6 +1,6 @@
 ## minecraft 26.3
-## commit: e1f7a16
-## classpath entries: 70
+## commit: c4a005d
+## classpath entries: 69
 
 ### class names matching the features under test
 com/mojang/blaze3d/platform/Window.class
@@ -7132,8 +7132,6 @@ public net.minecraft.world.item.ItemStack hurtAndConvertOnBreak(int, net.minecra
 public net.minecraft.world.item.ItemStack hurtAndConvertOnBreak(int, net.minecraft.world.level.ItemLike, net.minecraft.world.entity.LivingEntity, net.minecraft.world.entity.EquipmentSlot) ==> Method isEmpty:()Z
 public net.minecraft.world.item.ItemStack hurtAndConvertOnBreak(int, net.minecraft.world.level.ItemLike, net.minecraft.world.entity.LivingEntity, net.minecraft.world.entity.EquipmentSlot) ==> Method setDamageValue:(I)V
 public net.minecraft.world.item.ItemStack hurtAndConvertOnBreak(int, net.minecraft.world.level.ItemLike, net.minecraft.world.entity.LivingEntity, net.minecraft.world.entity.EquipmentSlot) ==> Method transmuteCopyIgnoreEmpty:(Lnet/minecraft/world/level/ItemLike;I)Lnet/minecraft/world/item/ItemStack;
-sort: write failed: 'standard output': Broken pipe
-sort: write error
 
 === net.minecraft.client.renderer.WeatherEffectRenderer
 private net.minecraft.client.renderer.WeatherEffectRenderer$ColumnInstance createRainColumnInstance(net.minecraft.util.RandomSource, long, int, int, int, int, int, float) ==> InterfaceMethod net/minecraft/util/RandomSource.nextFloat:()F

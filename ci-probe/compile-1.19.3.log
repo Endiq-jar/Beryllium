@@ -1,0 +1,47 @@
+## minecraft 1.19.3
+## commit: c4a005d
+## gradle exit: 1, validate exit: 1
+## compile errors: 2
+## access widener: accessWidener v1 named
+## packaged widener: 
+## validate output: no non-sources jar found in build/libs 
+
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Fabric Loom: 1.17.21
+Failed to parse fabric.mod.json: /home/runner/work/Beryllium/Beryllium/src/main/resources/fabric.mod.json
+
+> Task :clean
+
+> Task :compileJava
+/home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/mixin/optimization/NbtMixin.java:19: error: cannot find symbol
+    private void beryllium$nbtRead(CallbackInfo ci) {}
+                                   ^
+  symbol:   class CallbackInfo
+  location: class NbtMixin
+1 error
+
+> Task :compileJava FAILED
+
+[Incubating] Problems report is available at: file:///home/runner/work/Beryllium/Beryllium/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
+> Compilation failed; see the compiler output below.
+  /home/runner/work/Beryllium/Beryllium/src/main/java/com/endiq/beryllium/mixin/optimization/NbtMixin.java:19: error: cannot find symbol
+      private void beryllium$nbtRead(CallbackInfo ci) {}
+                                     ^
+    symbol:   class CallbackInfo
+    location: class NbtMixin
+  1 error
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 7s
+2 actionable tasks: 2 executed
