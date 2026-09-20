@@ -1,6 +1,6 @@
 ## minecraft 1.19.4
-## commit: c4a005d
-## classpath entries: 57
+## commit: e2ec94a
+## classpath entries: 56
 
 ### class names matching the features under test
 com/mojang/blaze3d/platform/Window.class
