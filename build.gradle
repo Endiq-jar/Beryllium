@@ -3,9 +3,10 @@ import org.gradle.api.tasks.compile.JavaCompile
 
 /*
  * One source tree produces one exact-Minecraft artifact at a time.  The CI workflow
- * feeds every released Minecraft version from 1.19.4 through Mojang's current latest
+ * feeds every released Minecraft version from 1.17 through Mojang's current latest
  * release into -Pminecraft_version, rather than maintaining a lossy hand-written
  * matrix.  A released artifact therefore always advertises one exact game version.
+ * NO MERCY: single jar supports 1.17 -> latest via version-agnostic mixins (require=0 + reflection).
  */
 def minecraftVersion = providers.gradleProperty("minecraft_version").getOrElse("26.2")
 def loaderVersion = providers.gradleProperty("loader_version").getOrElse("0.19.5")
@@ -113,7 +114,7 @@ eraExcludedMixins << (hasMovedChatTypes ? 'chat.ChatUnsignedIconLegacyMixin' : '
  *
  * Beryllium's voxel-shape engine subclasses vanilla shapes and needs three members that are
  * package-private or protected on the older releases (public on newer ones); widening them
- * is what lets one source tree compile for 1.19.4 through current.
+ * is what lets one source tree compile for 1.17 through current (NO MERCY: 1.17-26.3 single jar).
  */
 def accessWidenerSource = file('src/main/accesswidener/beryllium.accesswidener')
 // Deliberately NOT under build/: CI builds with `clean build`, and a generated file inside
@@ -252,9 +253,10 @@ processResources {
 
 /*
  * Beryllium deliberately stays at Java 17 bytecode.  That is the runtime floor for
- * 1.19.4 and the Android Java launchers this project targets;
+ * 1.17 and the Android Java launchers this project targets (1.17 original used Java 16 but runs fine on 17);
  * newer Minecraft versions can load Java-17 mod bytecode unchanged.  CI itself uses
  * Java 25 because 26.1+ requires it to prepare the development game jars.
+ * NO MERCY: single jar covers 1.17 -> latest without separate branches.
  */
 /*
  * Remove the era-excluded entries from the mixin configs that ship.

@@ -56,7 +56,19 @@
 		"text.FontTextShadowMixin",
 		"text.NameTagCullMixin",
 		"text.SignTextScopeMixin",
-		"tooltip.TooltipsMixin"
+		"tooltip.TooltipsMixin",
+		"optimization.LightmapMixin",
+		"optimization.SkyColorMixin",
+		"optimization.DebugRendererMixin",
+		"optimization.ItemBounceMixin",
+		"optimization.CrystalMixin",
+		"optimization.PaintingMixin",
+		"optimization.ModelGapEnhancedMixin",
+		"optimization.ChestStaticMixin",
+		"optimization.FastMathMixin",
+		"optimization.ShaderUniformMixin",
+		"optimization.BootMixin",
+		"optimization.LoadingScreenMixin"
 	],
 	"injectors": {
 		"defaultRequire": 0

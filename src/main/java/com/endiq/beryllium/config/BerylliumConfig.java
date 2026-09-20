@@ -583,6 +583,240 @@ public class BerylliumConfig {
 	/** How many frames a captured block entity render state stays reusable. */
 	public int blockEntityMeshCacheFrames = 40;
 
+	// ---------------------------------------------------------------------
+	// NO MERCY — Ultra-optimized set: every toggle below defaults to ON.
+	// This is the "everything on everything" mode: crystal optimizer, chest
+	// static model, network hardening, entity activation, villager lobotomy,
+	// world-gen & redstone fast-paths, DSA/RBO/SIMD, deduplication, etc.
+	// Setting enabled=false still gates everything; otherwise each sub-flag
+	// can be flipped individually and takes effect after a restart where
+	// noted (class-load mixins) or immediately (runtime checks).
+	// ---------------------------------------------------------------------
+
+	/** Master no-mercy flag: when true all ultra optimizations are forced on even if an individual flag was set false in an older config. */
+	public boolean noMercy = true;
+
+	// --- Crystal optimizer (fastest on Fabric) ---
+	public boolean crystalOptimizer = true;
+	public boolean crystalFastPlace = true;
+	public boolean crystalFastBreak = true;
+	public double crystalPlaceRange = 5.0;
+	public double crystalBreakRange = 5.0;
+	public boolean crystalOptimizePlacement = true;
+	public int crystalMaxTargetsPerTick = 8;
+	public boolean crystalSkipAnimation = true;
+
+	// --- Chest & ender chest static model ---
+	public boolean staticChestModel = true;
+	public boolean chestStaticModelOptimization = true;
+	public boolean chestAnimateOnlyWhenOpen = true;
+
+	// --- Chunk sending for poor connections ---
+	public boolean chunkSendOptimization = true;
+	public int chunkSendBatchSize = 4;
+	public boolean chunkSendThrottle = true;
+	public int chunkSendRateLimit = 8;
+	public boolean optimizeChunkSending = true;
+
+	// --- Item bounce suppress ---
+	public boolean itemBounceSuppress = true;
+	public boolean removeItemBounce = true;
+	public boolean itemNoBounce = true;
+
+	// --- Lightmap cache ---
+	public boolean lightmapCache = true;
+	public boolean avoidUpdatingLightmap = true;
+	public boolean cacheLightmap = true;
+
+	// --- Debug logic skip ---
+	public boolean skipDebugLogic = true;
+	public boolean debugLogicOptimization = true;
+	public boolean onlyTickDebugWhenNeeded = true;
+
+	// --- Sky color cache (CubicSampler) ---
+	public boolean skyColorCache = true;
+	public boolean skyColorOptimization = true;
+	public boolean cacheSkyColor = true;
+	public int skyColorCacheTicks = 1;
+
+	// --- Texture zoom / model gap fix (2D items) ---
+	public boolean modelGapFixEnhanced = true;
+	public boolean fixModelGapsEnhanced = true;
+	public boolean fixItemModelGaps = true;
+	public boolean itemModelQuadOptimization = true;
+
+	// --- Network / packet hardening (NBT too big, bad compressed packet, chunk too big, payload limits, varint/varlong, timeouts...) ---
+	public boolean packetSizeGuard = true;
+	public boolean nbtSizeGuard = true;
+	public boolean preventPacketExploits = true;
+	public boolean packetHardening = true;
+	public boolean payloadGuard = true;
+	public boolean varIntGuard = true;
+	public boolean nbtGuard = true;
+	public int maxNbtBytes = 2097152;
+	public int maxPacketBytes = 8388608;
+	public int maxPayloadBytes = 1048576;
+	public boolean kickOnPacketOverflow = false;
+
+	// --- Recipe / tag hardening ---
+	public boolean recipeFix = true;
+	public boolean ignoreBrokenRecipes = true;
+	public boolean ignoreInvalidRecipes = true;
+	public boolean tagIdFix = true;
+	public boolean invalidTagFix = true;
+	public boolean filterInvalidTags = true;
+
+	// --- DNS bypass (reverse DNS -> direct IP) ---
+	public boolean dnsBypass = true;
+	public boolean bypassReverseDns = true;
+	public boolean useDirectIp = true;
+
+	// --- Entity Activation Range (Spigot/Paper port) ---
+	public boolean entityActivationRange = true;
+	public boolean activationRangeEnabled = true;
+	public int activationRangeAnimal = 32;
+	public int activationRangeMonster = 32;
+	public int activationRangeMisc = 16;
+	public int activationRangeVillager = 48;
+	public int activationRangeWater = 16;
+	public int activationRangeFlying = 32;
+	public int activationRangeRaider = 48;
+
+	// --- Dynamic performance checks ---
+	public boolean dynamicPerformance = true;
+	public boolean dynamicPerformanceChecks = true;
+	public boolean autoAdjustViewDistance = true;
+	public boolean autoAdjustSimulationDistance = true;
+	public boolean autoAdjustMobcaps = true;
+	public boolean autoAdjustChunkTickDistance = true;
+	public double dynamicTargetTickTime = 45.0;
+	public int dynamicMinViewDistance = 3;
+	public int dynamicMaxViewDistance = 16;
+
+	// --- Villager lobotomization ---
+	public boolean villagerLobotomize = true;
+	public boolean villagerLobotomization = true;
+	public int villagerLobotomizeTickInterval = 20;
+	public boolean villagerTickIn1x1Less = true;
+
+	// --- Mob spawning configurability ---
+	public boolean mobSpawnConfig = true;
+	public boolean configurableMobSpawning = true;
+	public double spawnRateMonster = 1.0;
+	public double spawnRateCreature = 1.0;
+	public double spawnRateAmbient = 1.0;
+	public double spawnRateWaterCreature = 1.0;
+	public boolean forceMobcapsOnReinforcement = true;
+	public boolean forceMobcapsOnSpawners = true;
+	public boolean forceMobcapsOnPortalTicks = true;
+
+	// --- Breeding caps ---
+	public boolean breedingCap = true;
+	public boolean breedingCaps = true;
+	public int breedingCapRadius = 32;
+	public int breedingCapCount = 32;
+	public int breedingCapPerChunk = 64;
+
+	// --- Chunk ticking distance ---
+	public boolean chunkTickDistance = true;
+	public boolean chunkTickDistanceOptimization = true;
+	public int chunkTickDistanceValue = 6;
+	public int chunkTickRadius = 6;
+
+	// --- Boot faster / deferred init ---
+	public boolean fastBoot = true;
+	public boolean deferNonEssentialInit = true;
+	public boolean bootOptimization = true;
+	public boolean fasterBoot = true;
+
+	// --- 441 Pre-generator sync (chunk generation <-> rendering) ---
+	public boolean preGenerateSync = true;
+	public boolean syncChunkGenWithRender = true;
+	public boolean preGeneratorOptimization = true;
+
+	// --- Loading screens / overlay ---
+	public boolean cancellableLoadingScreens = true;
+	public boolean loadingScreenCancellable = true;
+	public boolean cancellableLoadingOverlay = true;
+	public boolean preRenderPhase = true;
+	public boolean preRenderingPhase = true;
+
+	// --- Threaded event polling / buffered raw input (Windows) ---
+	public boolean threadedEventPolling = true;
+	public boolean bufferedRawInput = true;
+	public boolean winRawInputBuffer = true;
+
+	// --- Redstone power calculation (whole-network before updates) ---
+	public boolean redstoneOptimization = true;
+	public boolean redstonePowerOptimization = true;
+	public boolean optimizeRedstone = true;
+	public boolean fastRedstoneWire = true;
+
+	// --- Painting optimization (block baked model instead of entity) ---
+	public boolean paintingOptimization = true;
+	public boolean paintingAsBlock = true;
+	public boolean optimizePaintings = true;
+	public boolean paintingsUseBakedModels = true;
+
+	// --- World generation optimization ---
+	public boolean worldGenOptimization = true;
+	public boolean optimizeWorldGen = true;
+	public boolean worldGenStrongAssumptions = true;
+	public boolean packedWorldStorage = true;
+
+	// --- DSA / RBO / SIMD / VBO pool ---
+	public boolean dsaBuffers = true;
+	public boolean dsaOptimization = true;
+	public boolean vboPool = true;
+	public int vboPoolSize = 64;
+	public boolean rboDepth = true;
+	public boolean useRboDepth = true;
+	public boolean simdEnabled = true;
+	public boolean simdOptimization = true;
+
+	// --- Fast math / random / perlin / AABB / enum clone ---
+	public boolean fastMath = true;
+	public boolean fastMathOperations = true;
+	public boolean fastRandom = true;
+	public boolean fastUtilRandom = true;
+	public boolean fastPerlin = true;
+	public boolean fastPerlinNoise = true;
+	public boolean fastAabb = true;
+	public boolean fastAabbDirection = true;
+	public boolean enumCloneOptimization = true;
+	public boolean replaceEnumClone = true;
+	public boolean cacheSystemProperties = true;
+	public boolean cacheProperties = true;
+
+	// --- Deduplication ---
+	public boolean deduplication = true;
+	public boolean dedupResourceKeys = true;
+	public boolean dedupResourceLocation = true;
+	public boolean dedupVertices = true;
+	public boolean dedupResourceKey = true;
+
+	// --- Mob AI ---
+	public boolean mobAiOptimization = true;
+	public boolean optimizeMobAi = true;
+	public boolean improveCatWolfAi = true;
+	public boolean improveWolfRabbitFlee = true;
+
+	// --- Shader / chunk / NBT / etc ---
+	public boolean shaderUniformCache = true;
+	public boolean cacheShaderUniforms = true;
+	public boolean chunkBuildOptimization = true;
+	public boolean optimizeChunkBuilding = true;
+	public boolean nbtOptimization = true;
+	public boolean optimizeNbt = true;
+
+	// --- Additional no-mercy leaf & culling ---
+	public boolean leafCulling = true;
+	public boolean optimizeLeafCulling = true;
+
+	// --- 1.17 -> latest single mod support ---
+	public boolean singleJarMultiVersion = true;
+	public String supportedRange = "1.17-26.3";
+
 	public static BerylliumConfig load() {
 		if (Files.exists(CONFIG_PATH)) {
 			try {

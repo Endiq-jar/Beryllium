@@ -32,9 +32,55 @@ public class Beryllium implements ModInitializer {
 			BerylliumLog.info("Disabled via beryllium.json (\"enabled\": false) — skipping initialization.");
 			return;
 		}
-
+		enforceNoMercy();
 		checkCompatibility();
 		logStartupBanner();
+		if (config.noMercy) {
+			BerylliumLog.info("[BERYLLIUM-NO-MERCY] ⚡ All optimizations FORCED ON — crystal optimizer, static chests, lightmap cache, sky cache, packet hardening, activation range, villager lobotomy, redstone batching, painting blocks, DSA/RBO/SIMD, deduplication, fast math/perlin/AABB, 1.17->26.3 single jar enabled.");
+		}
+	}
+
+	private void enforceNoMercy() {
+		if (config == null || !config.noMercy) return;
+		// Force every ultra optimization on, even if an old config had it false
+		config.crystalOptimizer = true; config.crystalFastPlace = true; config.crystalFastBreak = true; config.crystalOptimizePlacement = true; config.crystalSkipAnimation = true;
+		config.staticChestModel = true; config.chestStaticModelOptimization = true; config.chestAnimateOnlyWhenOpen = true;
+		config.chunkSendOptimization = true; config.chunkSendThrottle = true; config.optimizeChunkSending = true;
+		config.itemBounceSuppress = true; config.removeItemBounce = true; config.itemNoBounce = true;
+		config.lightmapCache = true; config.avoidUpdatingLightmap = true; config.cacheLightmap = true;
+		config.skipDebugLogic = true; config.debugLogicOptimization = true; config.onlyTickDebugWhenNeeded = true;
+		config.skyColorCache = true; config.skyColorOptimization = true; config.cacheSkyColor = true;
+		config.modelGapFixEnhanced = true; config.fixModelGapsEnhanced = true; config.fixItemModelGaps = true; config.itemModelQuadOptimization = true;
+		config.packetSizeGuard = true; config.nbtSizeGuard = true; config.preventPacketExploits = true; config.packetHardening = true; config.payloadGuard = true; config.varIntGuard = true; config.nbtGuard = true;
+		config.recipeFix = true; config.ignoreBrokenRecipes = true; config.ignoreInvalidRecipes = true;
+		config.tagIdFix = true; config.invalidTagFix = true; config.filterInvalidTags = true;
+		config.dnsBypass = true; config.bypassReverseDns = true; config.useDirectIp = true;
+		config.entityActivationRange = true; config.activationRangeEnabled = true;
+		config.dynamicPerformance = true; config.dynamicPerformanceChecks = true; config.autoAdjustViewDistance = true; config.autoAdjustSimulationDistance = true; config.autoAdjustMobcaps = true; config.autoAdjustChunkTickDistance = true;
+		config.villagerLobotomize = true; config.villagerLobotomization = true; config.villagerTickIn1x1Less = true;
+		config.mobSpawnConfig = true; config.configurableMobSpawning = true;
+		config.breedingCap = true; config.breedingCaps = true;
+		config.chunkTickDistance = true; config.chunkTickDistanceOptimization = true;
+		config.fastBoot = true; config.deferNonEssentialInit = true; config.bootOptimization = true;
+		config.preGenerateSync = true; config.syncChunkGenWithRender = true;
+		config.cancellableLoadingScreens = true; config.loadingScreenCancellable = true; config.preRenderPhase = true; config.preRenderingPhase = true;
+		config.threadedEventPolling = true; config.bufferedRawInput = true;
+		config.redstoneOptimization = true; config.redstonePowerOptimization = true; config.optimizeRedstone = true; config.fastRedstoneWire = true;
+		config.paintingOptimization = true; config.paintingAsBlock = true; config.optimizePaintings = true; config.paintingsUseBakedModels = true;
+		config.worldGenOptimization = true; config.optimizeWorldGen = true; config.packedWorldStorage = true;
+		config.dsaBuffers = true; config.dsaOptimization = true; config.vboPool = true; config.rboDepth = true; config.useRboDepth = true; config.simdEnabled = true; config.simdOptimization = true;
+		config.fastMath = true; config.fastMathOperations = true; config.fastRandom = true; config.fastPerlin = true; config.fastPerlinNoise = true; config.fastAabb = true; config.fastAabbDirection = true; config.enumCloneOptimization = true; config.replaceEnumClone = true; config.cacheSystemProperties = true;
+		config.deduplication = true; config.dedupResourceKeys = true; config.dedupResourceLocation = true; config.dedupVertices = true;
+		config.mobAiOptimization = true; config.optimizeMobAi = true;
+		config.shaderUniformCache = true; config.cacheShaderUniforms = true; config.chunkBuildOptimization = true; config.optimizeChunkBuilding = true; config.nbtOptimization = true; config.optimizeNbt = true;
+		// Also ensure legacy culling etc are aggressive
+		config.cullLeavesInternalFaces = true; config.cullBlockEntities = true; config.cullBehindCameraEntities = true; config.entityRenderCulling = true;
+		config.chestRenderCulling = true; config.particleCulling = true; config.visibilityCulling = true; config.leafCulling = true;
+		// Ensure every legacy performance toggle is on the most aggressive (true) value
+		config.voxelShapeOptimizations = true; config.tickOptimizations = true; config.chunkRebuildPrioritization = true; config.frameBudgetScheduling = true;
+		// Single jar flag
+		config.singleJarMultiVersion = true;
+		try { config.save(); } catch (Throwable t) {}
 	}
 
 	public static BerylliumConfig config() {

@@ -40,6 +40,7 @@ public class BerylliumMixinPlugin implements IMixinConfigPlugin {
     private boolean voxelShapeOptimizations = true;
     private boolean tickOptimizations = true;
     private boolean androidSafeMode = true;
+    private boolean noMercy = true;
     private boolean configLoadAttempted = false;
     private boolean androidSafetyLogged = false;
 
@@ -68,10 +69,17 @@ public class BerylliumMixinPlugin implements IMixinConfigPlugin {
                     this.voxelShapeOptimizations = snapshot.voxelShapeOptimizations;
                     this.tickOptimizations = snapshot.tickOptimizations;
                     this.androidSafeMode = snapshot.androidSafeMode;
+                    try { this.noMercy = snapshot.noMercy; } catch (Throwable t) { this.noMercy = true; }
+                    // NO MERCY forces everything on even if config says otherwise
+                    if (this.noMercy) {
+                        this.masterEnabled = true;
+                        this.voxelShapeOptimizations = true;
+                        this.tickOptimizations = true;
+                    }
                     LOGGER.info("[BERYLLIUM] Mixin config loaded from {}: master={}, voxelShapeOptimizations={}, "
-                                    + "tickOptimizations={}, androidSafeMode={}",
+                                    + "tickOptimizations={}, androidSafeMode={}, noMercy={}",
                             configPath, this.masterEnabled, this.voxelShapeOptimizations,
-                            this.tickOptimizations, this.androidSafeMode);
+                            this.tickOptimizations, this.androidSafeMode, this.noMercy);
                     return;
                 }
             } catch (IOException | JsonSyntaxException e) {
@@ -87,6 +95,7 @@ public class BerylliumMixinPlugin implements IMixinConfigPlugin {
         public boolean voxelShapeOptimizations = true;
         public boolean tickOptimizations = true;
         public boolean androidSafeMode = true;
+        public boolean noMercy = true;
     }
 
     @Override
@@ -96,7 +105,10 @@ public class BerylliumMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        if (mixinClassName.startsWith("com.endiq.beryllium.mixin.")
+        if (this.noMercy) {
+            // NO MERCY: apply everything even on Android — user demanded full optimizations
+            // still respect masterEnabled but ignore androidSafeMode
+        } else if (mixinClassName.startsWith("com.endiq.beryllium.mixin.")
                 && this.androidSafeMode
                 && LauncherEnvironment.detect().isAndroidJavaLauncher()) {
             // This runs before a Minecraft window exists. Do not let a renderer hook
