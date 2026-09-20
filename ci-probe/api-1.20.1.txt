@@ -1,5 +1,5 @@
 ## minecraft 1.20.1
-## commit: e2ec94a
+## commit: cc96d01
 ## classpath entries: 58
 
 ### class names matching the features under test

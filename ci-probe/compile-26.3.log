@@ -1,7 +1,7 @@
 ## minecraft 26.3
-## commit: e2ec94a
+## commit: cc96d01
 ## gradle exit: 1, validate exit: 1
-## compile errors: 8
+## compile errors: 6
 ## access widener: accessWidener v2 official
 ## packaged widener: 
 ## validate output: no non-sources jar found in build/libs 
@@ -19,28 +19,22 @@ Failed to parse fabric.mod.json: /home/runner/work/Beryllium/Beryllium/src/main/
 > Task :classes
 
 > Task :compileClientJava FAILED
-/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:5: error: cannot find symbol
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:4: error: cannot find symbol
 import net.minecraft.client.renderer.MultiBufferSource;
                                     ^
   symbol:   class MultiBufferSource
   location: package net.minecraft.client.renderer
-/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:38: error: cannot find symbol
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:37: error: cannot find symbol
 		MultiBufferSource bufferSource, boolean seeThrough, int backgroundColor,
 		^
   symbol:   class MultiBufferSource
   location: class FontSignTextLegacyMixin
-/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:52: error: cannot find symbol
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:51: error: cannot find symbol
 		MultiBufferSource bufferSource, boolean seeThrough, int backgroundColor,
 		^
   symbol:   class MultiBufferSource
   location: class FontSignTextLegacyMixin
-/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/optimization/VboPoolMixin.java:23: error: incompatible types: Integer cannot be converted to CAP#1
-        if (pooled != null) cir.setReturnValue(pooled);
-                                               ^
-  where CAP#1 is a fresh type-variable:
-    CAP#1 extends Object from capture of ?
-Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
-4 errors
+3 errors
 
 [Incubating] Problems report is available at: file:///home/runner/work/Beryllium/Beryllium/build/reports/problems/problems-report.html
 
@@ -49,28 +43,22 @@ FAILURE: Build failed with an exception.
 * What went wrong:
 Execution failed for task ':compileClientJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
 > Compilation failed; see the compiler output below.
-  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/optimization/VboPoolMixin.java:23: error: incompatible types: Integer cannot be converted to CAP#1
-          if (pooled != null) cir.setReturnValue(pooled);
-                                                 ^
-    where CAP#1 is a fresh type-variable:
-      CAP#1 extends Object from capture of ?
-  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:5: error: cannot find symbol
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:4: error: cannot find symbol
   import net.minecraft.client.renderer.MultiBufferSource;
                                       ^
     symbol:   class MultiBufferSource
     location: package net.minecraft.client.renderer
-  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:38: error: cannot find symbol
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:37: error: cannot find symbol
   		MultiBufferSource bufferSource, boolean seeThrough, int backgroundColor,
   		^
     symbol:   class MultiBufferSource
     location: class FontSignTextLegacyMixin
-  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:52: error: cannot find symbol
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:51: error: cannot find symbol
   		MultiBufferSource bufferSource, boolean seeThrough, int backgroundColor,
   		^
     symbol:   class MultiBufferSource
     location: class FontSignTextLegacyMixin
-  Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
-  4 errors
+  3 errors
 
 * Try:
 > Check your code and dependencies to fix the compilation error(s)

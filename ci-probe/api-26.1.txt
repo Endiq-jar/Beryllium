@@ -1,5 +1,5 @@
 ## minecraft 26.1
-## commit: e2ec94a
+## commit: cc96d01
 ## classpath entries: 67
 
 ### class names matching the features under test
@@ -6765,8 +6765,6 @@ public net.minecraft.world.item.ItemStack split(int) ==> Method shrink:(I)V
 public net.minecraft.world.item.ItemStack transmuteCopy(net.minecraft.world.level.ItemLike) ==> Method getCount:()I
 public net.minecraft.world.item.ItemStack transmuteCopy(net.minecraft.world.level.ItemLike) ==> Method transmuteCopy:(Lnet/minecraft/world/level/ItemLike;I)Lnet/minecraft/world/item/ItemStack;
 public net.minecraft.world.item.ItemStack transmuteCopy(net.minecraft.world.level.ItemLike, int) ==> Field EMPTY:Lnet/minecraft/world/item/ItemStack;
-sort: fflush failed: 'standard output': Broken pipe
-sort: write error
 
 === net.minecraft.client.renderer.WeatherEffectRenderer
 private net.minecraft.client.renderer.WeatherEffectRenderer$ColumnInstance createRainColumnInstance(net.minecraft.util.RandomSource, int, int, int, int, int, int, float) ==> InterfaceMethod net/minecraft/util/RandomSource.nextFloat:()F
