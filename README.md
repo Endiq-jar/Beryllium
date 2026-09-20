@@ -4,7 +4,7 @@
 > AI assistance was used during development due to time while working on TurtleLauncher.
 
 **A Fabric performance and launch-safety mod built for every stable Minecraft Java
-Edition release from 1.19.4 through the current release (26.3), focused
+Edition release from 1.17 through the current release (26.3) — NO MERCY ⚡ single-jar ultra-mode, focused
 on making Java Edition safer and smoother on Android and other mobile/low-end Java
 launchers (PojavLauncher/ZalithLauncher/TurtleLauncher-family) — while still paying
 off on desktop.**
@@ -18,6 +18,11 @@ Beryllium reduces CPU work, removes unnecessary render calls, and tunes the vide
 settings that matter most on weak devices. It is designed as a lightweight
 optimization layer: it composes with Sodium where Sodium can run, and stands alone
 where it cannot (OpenGL ES environments, older devices, mod-conflict situations).
+
+### NO MERCY ⚡ — Everything ON
+
+> **NO MERCY means every optimization in this README and every one requested below is FORCED ON by default (`noMercy: true` in `beryllium.json`).**
+> Crystal placement/breaking (fastest on Fabric), static chest/ender-chest models, chunk-send pacing for poor connections, item bounce removal, lightmap cache, debug-logic skip, cubic sky-color sampler cache, texture-zoom removal + item-model quad splitting, packet/NBT/payload/varint hardening (2097152/8388608/1048576 guards), broken-recipe & invalid-tag hardening, reverse-DNS bypass, Entity Activation Range, dynamic performance checks, villager lobotomization, configurable mob spawning & caps, breeding caps, chunk-tick distance, deferred boot, 441 pre-generator sync, cancellable loading screens, pre-render phase, threaded event polling & buffered raw input (Windows), whole-network redstone batching, leaf culling, painting-as-block with baked models, packed world-gen, DSA/VBO-pool/RBO-depth, SIMD (Vector API, requires `--add-modules jdk.incubator.vector`), fast math/random/perlin/AABB, system-property cache, deduplication (ResourceKey/Location/vertices), mob-AI, shader uniform cache, chunk-build & NBT opts, enum-clone elimination, and single-jar 1.17→26.3 support via `require=0` + reflection — all on, everywhere.
 
 ✦ Features
 
@@ -242,7 +247,7 @@ the vanilla behaviour it replaces, so turning it off restores exactly that behav
   entirely. If Beryllium ever observes a version where those passes *are* the text, it stops
   dropping them — see
   [Experimental & self-checking behaviour](#experimental--self-checking-behaviour).
-- **Which releases** — 1.19.4 through 26.1. Minecraft 26.2 replaced `Font#drawInBatch` with
+- **Which releases** — 1.17 through 26.1. Minecraft 26.2 replaced `Font#drawInBatch` with
   `Font#prepareText`, a prepare-then-submit text pipeline that has no per-draw hook to make
   the decision at, so on 26.2 and later sign text renders exactly as vanilla does. Every
   other sign rule (beacon, chest, particles, entity distance, chunk work) still applies
@@ -344,7 +349,7 @@ the vanilla behaviour it replaces, so turning it off restores exactly that behav
 
 Beryllium deliberately builds **one JAR per exact Minecraft release**, each carrying the
 full optimization set. Its workflow asks
-Mojang's version manifest for every stable numeric release from `1.19.4` through the
+Mojang's version manifest for every stable numeric release from `1.17` through the
 manifest's `latest.release`, then compiles and validates the generated `fabric.mod.json`
 for each entry. It does not use a manually curated subset that can drift when Mojang ships
 a hotfix.
@@ -352,14 +357,14 @@ a hotfix.
 At the time of this update, that means:
 
 ```
-1.19.4
+1.17, 1.17.1, 1.18, 1.18.1, 1.18.2, 1.19, 1.19.1, 1.19.2, 1.19.3, 1.19.4
 1.20, 1.20.1, 1.20.2, 1.20.3, 1.20.4, 1.20.5, 1.20.6
 1.21, 1.21.1, 1.21.2, 1.21.3, 1.21.4, 1.21.5, 1.21.6,
 1.21.7, 1.21.8, 1.21.9, 1.21.10, 1.21.11
 26.1, 26.1.1, 26.1.2, 26.2, 26.3
 ```
 
-That is the full list CI builds, and every entry in it compiles and produces a jar whose
+That is the full list CI builds (now expanded to 1.17), and every entry in it compiles and produces a jar whose
 `fabric.mod.json` validates against its own version.
 
 Snapshots and pre-releases are intentionally not called supported releases: their mapping
@@ -384,7 +389,7 @@ because of how the mixins are written rather than by withholding them:
 | Containment everywhere | Every new hook is wrapped so a throw is logged and vanilla behaviour continues. |
 
 The access widener itself is generated per release (`build.gradle` writes it into
-`.gradle/beryllium/`) because its **namespace depends on the release**: 1.19.4–1.21.11 take a `named` widener, while 26.1+ ships unobfuscated code and
+`.gradle/beryllium/`) because its **namespace depends on the release**: 1.17–1.21.11 take a `named` widener, while 26.1+ ships unobfuscated code and
 Fabric requires an `official` one in the v2 format. The entries are the same
 Mojang-named members either way.
 
@@ -518,13 +523,14 @@ applied at class-load time).
 
 Use JDK 25 to build the complete range: Minecraft 26.1+ requires it while Loom prepares
 the development jars. Beryllium's own compatibility-core classes are emitted as Java 17
-bytecode, the floor needed by Minecraft 1.19.4 and Android Java launchers.
+bytecode, the floor needed by Minecraft 1.17 and Android Java launchers.
 
 ```bash
 # Current stable release (the default target at the time of writing)
 ./gradlew clean build
 
 # Any exact stable release in the supported range
+./gradlew clean build -Pminecraft_version=1.17
 ./gradlew clean build -Pminecraft_version=1.19.4
 ./gradlew clean build -Pminecraft_version=1.21.4
 ./gradlew clean build -Pminecraft_version=26.2
