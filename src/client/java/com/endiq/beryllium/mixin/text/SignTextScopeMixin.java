@@ -2,7 +2,7 @@ package com.endiq.beryllium.mixin.text;
 
 import com.endiq.beryllium.text.SignTextState;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.renderer.MultiBufferSource;
+import org.spongepowered.asm.mixin.injection.Coerce;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
@@ -35,7 +35,7 @@ public abstract class SignTextScopeMixin {
 	)
 	private void beryllium$beginSignScope(
 		BlockEntity blockEntity, float tickDelta, PoseStack poseStack,
-		MultiBufferSource bufferSource, CallbackInfo ci
+		@Coerce Object bufferSource, CallbackInfo ci
 	) {
 		if (blockEntity instanceof SignBlockEntity) {
 			SignTextState.begin(blockEntity);
@@ -49,7 +49,7 @@ public abstract class SignTextScopeMixin {
 	)
 	private void beryllium$endSignScope(
 		BlockEntity blockEntity, float tickDelta, PoseStack poseStack,
-		MultiBufferSource bufferSource, CallbackInfo ci
+		@Coerce Object bufferSource, CallbackInfo ci
 	) {
 		if (blockEntity instanceof SignBlockEntity) {
 			SignTextState.end();

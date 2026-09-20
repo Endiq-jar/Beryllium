@@ -2,7 +2,7 @@ package com.endiq.beryllium.mixin.render;
 
 import com.endiq.beryllium.render.BeaconBeamCulling;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.renderer.MultiBufferSource;
+import org.spongepowered.asm.mixin.injection.Coerce;
 import net.minecraft.client.renderer.blockentity.BeaconRenderer;
 import net.minecraft.world.level.block.entity.BeaconBlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -29,7 +29,7 @@ public abstract class BeaconBeamCullMixin {
 	)
 	private void beryllium$cullBeaconBeam(
 		BeaconBlockEntity beacon, float tickDelta, PoseStack poseStack,
-		MultiBufferSource bufferSource, int light, int overlay, CallbackInfo ci
+		@Coerce Object bufferSource, int light, int overlay, CallbackInfo ci
 	) {
 		if (BeaconBeamCulling.shouldCullBeam(beacon)) {
 			ci.cancel();

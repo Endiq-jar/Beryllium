@@ -12,10 +12,6 @@ import org.lwjgl.opengl.GL20;
  * from a listener on {@code ClientLifecycleEvents.CLIENT_STARTED} or later. Calling this
  * before the window is created will not crash (every lookup is wrapped), but will just
  * return "unknown"/-1 placeholders, since there's nothing to query yet.
- *
- * <p>The monitor refresh rate is looked up reflectively because the windowing library
- * that provides it left the classpath during the supported range (26.3 dropped GLFW); a
- * missing library costs the refresh-rate input to the tier decision, never the frame.
  */
 public final class GpuDetector {
 	private GpuDetector() {
@@ -41,22 +37,29 @@ public final class GpuDetector {
 		}
 	}
 
+	/**
+	 * The primary monitor's refresh rate.
+	 *
+	 * <p>GLFW is reached reflectively: newer Minecraft development jars do not expose
+	 * {@code org.lwjgl.glfw} on the compile classpath at all (26.3 is one such release),
+	 * while the classes are present at runtime in every launcher Beryllium supports. A direct
+	 * reference would stop the mod from building there for the sake of one optional number;
+	 * a lookup that fails simply reports -1, which the capability classifier already treats as
+	 * "unknown".
+	 */
 	private static int safeGetRefreshRate() {
 		try {
 			Class<?> glfw = Class.forName("org.lwjgl.glfw.GLFW");
 			Object monitor = glfw.getMethod("glfwGetPrimaryMonitor").invoke(null);
-			if (!(monitor instanceof Number number) || number.longValue() == 0L) {
+			if (!(monitor instanceof Long handle) || handle == 0L) {
 				return -1;
 			}
-			Object mode = glfw.getMethod("glfwGetVideoMode", long.class).invoke(null, number.longValue());
+			Object mode = glfw.getMethod("glfwGetVideoMode", long.class).invoke(null, handle);
 			if (mode == null) {
 				return -1;
 			}
 			Object rate = mode.getClass().getMethod("refreshRate").invoke(mode);
-			return rate instanceof Number n ? n.intValue() : -1;
-		} catch (ClassNotFoundException missing) {
-			// No windowing library on this release (26.3+); the refresh rate stays unknown.
-			return -1;
+			return rate instanceof Number number ? number.intValue() : -1;
 		} catch (Throwable t) {
 			return -1;
 		}

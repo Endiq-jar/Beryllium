@@ -1,10 +1,10 @@
 package com.endiq.beryllium.mixin.culling;
 
 import com.endiq.beryllium.Beryllium;
-import com.endiq.beryllium.culling.BehindCameraCulling;
 import com.endiq.beryllium.config.BerylliumConfig;
+import com.endiq.beryllium.culling.CameraAccess;
+import com.endiq.beryllium.culling.BehindCameraCulling;
 import com.endiq.beryllium.culling.RenderDistanceSync;
-import com.endiq.beryllium.culling.VisibilityCulling;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -40,11 +40,10 @@ public abstract class EntityRenderDispatcherMixin {
 			return;
 		}
 
-		Vec3 camPos = VisibilityCulling.cameraPosition();
-		Vector3f forward = VisibilityCulling.cameraLookVector();
-		if (camPos == null || forward == null) {
-			// Camera access is resolved per Minecraft release; a miss means no behind-camera
-			// or render-distance decision this frame (vanilla rendering continues).
+		Vec3 camPos = CameraAccess.position(camera);
+		Vector3f forward = CameraAccess.lookVector(camera);
+		if (camPos == null) {
+			// No camera position this release: leave the decision entirely to vanilla.
 			return;
 		}
 

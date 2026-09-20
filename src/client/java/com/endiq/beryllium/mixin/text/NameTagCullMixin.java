@@ -2,9 +2,10 @@ package com.endiq.beryllium.mixin.text;
 
 import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
+import com.endiq.beryllium.culling.CameraAccess;
 import com.endiq.beryllium.culling.RenderDistanceSync;
-import com.endiq.beryllium.culling.VisibilityCulling;
 import com.endiq.beryllium.text.TextCulling;
+import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
@@ -59,9 +60,9 @@ public abstract class NameTagCullMixin {
 			return;
 		}
 
-		if (VisibilityCulling.cameraPosition() == null) {
-			// Camera access is resolved per Minecraft release; a miss means no
-			// distance-based name-tag culling this frame.
+		Camera camera = CameraAccess.current();
+		Vec3 camPos = camera == null ? null : CameraAccess.position(camera);
+		if (camPos == null) {
 			return;
 		}
 
@@ -70,10 +71,6 @@ public abstract class NameTagCullMixin {
 			config.cullRangeSyncWithRenderDistance
 		);
 
-		Vec3 camPos = VisibilityCulling.cameraPosition();
-		if (camPos == null) {
-			return;
-		}
 		boolean cull = TextCulling.exceedsRange(
 			camPos.x, camPos.y, camPos.z,
 			entity.getX(), entity.getY(), entity.getZ(),
