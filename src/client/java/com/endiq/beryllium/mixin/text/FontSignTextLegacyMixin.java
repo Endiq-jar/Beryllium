@@ -1,7 +1,6 @@
 package com.endiq.beryllium.mixin.text;
 
 import com.endiq.beryllium.text.SignTextState;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
@@ -34,7 +33,7 @@ public abstract class FontSignTextLegacyMixin {
 	)
 	private void beryllium$signTextComponentLegacy(
 		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
-		MultiBufferSource bufferSource, boolean seeThrough, int backgroundColor,
+		Object bufferSource, boolean seeThrough, int backgroundColor,
 		int packedLightCoords, CallbackInfoReturnable<Integer> cir
 	) {
 		beryllium$decideLegacy(seeThrough, y, cir);
@@ -48,7 +47,7 @@ public abstract class FontSignTextLegacyMixin {
 	)
 	private void beryllium$signTextStringLegacy(
 		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
-		MultiBufferSource bufferSource, boolean seeThrough, int backgroundColor,
+		Object bufferSource, boolean seeThrough, int backgroundColor,
 		int packedLightCoords, CallbackInfoReturnable<Integer> cir
 	) {
 		beryllium$decideLegacy(seeThrough, y, cir);

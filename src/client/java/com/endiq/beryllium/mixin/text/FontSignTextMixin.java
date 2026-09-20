@@ -1,7 +1,6 @@
 package com.endiq.beryllium.mixin.text;
 
 import com.endiq.beryllium.text.SignTextState;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import org.joml.Matrix4f;
@@ -59,7 +58,7 @@ public abstract class FontSignTextMixin {
 	)
 	private void beryllium$signTextString(
 		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
-		MultiBufferSource bufferSource, Object displayMode, int backgroundColor,
+		Object bufferSource, Object displayMode, int backgroundColor,
 		int packedLightCoords, CallbackInfoReturnable<Integer> cir
 	) {
 		beryllium$decide(displayMode, x, y, cir, null);
@@ -73,7 +72,7 @@ public abstract class FontSignTextMixin {
 	)
 	private void beryllium$signTextComponent(
 		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
-		MultiBufferSource bufferSource, Object displayMode, int backgroundColor,
+		Object bufferSource, Object displayMode, int backgroundColor,
 		int packedLightCoords, CallbackInfoReturnable<Integer> cir
 	) {
 		beryllium$decide(displayMode, x, y, cir, null);
@@ -87,7 +86,7 @@ public abstract class FontSignTextMixin {
 	)
 	private void beryllium$signTextSequence(
 		FormattedCharSequence text, float x, float y, int color, boolean dropShadow,
-		Matrix4f matrix, MultiBufferSource bufferSource, Object displayMode,
+		Matrix4f matrix, Object bufferSource, Object displayMode,
 		int backgroundColor, int packedLightCoords, CallbackInfoReturnable<Integer> cir
 	) {
 		beryllium$decide(displayMode, x, y, cir, null);
@@ -103,7 +102,7 @@ public abstract class FontSignTextMixin {
 	)
 	private void beryllium$signTextStringForced(
 		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
-		MultiBufferSource bufferSource, Object displayMode, int backgroundColor,
+		Object bufferSource, Object displayMode, int backgroundColor,
 		int packedLightCoords, boolean force, CallbackInfoReturnable<Integer> cir
 	) {
 		beryllium$decide(displayMode, x, y, cir, null);
@@ -117,7 +116,7 @@ public abstract class FontSignTextMixin {
 	)
 	private void beryllium$signTextComponentForced(
 		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
-		MultiBufferSource bufferSource, Object displayMode, int backgroundColor,
+		Object bufferSource, Object displayMode, int backgroundColor,
 		int packedLightCoords, boolean force, CallbackInfoReturnable<Integer> cir
 	) {
 		beryllium$decide(displayMode, x, y, cir, null);
@@ -133,7 +132,7 @@ public abstract class FontSignTextMixin {
 	)
 	private void beryllium$signTextStringVoid(
 		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
-		MultiBufferSource bufferSource, Object displayMode, int backgroundColor,
+		Object bufferSource, Object displayMode, int backgroundColor,
 		int packedLightCoords, CallbackInfo ci
 	) {
 		beryllium$decide(displayMode, x, y, null, ci);
@@ -147,7 +146,7 @@ public abstract class FontSignTextMixin {
 	)
 	private void beryllium$signTextComponentVoid(
 		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
-		MultiBufferSource bufferSource, Object displayMode, int backgroundColor,
+		Object bufferSource, Object displayMode, int backgroundColor,
 		int packedLightCoords, CallbackInfo ci
 	) {
 		beryllium$decide(displayMode, x, y, null, ci);
@@ -161,7 +160,7 @@ public abstract class FontSignTextMixin {
 	)
 	private void beryllium$signTextSequenceVoid(
 		FormattedCharSequence text, float x, float y, int color, boolean dropShadow,
-		Matrix4f matrix, MultiBufferSource bufferSource, Object displayMode,
+		Matrix4f matrix, Object bufferSource, Object displayMode,
 		int backgroundColor, int packedLightCoords, CallbackInfo ci
 	) {
 		beryllium$decide(displayMode, x, y, null, ci);
@@ -182,7 +181,7 @@ public abstract class FontSignTextMixin {
 	)
 	private void beryllium$signTextOutline(
 		FormattedCharSequence text, float x, float y, int color, int backgroundColor,
-		Matrix4f matrix, MultiBufferSource bufferSource, int packedLightCoords, CallbackInfo ci
+		Matrix4f matrix, Object bufferSource, int packedLightCoords, CallbackInfo ci
 	) {
 		SignTextState.noteOutline(y);
 		if (!SignTextState.shouldDropOutline()) {
