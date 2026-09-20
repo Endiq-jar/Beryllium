@@ -16,10 +16,11 @@ public abstract class VboPoolMixin {
     private void beryllium$vbo(CallbackInfo ci) {
         if (!VboPool.enabled()) return;
     }
+    @SuppressWarnings({"rawtypes","unchecked"})
     @Inject(method = {"create", "allocate"}, at = @At("HEAD"), cancellable = true, require = 0)
-    private void beryllium$pool(CallbackInfoReturnable<?> cir) {
+    private void beryllium$pool(CallbackInfoReturnable cir) {
         if (!VboPool.enabled()) return;
-        Integer pooled = VboPool.acquire();
+        Object pooled = VboPool.acquire();
         if (pooled != null) cir.setReturnValue(pooled);
     }
 }
