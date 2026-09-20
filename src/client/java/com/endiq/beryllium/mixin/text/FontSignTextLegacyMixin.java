@@ -1,7 +1,6 @@
 package com.endiq.beryllium.mixin.text;
 
 import com.endiq.beryllium.text.SignTextState;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
 import org.joml.Matrix4f;
@@ -24,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * ({@code require = 0}), so every release that carries the display-mode overloads instead
  * simply skips this file and is handled by {@code FontSignTextMixin}.
  */
-@Mixin(Font.class)
+@Mixin(targets = {"net.minecraft.client.gui.Font", "net.minecraft.client.gui.font.Font"})
 public abstract class FontSignTextLegacyMixin {
 
 	@Inject(

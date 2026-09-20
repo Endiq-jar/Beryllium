@@ -1,6 +1,5 @@
 package com.endiq.beryllium.tooltip;
 
-import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
@@ -30,7 +29,7 @@ public final class TooltipWrapper {
 	private static int cachedWidth;
 	private static List<Component> cachedResult;
 
-	public static synchronized List<Component> wrap(List<Component> lines, int maxWidth, Font font) {
+	public static synchronized List<Component> wrap(List<Component> lines, int maxWidth, Object font) {
 		if (lines == null || lines.isEmpty() || font == null || maxWidth <= 0) {
 			return lines;
 		}
@@ -61,7 +60,7 @@ public final class TooltipWrapper {
 	}
 
 	/** @return the replacement lines, or null when this line should be left alone. */
-	private static List<Component> wrapLine(Component line, int maxWidth, Font font) {
+	private static List<Component> wrapLine(Component line, int maxWidth, Object font) {
 		if (line == null) {
 			return null;
 		}
@@ -73,7 +72,7 @@ public final class TooltipWrapper {
 			if (text.isEmpty() || text.indexOf('\n') >= 0) {
 				return null;
 			}
-			if (font.width(text) <= maxWidth) {
+			if (fontWidth(font, text) <= maxWidth) {
 				return null;
 			}
 
@@ -81,7 +80,7 @@ public final class TooltipWrapper {
 			StringBuilder current = new StringBuilder();
 			for (String word : text.split(" ")) {
 				String candidate = current.length() == 0 ? word : current + " " + word;
-				if (current.length() > 0 && font.width(candidate) > maxWidth) {
+				if (current.length() > 0 && fontWidth(font, candidate) > maxWidth) {
 					result.add(rebuild(current.toString(), line));
 					current.setLength(0);
 					current.append(word);
@@ -97,6 +96,12 @@ public final class TooltipWrapper {
 		} catch (Throwable t) {
 			return null;
 		}
+	}
+
+		private static int fontWidth(Object font, String text) {
+		try { return ((Number) font.getClass().getMethod("width", String.class).invoke(font, text)).intValue(); } catch (Throwable e) { try { // try Component overload
+			Class<?> compCls = Class.forName("net.minecraft.network.chat.Component");
+			return ((Number) font.getClass().getMethod("width", compCls).invoke(font, Component.literal(text))).intValue(); } catch (Throwable ex) { return text.length()*6; } }
 	}
 
 	private static Component rebuild(String text, Component template) {

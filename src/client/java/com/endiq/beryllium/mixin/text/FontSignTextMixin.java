@@ -1,7 +1,6 @@
 package com.endiq.beryllium.mixin.text;
 
 import com.endiq.beryllium.text.SignTextState;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
@@ -43,7 +42,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * (verified against the real game jar), and {@code FormattedCharSequence} lives in
  * {@code net.minecraft.util} throughout, so no version-only class is imported here.
  */
-@Mixin(Font.class)
+@Mixin(targets = {"net.minecraft.client.gui.Font", "net.minecraft.client.gui.font.Font"})
 public abstract class FontSignTextMixin {
 
 	/** One vanilla outline step: 8xOutline draws at ±1 in text space. */
@@ -60,7 +59,7 @@ public abstract class FontSignTextMixin {
 	)
 	private void beryllium$signTextString(
 		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
-		MultiBufferSource bufferSource, Font.DisplayMode displayMode, int backgroundColor,
+		MultiBufferSource bufferSource, Object displayMode, int backgroundColor,
 		int packedLightCoords, CallbackInfoReturnable<Integer> cir
 	) {
 		beryllium$decide(displayMode, x, y, cir, null);
@@ -74,7 +73,7 @@ public abstract class FontSignTextMixin {
 	)
 	private void beryllium$signTextComponent(
 		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
-		MultiBufferSource bufferSource, Font.DisplayMode displayMode, int backgroundColor,
+		MultiBufferSource bufferSource, Object displayMode, int backgroundColor,
 		int packedLightCoords, CallbackInfoReturnable<Integer> cir
 	) {
 		beryllium$decide(displayMode, x, y, cir, null);
@@ -88,7 +87,7 @@ public abstract class FontSignTextMixin {
 	)
 	private void beryllium$signTextSequence(
 		FormattedCharSequence text, float x, float y, int color, boolean dropShadow,
-		Matrix4f matrix, MultiBufferSource bufferSource, Font.DisplayMode displayMode,
+		Matrix4f matrix, MultiBufferSource bufferSource, Object displayMode,
 		int backgroundColor, int packedLightCoords, CallbackInfoReturnable<Integer> cir
 	) {
 		beryllium$decide(displayMode, x, y, cir, null);
@@ -104,7 +103,7 @@ public abstract class FontSignTextMixin {
 	)
 	private void beryllium$signTextStringForced(
 		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
-		MultiBufferSource bufferSource, Font.DisplayMode displayMode, int backgroundColor,
+		MultiBufferSource bufferSource, Object displayMode, int backgroundColor,
 		int packedLightCoords, boolean force, CallbackInfoReturnable<Integer> cir
 	) {
 		beryllium$decide(displayMode, x, y, cir, null);
@@ -118,7 +117,7 @@ public abstract class FontSignTextMixin {
 	)
 	private void beryllium$signTextComponentForced(
 		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
-		MultiBufferSource bufferSource, Font.DisplayMode displayMode, int backgroundColor,
+		MultiBufferSource bufferSource, Object displayMode, int backgroundColor,
 		int packedLightCoords, boolean force, CallbackInfoReturnable<Integer> cir
 	) {
 		beryllium$decide(displayMode, x, y, cir, null);
@@ -134,7 +133,7 @@ public abstract class FontSignTextMixin {
 	)
 	private void beryllium$signTextStringVoid(
 		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
-		MultiBufferSource bufferSource, Font.DisplayMode displayMode, int backgroundColor,
+		MultiBufferSource bufferSource, Object displayMode, int backgroundColor,
 		int packedLightCoords, CallbackInfo ci
 	) {
 		beryllium$decide(displayMode, x, y, null, ci);
@@ -148,7 +147,7 @@ public abstract class FontSignTextMixin {
 	)
 	private void beryllium$signTextComponentVoid(
 		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
-		MultiBufferSource bufferSource, Font.DisplayMode displayMode, int backgroundColor,
+		MultiBufferSource bufferSource, Object displayMode, int backgroundColor,
 		int packedLightCoords, CallbackInfo ci
 	) {
 		beryllium$decide(displayMode, x, y, null, ci);
@@ -162,7 +161,7 @@ public abstract class FontSignTextMixin {
 	)
 	private void beryllium$signTextSequenceVoid(
 		FormattedCharSequence text, float x, float y, int color, boolean dropShadow,
-		Matrix4f matrix, MultiBufferSource bufferSource, Font.DisplayMode displayMode,
+		Matrix4f matrix, MultiBufferSource bufferSource, Object displayMode,
 		int backgroundColor, int packedLightCoords, CallbackInfo ci
 	) {
 		beryllium$decide(displayMode, x, y, null, ci);
@@ -194,15 +193,20 @@ public abstract class FontSignTextMixin {
 			return;
 		}
 
-		Font self = (Font) (Object) this;
 		int shadow = (color & 0xFCFCFC) >> 2 | (color & 0xFF000000);
 		SignTextState.setDrawingShadowPass(true);
 		try {
-			self.drawInBatch(
-				text, x + BERYLLIUM$SHADOW_OFFSET, y + BERYLLIUM$SHADOW_OFFSET, shadow, false,
-				matrix, bufferSource, Font.DisplayMode.SEE_THROUGH, backgroundColor,
-				packedLightCoords
-			);
+			// reflective shadow pass: avoids hard Font.DisplayMode reference for 26.2+ compatibility
+			try {
+				Object self = (Object) this;
+				java.lang.reflect.Method m = null;
+				for (java.lang.reflect.Method cand : self.getClass().getMethods()) if (cand.getName().equals("drawInBatch") && cand.getParameterCount() >= 9) { m = cand; break; }
+				if (m != null) {
+					Object seeThrough = null;
+					for (Class<?> c : self.getClass().getClasses()) if (c.getSimpleName().equals("DisplayMode")) for (Object e : c.getEnumConstants()) if ("SEE_THROUGH".equals(e.toString())) { seeThrough = e; break; }
+					if (seeThrough != null) m.invoke(self, text, x + BERYLLIUM$SHADOW_OFFSET, y + BERYLLIUM$SHADOW_OFFSET, shadow, false, matrix, bufferSource, seeThrough, backgroundColor, packedLightCoords);
+				}
+			} catch (Throwable ignore) {}
 		} finally {
 			SignTextState.setDrawingShadowPass(false);
 		}
@@ -210,7 +214,7 @@ public abstract class FontSignTextMixin {
 
 	@Unique
 	private void beryllium$decide(
-		Font.DisplayMode displayMode, float x, float y,
+		Object displayMode, float x, float y,
 		CallbackInfoReturnable<Integer> cir, CallbackInfo ci
 	) {
 		if (SignTextState.isDrawingShadowPass()) {
@@ -221,7 +225,7 @@ public abstract class FontSignTextMixin {
 			return;
 		}
 
-		boolean seeThrough = displayMode == null ? false : displayMode == Font.DisplayMode.SEE_THROUGH;
+		boolean seeThrough = displayMode != null && "SEE_THROUGH".equals(displayMode.toString());
 		SignTextState.noteDraw(seeThrough, y);
 
 		if (SignTextState.shouldHideText()) {

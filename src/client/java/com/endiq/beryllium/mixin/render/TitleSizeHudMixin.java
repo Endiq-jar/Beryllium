@@ -4,7 +4,6 @@ import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.compat.Reflect;
 import com.endiq.beryllium.config.BerylliumConfig;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -75,13 +74,14 @@ public abstract class TitleSizeHudMixin {
 			if (minecraft == null) {
 				return;
 			}
-			Font font = minecraft.font;
+			Object font = com.endiq.beryllium.compat.Reflect.get(minecraft, "font");
 			if (font == null) {
 				return;
 			}
 			int screenWidth = minecraft.getWindow().getGuiScaledWidth();
 			int allowed = (int) Math.max(40.0, screenWidth * Math.min(1.0, Math.max(0.1, config.maxTitleWidthFraction)));
-			int width = font.width(text);
+			int width = -1;
+			try { Object w = font.getClass().getMethod("width", Component.class).invoke(font, text); width = ((Number) w).intValue(); } catch (Throwable e) { try { Object w = font.getClass().getMethod("width", String.class).invoke(font, text.getString()); width = ((Number) w).intValue(); } catch (Throwable ex) { return; } }
 			if (width <= 0 || width * baseScale <= allowed) {
 				return;
 			}

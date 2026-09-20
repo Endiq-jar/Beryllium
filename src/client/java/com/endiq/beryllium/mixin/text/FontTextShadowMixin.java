@@ -2,7 +2,6 @@ package com.endiq.beryllium.mixin.text;
 
 import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
-import net.minecraft.client.gui.Font;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -28,7 +27,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
  * {@code argsOnly = true, ordinal = 0} selects it unambiguously regardless of the other
  * parameter types.
  */
-@Mixin(Font.class)
+@Mixin(targets = {"net.minecraft.client.gui.Font", "net.minecraft.client.gui.font.Font"})
 public abstract class FontTextShadowMixin {
 
 	@ModifyVariable(
