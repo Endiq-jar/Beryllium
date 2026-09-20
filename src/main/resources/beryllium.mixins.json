@@ -44,7 +44,10 @@
 		"optimization.MobAiMixin",
 		"optimization.ChunkBuildMixin",
 		"optimization.GeneralOptimizationMixin",
-		"optimization.DynamicPerformanceMixin"
+		"optimization.DynamicPerformanceMixin",
+		"optimization.SystemPropertiesMixin",
+		"optimization.PreGeneratorMixin",
+		"optimization.ThreadedPollingMixin"
 	],
 	"injectors": {
 		"defaultRequire": 0

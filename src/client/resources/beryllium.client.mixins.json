@@ -68,7 +68,10 @@
 		"optimization.FastMathMixin",
 		"optimization.ShaderUniformMixin",
 		"optimization.BootMixin",
-		"optimization.LoadingScreenMixin"
+		"optimization.LoadingScreenMixin",
+		"optimization.VboPoolMixin",
+		"optimization.SimdMixin",
+		"optimization.ChunkUploadPacerMixin2"
 	],
 	"injectors": {
 		"defaultRequire": 0
