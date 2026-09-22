@@ -136,7 +136,12 @@ accessWidenerFile.text = (["accessWidener v${accessWidenerFormatVersion} ${acces
 
 loom {
 	accessWidenerPath = accessWidenerFile
-	splitEnvironmentSourceSets()
+	// 1.17-1.18 use a merged jar (no bundled server jar to split), so splitEnvironmentSourceSets()
+	// would throw \"Only Minecraft versions using a bundled server jar can be split\". Keep the
+	// single source tree but only split where Loom actually supports it.
+	if (mcAtLeast(1, 19, 4) || unobfuscatedGame) {
+		splitEnvironmentSourceSets()
+	}
 
 	mods {
 		"beryllium" {

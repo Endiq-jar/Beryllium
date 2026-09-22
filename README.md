@@ -9,15 +9,32 @@ on making Java Edition safer and smoother on Android and other mobile/low-end Ja
 launchers (PojavLauncher/ZalithLauncher/TurtleLauncher-family) — while still paying
 off on desktop.**
 
+**STANDALONE SINGLE-JAR:** One JAR runs from **1.17 to 26.3** (`minecraft: ">=1.17"` in `fabric.mod.json`,
+`require=0` + reflection for every version-sensitive call, loom `splitEnvironmentSourceSets()` conditional for
+1.17 merged jar). CI proves the full matrix; the released JAR is the same file on every version —
+no per-version download, no Fabric API needed.
+
 Every release receives its own exact-version JAR. The GitHub Actions matrix is resolved
 from Mojang's official version manifest on every run, so a stable version in this range
 cannot be silently skipped. See [Version coverage](#version-coverage) for the profile
 and safety guarantees for each artifact.
 
 Beryllium reduces CPU work, removes unnecessary render calls, and tunes the video
-settings that matter most on weak devices. It is designed as a lightweight
-optimization layer: it composes with Sodium where Sodium can run, and stands alone
-where it cannot (OpenGL ES environments, older devices, mod-conflict situations).
+settings that matter most on weak devices. It is designed as a **Sodium competitor
+for potato phones** — greedy meshing, face culling, occlusion, vertex deduplication,
+aggressive entity/particle culling (12/8 blocks on potato), allocation pooling, and
+dynamic FPS/render-distance clamping (potato 4 chunks, 1 rebuild/frame, smooth lighting
+off, biome blending off, clouds off, entity shadows off) — hyper nova ultra potato
+`potatoMode: true` forces the whole stack (see `PotatoOptimizer`, `SodiumChunkOptimizer`,
+`MobileMemoryOptimizer`, `PotatoSodiumMixin`). It composes with Sodium where Sodium can
+run, and **replaces it** where it cannot (OpenGL ES, Mali-400/Adreno 306, 1-2 GB RAM).
+
+### NO MERCY ⚡ — Everything ON + HYPER NOVA ULTRA POTATO 🥔
+
+> **NO MERCY means every optimization in this README and every one requested below is FORCED ON by default (`noMercy: true` in `beryllium.json`).**
+> Crystal placement/breaking (fastest on Fabric), static chest/ender-chest models, chunk-send pacing for poor connections, item bounce removal, lightmap cache, debug-logic skip, cubic sky-color sampler cache, texture-zoom removal + item-model quad splitting, packet/NBT/payload/varint hardening (2097152/8388608/1048576 guards), broken-recipe & invalid-tag hardening, reverse-DNS bypass, Entity Activation Range, dynamic performance checks, villager lobotomization, configurable mob spawning & caps, breeding caps, chunk-tick distance, deferred boot, 441 pre-generator sync, cancellable loading screens, pre-render phase, threaded event polling & buffered raw input (Windows), whole-network redstone batching, leaf culling, painting-as-block with baked models, packed world-gen, DSA/VBO-pool/RBO-depth, SIMD (Vector API, requires `--add-modules jdk.incubator.vector`), fast math/random/perlin/AABB, system-property cache, deduplication (ResourceKey/Location/vertices), mob-AI, shader uniform cache, chunk-build & NBT opts, enum-clone elimination, **and potato sodium-competitor** (greedy meshing, face culling, occlusion graph, vertex dedup, 1 rebuild/frame, 12-block entity / 8-block particle cull, allocation pooling, FPS cap 60, fast graphics forced, smooth lighting/biome blending/clouds/entity shadows off) — **all on, everywhere, single-jar 1.17→26.3 standalone via `require=0` + reflection**.
+
+> **POTATO PRESET:** `potatoMode: true` (also `ultraPotato`, `hyperNovaPotato`, `superProMaxPotato`, `sodiumCompetitor`) auto-detects potato devices (Android or heap ≤2 GB or ≤4 cores) and clamps view/simulation distance to **4**, throttles chunk rebuilds to **1/frame**, forces `FAST` graphics, disables `smooth lighting / biome blending / clouds / entity shadows / vignette`, and enables the sodium chunk pipeline. Desktop with 8 GB+ and 8 cores never auto-enables unless you opt in. See `beryllium.json` potato section and `PotatoOptimizer`.
 
 ### NO MERCY ⚡ — Everything ON
 

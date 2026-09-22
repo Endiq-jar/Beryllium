@@ -2,7 +2,6 @@ package com.endiq.beryllium.tick;
 
 import com.endiq.beryllium.util.BerylliumLog;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -109,7 +108,7 @@ public final class ExperimentalCertification {
 	}
 
 	/** Called by the {@code Level#random} field redirect; also the redirect's proof of life. */
-	public static RandomSource threadRandom() {
+	public static Object threadRandom() {
 		randomRedirects++;
 		return WorkerRandom.get();
 	}
@@ -122,14 +121,21 @@ public final class ExperimentalCertification {
 		return certifications;
 	}
 
-	/** One lazily created {@code RandomSource} per worker thread. */
+	/** One lazily created {@code RandomSource} / {@code Random} per worker thread — reflection for 1.17. */
 	private static final class WorkerRandom {
-		private static final ThreadLocal<RandomSource> LOCAL = ThreadLocal.withInitial(RandomSource::create);
+		private static final ThreadLocal<Object> LOCAL = ThreadLocal.withInitial(() -> {
+			try {
+				Class<?> c = Class.forName("net.minecraft.util.RandomSource");
+				return c.getMethod("create").invoke(null);
+			} catch (Throwable t) {
+				return new java.util.Random();
+			}
+		});
 
 		private WorkerRandom() {
 		}
 
-		static RandomSource get() {
+		static Object get() {
 			return LOCAL.get();
 		}
 	}

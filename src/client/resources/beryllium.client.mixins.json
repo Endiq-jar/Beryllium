@@ -71,7 +71,10 @@
 		"optimization.LoadingScreenMixin",
 		"optimization.VboPoolMixin",
 		"optimization.SimdMixin",
-		"optimization.ChunkUploadPacerMixin2"
+		"optimization.ChunkUploadPacerMixin2",
+		"optimization.PotatoSodiumMixin",
+		"optimization.PotatoEntityCullingMixin",
+		"optimization.PotatoParticleMixin"
 	],
 	"injectors": {
 		"defaultRequire": 0

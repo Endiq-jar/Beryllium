@@ -35,7 +35,7 @@ public abstract class EntityCollisionContextLazyMixin {
     @Mutable
     @Shadow
     @Final
-    private Predicate<FluidState> canStandOnFluid;
+    private Predicate<?> canStandOnFluid;
 
     @Shadow
     @Final
@@ -106,12 +106,40 @@ public abstract class EntityCollisionContextLazyMixin {
 
     @Inject(
             method = "canStandOnFluid(Lnet/minecraft/world/level/material/FluidState;Lnet/minecraft/world/level/material/FluidState;)Z",
-            at = @At("HEAD")
+            at = @At("HEAD"),
+            require = 0
     )
     public void beryllium$canWalkOnFluid(FluidState state, FluidState fluidState, CallbackInfoReturnable<Boolean> cir) {
+        beryllium$initFluidPredicate();
+    }
+
+    @Inject(
+            method = "canStandOnFluid(Lnet/minecraft/world/level/material/Fluid;Lnet/minecraft/world/level/material/Fluid;)Z",
+            at = @At("HEAD"),
+            require = 0
+    )
+    public void beryllium$canWalkOnFluidLegacy(Object state, Object fluidState, CallbackInfoReturnable<Boolean> cir) {
+        beryllium$initFluidPredicate();
+    }
+
+    @Unique
+    private void beryllium$initFluidPredicate() {
         if (this.canStandOnFluid == null) {
             if (this.entity instanceof LivingEntity livingEntity) {
-                this.canStandOnFluid = livingEntity::canStandOnFluid;
+                this.canStandOnFluid = (Predicate<Object>) obj -> {
+                    try {
+                        // 1.19+ takes FluidState, 1.17 takes Fluid — try both reflectively
+                        for (java.lang.reflect.Method m : livingEntity.getClass().getMethods()) {
+                            if (m.getName().equals("canStandOnFluid") && m.getParameterCount() == 1) {
+                                try { return (Boolean) m.invoke(livingEntity, obj); } catch (Throwable t) {}
+                            }
+                            if (m.getName().equals("canStandOnFluid") && m.getParameterCount() == 2) {
+                                try { return (Boolean) m.invoke(livingEntity, obj, obj); } catch (Throwable t) {}
+                            }
+                        }
+                        return false;
+                    } catch (Throwable t) { return false; }
+                };
             } else {
                 this.canStandOnFluid = (liquid) -> false;
             }

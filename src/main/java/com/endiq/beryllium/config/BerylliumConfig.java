@@ -816,6 +816,73 @@ public class BerylliumConfig {
 	// --- 1.17 -> latest single mod support ---
 	public boolean singleJarMultiVersion = true;
 	public String supportedRange = "1.17-26.3";
+	public boolean singleJarStandalone = true;
+	public boolean standaloneMod = true;
+
+	// --- POTATO / SODIUM COMPETITOR — ultra low-end mobile ---
+	// Master potato switch: when true, forces every potato optimization below to its most
+	// aggressive, battery-saving value regardless of the individual flag. This is the
+	// \"hyper nova ultra potato\" preset: chunk distance 2-4, entity culling 12 blocks,
+	// particles minimal/off, no fancy graphics, no smooth lighting, no biome blending,
+	// greedy meshing, occlusion culling, allocation pooling — the full sodium-competitor
+	// stack. Desktop users can turn this off and tune individually; potato devices should
+	// leave it on. Acts as a floor: enabled=true still gates everything (see top), but
+	// potatoMode=true inside that pushes each subsystem to its potato ceiling.
+	public boolean potatoMode = true;
+	public boolean ultraPotato = true;
+	public boolean hyperNovaPotato = true;
+	public boolean superProMaxPotato = true;
+	public boolean sodiumCompetitor = true;
+	public boolean sodiumCompetitorMode = true;
+	public boolean potatoLowEndMobile = true;
+	public boolean potatoForMobile = true;
+	// Chunk / render distance clamps for potato (blocks, not chunks, where noted)
+	public int potatoChunkDistance = 4;
+	public int potatoSimulationDistance = 4;
+	public int potatoViewDistance = 4;
+	public int potatoRenderDistance = 4;
+	public boolean potatoClampViewDistance = true;
+	public boolean potatoClampSimulationDistance = true;
+	// Entity / particle aggressiveness for potato
+	public int potatoEntityCullingDistance = 12;
+	public int potatoEntityTickDistance = 16;
+	public boolean potatoAggressiveEntityCulling = true;
+	public boolean potatoAggressiveParticleCulling = true;
+	public int potatoParticleCullingDistance = 8;
+	public boolean potatoDisableParticles = true;
+	public boolean potatoMinimalParticles = true;
+	// Graphics downgrades that save the most on Mali/Adreno/PowerVR
+	public boolean potatoDisableFancyGraphics = true;
+	public boolean potatoForceFastGraphics = true;
+	public boolean potatoDisableSmoothLighting = true;
+	public boolean potatoNoSmoothLighting = true;
+	public boolean potatoDisableBiomeBlending = true;
+	public boolean potatoNoBiomeBlending = true;
+	public boolean potatoDisableClouds = true;
+	public boolean potatoNoClouds = true;
+	public boolean potatoDisableEntityShadows = true;
+	public boolean potatoNoEntityShadows = true;
+	public boolean potatoDisableVignette = true;
+	public boolean potatoDisableFancyLeaves = true;
+	// Sodium-like meshing & occlusion for potato
+	public boolean potatoGreedyMeshing = true;
+	public boolean potatoFaceCulling = true;
+	public boolean potatoOcclusionCulling = true;
+	public boolean potatoChunkOcclusion = true;
+	public boolean potatoVertexDeduplication = true;
+	public boolean potatoUseOcclusionCulling = true;
+	public boolean potatoSodiumChunkBuild = true;
+	// Memory / allocation for 1-2 GB devices
+	public boolean potatoAllocationPooling = true;
+	public boolean potatoPooledAllocations = true;
+	public boolean potatoReduceAllocations = true;
+	public boolean potatoMemoryOptimizer = true;
+	public int potatoMaxFps = 60;
+	public boolean potatoFpsCap = true;
+	public boolean potatoThrottleChunkUpdates = true;
+	public int potatoChunkUpdatesPerFrame = 1;
+	public boolean potatoThrottleBlockUpdates = true;
+	public boolean potatoLowMemoryMode = true;
 
 	public static BerylliumConfig load() {
 		if (Files.exists(CONFIG_PATH)) {

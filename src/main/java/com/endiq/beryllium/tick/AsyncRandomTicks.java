@@ -1,7 +1,6 @@
 package com.endiq.beryllium.tick;
 
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 
@@ -200,7 +199,7 @@ public final class AsyncRandomTicks {
 	}
 
 	/** Called by the {@code Level#random} field redirect inside {@code tickChunk}. */
-	public static RandomSource threadRandom() {
+	public static Object threadRandom() {
 		return ExperimentalCertification.threadRandom();
 	}
 

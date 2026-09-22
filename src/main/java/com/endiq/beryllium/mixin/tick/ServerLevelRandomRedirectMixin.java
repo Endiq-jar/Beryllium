@@ -3,7 +3,6 @@ package com.endiq.beryllium.mixin.tick;
 import com.endiq.beryllium.tick.AsyncRandomTicks;
 import com.endiq.beryllium.tick.DeferredWorldActions;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.RandomSource;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -35,10 +34,30 @@ public abstract class ServerLevelRandomRedirectMixin {
 		),
 		require = 0
 	)
-	private RandomSource beryllium$workerRandom(ServerLevel level) {
+	private Object beryllium$workerRandom(ServerLevel level) {
 		if (DeferredWorldActions.isDeferring()) {
 			return AsyncRandomTicks.threadRandom();
 		}
-		return level.getRandom();
+		try { return level.getClass().getMethod("getRandom").invoke(level); } catch (Throwable t) { try { return level.getClass().getField("random").get(level); } catch (Throwable t2) { return new java.util.Random(); } }
+	}
+
+	@Redirect(
+		method = "tickChunk(Lnet/minecraft/world/level/chunk/LevelChunk;I)V",
+		at = @At(
+			value = "FIELD",
+			target = "Lnet/minecraft/world/level/Level;random:Ljava/util/Random;",
+			opcode = Opcodes.GETFIELD
+		),
+		require = 0
+	)
+	private java.util.Random beryllium$workerRandomLegacy(ServerLevel level) {
+		if (DeferredWorldActions.isDeferring()) {
+			Object o = AsyncRandomTicks.threadRandom();
+			if (o instanceof java.util.Random r) return r;
+			return new java.util.Random();
+		}
+		try { Object o = level.getClass().getMethod("getRandom").invoke(level); if (o instanceof java.util.Random r) return r; } catch (Throwable t) {}
+		try { Object o = level.getClass().getField("random").get(level); if (o instanceof java.util.Random r) return r; } catch (Throwable t) {}
+		return new java.util.Random();
 	}
 }
