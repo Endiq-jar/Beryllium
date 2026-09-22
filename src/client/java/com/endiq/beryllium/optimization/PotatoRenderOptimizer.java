@@ -40,13 +40,16 @@ public final class PotatoRenderOptimizer {
         try {
             BerylliumConfig c = Beryllium.config();
             if (c == null || !c.enabled || !PotatoOptimizer.potatoEnabled()) return;
-            // These are reflectively set where the option type changed between 1.17 and 26.x
-            // so we use the compatibility helper instead of direct field access.
             if (c.potatoClampViewDistance) {
                 try { mc.options.renderDistance().set(Math.min(mc.options.renderDistance().get(), c.potatoViewDistance)); } catch (Throwable t) {}
             }
             if (c.potatoDisableFancyGraphics || c.potatoForceFastGraphics) {
-                try { Object g = mc.options.graphicsMode().get(); if (!\"FAST\".equals(g.toString())) mc.options.graphicsMode().set(Enum.valueOf((Class<Enum>) g.getClass(), \"FAST\")); } catch (Throwable t) {}
+                try {
+                    Object g = mc.options.graphicsMode().get();
+                    if (!"FAST".equals(g.toString())) {
+                        mc.options.graphicsMode().set(Enum.valueOf((Class<Enum>) g.getClass(), "FAST"));
+                    }
+                } catch (Throwable t) {}
             }
             if (c.potatoDisableSmoothLighting) {
                 try { mc.options.ambientOcclusion().set(false); } catch (Throwable t) {}
@@ -55,7 +58,10 @@ public final class PotatoRenderOptimizer {
                 try { mc.options.biomeBlendRadius().set(0); } catch (Throwable t) {}
             }
             if (c.potatoDisableClouds) {
-                try { mc.options.getCloudsType().set(Enum.valueOf((Class<Enum>) mc.options.getCloudsType().get().getClass(), \"OFF\")); } catch (Throwable t) {}
+                try {
+                    Object v = mc.options.getCloudsType().get();
+                    mc.options.getCloudsType().set(Enum.valueOf((Class<Enum>) v.getClass(), "OFF"));
+                } catch (Throwable t) {}
             }
         } catch (Throwable t) {}
     }
