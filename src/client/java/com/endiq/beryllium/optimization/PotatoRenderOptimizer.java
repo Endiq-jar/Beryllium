@@ -36,31 +36,53 @@ public final class PotatoRenderOptimizer {
     }
 
     public static void applyPotatoGraphics(Minecraft mc) {
-        if (mc == null || mc.options == null) return;
+        if (mc == null) return;
         try {
             BerylliumConfig c = Beryllium.config();
             if (c == null || !c.enabled || !PotatoOptimizer.potatoEnabled()) return;
+            // Reflective graphics tuning — version-agnostic (1.17 uses different OptionInstance types)
+            // We intentionally use raw reflection so the same bytecode compiles from 1.17 to 26.3.
+            Object options = mc.options;
+            if (options == null) return;
             if (c.potatoClampViewDistance) {
-                try { mc.options.renderDistance().set(Math.min(mc.options.renderDistance().get(), c.potatoViewDistance)); } catch (Throwable t) {}
+                try {
+                    Object vd = options.getClass().getMethod("renderDistance").invoke(options);
+                    vd.getClass().getMethod("set", Object.class).invoke(vd, Math.min((Integer) vd.getClass().getMethod("get").invoke(vd), c.potatoViewDistance));
+                } catch (Throwable t) {}
             }
             if (c.potatoDisableFancyGraphics || c.potatoForceFastGraphics) {
                 try {
-                    Object g = mc.options.graphicsMode().get();
-                    if (!"FAST".equals(g.toString())) {
-                        mc.options.graphicsMode().set(Enum.valueOf((Class<Enum>) g.getClass(), "FAST"));
+                    Object gm = options.getClass().getMethod("graphicsMode").invoke(options);
+                    Object cur = gm.getClass().getMethod("get").invoke(gm);
+                    if (!"FAST".equals(cur.toString())) {
+                        for (Object e : cur.getClass().getEnumConstants()) {
+                            if ("FAST".equals(e.toString())) { gm.getClass().getMethod("set", Object.class).invoke(gm, e); break; }
+                        }
                     }
                 } catch (Throwable t) {}
             }
             if (c.potatoDisableSmoothLighting) {
-                try { mc.options.ambientOcclusion().set(false); } catch (Throwable t) {}
+                try {
+                    Object ao = options.getClass().getMethod("ambientOcclusion").invoke(options);
+                    ao.getClass().getMethod("set", Object.class).invoke(ao, false);
+                } catch (Throwable t) {}
             }
             if (c.potatoDisableBiomeBlending) {
-                try { mc.options.biomeBlendRadius().set(0); } catch (Throwable t) {}
+                try {
+                    Object bb = options.getClass().getMethod("biomeBlendRadius").invoke(options);
+                    bb.getClass().getMethod("set", Object.class).invoke(bb, 0);
+                } catch (Throwable t) {}
             }
             if (c.potatoDisableClouds) {
                 try {
-                    Object v = mc.options.getCloudsType().get();
-                    mc.options.getCloudsType().set(Enum.valueOf((Class<Enum>) v.getClass(), "OFF"));
+                    Object ct = null;
+                    try { ct = options.getClass().getMethod("getCloudsType").invoke(options); } catch (Throwable t) { ct = options.getClass().getMethod("cloudStatus").invoke(options); }
+                    if (ct != null) {
+                        Object cur = ct.getClass().getMethod("get").invoke(ct);
+                        for (Object e : cur.getClass().getEnumConstants()) {
+                            if ("OFF".equals(e.toString())) { ct.getClass().getMethod("set", Object.class).invoke(ct, e); break; }
+                        }
+                    }
                 } catch (Throwable t) {}
             }
         } catch (Throwable t) {}
