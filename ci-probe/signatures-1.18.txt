@@ -1,0 +1,61 @@
+## minecraft 1.18
+## commit: 51ed71b
+## source files: 221
+
+=== net.minecraft.client.gui.Font
+Error: class not found: net.minecraft.client.gui.Font
+
+=== net.minecraft.client.gui.Font$DisplayMode
+Error: class not found: net.minecraft.client.gui.Font$DisplayMode
+
+=== net.minecraft.client.Camera
+Error: class not found: net.minecraft.client.Camera
+
+=== net.minecraft.client.Minecraft
+Error: class not found: net.minecraft.client.Minecraft
+
+=== net.minecraft.client.renderer.LevelRenderer
+Error: class not found: net.minecraft.client.renderer.LevelRenderer
+
+=== net.minecraft.client.renderer.SectionRenderDispatcher
+Error: class not found: net.minecraft.client.renderer.SectionRenderDispatcher
+
+=== net.minecraft.client.renderer.ViewArea
+Error: class not found: net.minecraft.client.renderer.ViewArea
+
+=== net.minecraft.client.renderer.blockentity.AbstractSignRenderer
+Error: class not found: net.minecraft.client.renderer.blockentity.AbstractSignRenderer
+
+=== net.minecraft.client.renderer.blockentity.SignRenderer
+Error: class not found: net.minecraft.client.renderer.blockentity.SignRenderer
+
+=== net.minecraft.client.renderer.blockentity.BeaconRenderer
+Error: class not found: net.minecraft.client.renderer.blockentity.BeaconRenderer
+
+=== net.minecraft.client.renderer.blockentity.BlockEntityRenderer
+Error: class not found: net.minecraft.client.renderer.blockentity.BlockEntityRenderer
+
+=== net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher
+Error: class not found: net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher
+
+=== net.minecraft.client.renderer.entity.EntityRenderDispatcher
+Error: class not found: net.minecraft.client.renderer.entity.EntityRenderDispatcher
+
+=== net.minecraft.client.particle.ParticleEngine
+Error: class not found: net.minecraft.client.particle.ParticleEngine
+
+=== net.minecraft.world.entity.Entity
+Error: class not found: net.minecraft.world.entity.Entity
+
+=== net.minecraft.world.level.Level
+Error: class not found: net.minecraft.world.level.Level
+
+=== net.minecraft.server.level.ServerLevel
+Error: class not found: net.minecraft.server.level.ServerLevel
+
+=== net.minecraft.world.level.chunk.LevelChunk
+Error: class not found: net.minecraft.world.level.chunk.LevelChunk
+
+=== net.minecraft.world.level.ChunkPos
+Error: class not found: net.minecraft.world.level.ChunkPos
+

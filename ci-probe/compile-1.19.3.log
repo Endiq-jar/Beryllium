@@ -1,0 +1,30 @@
+## minecraft 1.19.3
+## commit: 51ed71b
+## gradle exit: 1, validate exit: 1
+## compile errors: 0
+## access widener: accessWidener v1 named
+## packaged widener: 
+## validate output: no non-sources jar found in build/libs 
+
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Fabric Loom: 1.17.21
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file '/home/runner/work/Beryllium/Beryllium/build.gradle' line: 149
+
+* What went wrong:
+A problem occurred evaluating root project 'beryllium'.
+> Could not get unknown property 'client' for SourceSet container of type org.gradle.api.internal.tasks.DefaultSourceSetContainer.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 5s

@@ -1,7 +1,7 @@
 ## minecraft 26.2
-## commit: cc96d01
+## commit: 51ed71b
 ## gradle exit: 1, validate exit: 1
-## compile errors: 6
+## compile errors: 18
 ## access widener: accessWidener v2 official
 ## packaged widener: 
 ## validate output: no non-sources jar found in build/libs 
@@ -19,22 +19,34 @@ Failed to parse fabric.mod.json: /home/runner/work/Beryllium/Beryllium/src/main/
 > Task :classes
 
 > Task :compileClientJava FAILED
-/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:4: error: cannot find symbol
-import net.minecraft.client.renderer.MultiBufferSource;
-                                    ^
-  symbol:   class MultiBufferSource
-  location: package net.minecraft.client.renderer
-/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:37: error: cannot find symbol
-		MultiBufferSource bufferSource, boolean seeThrough, int backgroundColor,
-		^
-  symbol:   class MultiBufferSource
-  location: class FontSignTextLegacyMixin
-/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:51: error: cannot find symbol
-		MultiBufferSource bufferSource, boolean seeThrough, int backgroundColor,
-		^
-  symbol:   class MultiBufferSource
-  location: class FontSignTextLegacyMixin
-3 errors
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:49: error: illegal character: '\'
+                try { Object g = mc.options.graphicsMode().get(); if (!\"FAST\".equals(g.toString())) mc.options.graphicsMode().set(Enum.valueOf((Class<Enum>) g.getClass(), \"FAST\")); } catch (Throwable t) {}
+                                                                       ^
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:49: error: unclosed string literal
+                try { Object g = mc.options.graphicsMode().get(); if (!\"FAST\".equals(g.toString())) mc.options.graphicsMode().set(Enum.valueOf((Class<Enum>) g.getClass(), \"FAST\")); } catch (Throwable t) {}
+                                                                        ^
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:49: error: 'try' without 'catch', 'finally' or resource declarations
+                try { Object g = mc.options.graphicsMode().get(); if (!\"FAST\".equals(g.toString())) mc.options.graphicsMode().set(Enum.valueOf((Class<Enum>) g.getClass(), \"FAST\")); } catch (Throwable t) {}
+                ^
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:58: error: illegal character: '\'
+                try { mc.options.getCloudsType().set(Enum.valueOf((Class<Enum>) mc.options.getCloudsType().get().getClass(), \"OFF\")); } catch (Throwable t) {}
+                                                                                                                             ^
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:58: error: unclosed string literal
+                try { mc.options.getCloudsType().set(Enum.valueOf((Class<Enum>) mc.options.getCloudsType().get().getClass(), \"OFF\")); } catch (Throwable t) {}
+                                                                                                                              ^
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:58: error: 'try' without 'catch', 'finally' or resource declarations
+                try { mc.options.getCloudsType().set(Enum.valueOf((Class<Enum>) mc.options.getCloudsType().get().getClass(), \"OFF\")); } catch (Throwable t) {}
+                ^
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:60: error: 'catch' without 'try'
+        } catch (Throwable t) {}
+          ^
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:40: error: 'try' without 'catch', 'finally' or resource declarations
+        try {
+        ^
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:62: error: reached end of file while parsing
+}
+ ^
+9 errors
 
 [Incubating] Problems report is available at: file:///home/runner/work/Beryllium/Beryllium/build/reports/problems/problems-report.html
 
@@ -43,22 +55,34 @@ FAILURE: Build failed with an exception.
 * What went wrong:
 Execution failed for task ':compileClientJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
 > Compilation failed; see the compiler output below.
-  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:4: error: cannot find symbol
-  import net.minecraft.client.renderer.MultiBufferSource;
-                                      ^
-    symbol:   class MultiBufferSource
-    location: package net.minecraft.client.renderer
-  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:37: error: cannot find symbol
-  		MultiBufferSource bufferSource, boolean seeThrough, int backgroundColor,
-  		^
-    symbol:   class MultiBufferSource
-    location: class FontSignTextLegacyMixin
-  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:51: error: cannot find symbol
-  		MultiBufferSource bufferSource, boolean seeThrough, int backgroundColor,
-  		^
-    symbol:   class MultiBufferSource
-    location: class FontSignTextLegacyMixin
-  3 errors
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:62: error: reached end of file while parsing
+  }
+   ^
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:60: error: 'catch' without 'try'
+          } catch (Throwable t) {}
+            ^
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:49: error: 'try' without 'catch', 'finally' or resource declarations
+                  try { Object g = mc.options.graphicsMode().get(); if (!\"FAST\".equals(g.toString())) mc.options.graphicsMode().set(Enum.valueOf((Class<Enum>) g.getClass(), \"FAST\")); } catch (Throwable t) {}
+                  ^
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:58: error: 'try' without 'catch', 'finally' or resource declarations
+                  try { mc.options.getCloudsType().set(Enum.valueOf((Class<Enum>) mc.options.getCloudsType().get().getClass(), \"OFF\")); } catch (Throwable t) {}
+                  ^
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:40: error: 'try' without 'catch', 'finally' or resource declarations
+          try {
+          ^
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:49: error: illegal character: '\'
+                  try { Object g = mc.options.graphicsMode().get(); if (!\"FAST\".equals(g.toString())) mc.options.graphicsMode().set(Enum.valueOf((Class<Enum>) g.getClass(), \"FAST\")); } catch (Throwable t) {}
+                                                                         ^
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:58: error: illegal character: '\'
+                  try { mc.options.getCloudsType().set(Enum.valueOf((Class<Enum>) mc.options.getCloudsType().get().getClass(), \"OFF\")); } catch (Throwable t) {}
+                                                                                                                               ^
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:49: error: unclosed string literal
+                  try { Object g = mc.options.graphicsMode().get(); if (!\"FAST\".equals(g.toString())) mc.options.graphicsMode().set(Enum.valueOf((Class<Enum>) g.getClass(), \"FAST\")); } catch (Throwable t) {}
+                                                                          ^
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:58: error: unclosed string literal
+                  try { mc.options.getCloudsType().set(Enum.valueOf((Class<Enum>) mc.options.getCloudsType().get().getClass(), \"OFF\")); } catch (Throwable t) {}
+                                                                                                                                ^
+  9 errors
 
 * Try:
 > Check your code and dependencies to fix the compilation error(s)
