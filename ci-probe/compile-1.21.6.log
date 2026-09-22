@@ -1,10 +1,10 @@
 ## minecraft 1.21.6
-## commit: 51ed71b
-## gradle exit: 1, validate exit: 1
-## compile errors: 18
+## commit: 16fb1f6
+## gradle exit: 0, validate exit: 1
+## compile errors: 0
 ## access widener: accessWidener v1 named
-## packaged widener: 
-## validate output: no non-sources jar found in build/libs 
+## packaged widener: accessWidener	v1	intermediary
+## validate output: build/libs/beryllium-mc1.21.6-0.2.0+mc1.21.6.jar: expected fabric.mod.json minecraft dependency '1.21.6', got '>=1.17' 
 
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
 Daemon will be stopped at the end of the build 
@@ -17,76 +17,165 @@ Failed to parse fabric.mod.json: /home/runner/work/Beryllium/Beryllium/src/main/
 > Task :compileJava
 > Task :processResources
 > Task :classes
+> Task :compileClientJava
+> Task :processClientResources
+> Task :jar
+> Task :processIncludeJars
+> Task :clientClasses
+> Task :compileTestJava NO-SOURCE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test NO-SOURCE
+> Task :validateAccessWidener
+> Task :check
 
-> Task :compileClientJava FAILED
-/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:49: error: illegal character: '\'
-                try { Object g = mc.options.graphicsMode().get(); if (!\"FAST\".equals(g.toString())) mc.options.graphicsMode().set(Enum.valueOf((Class<Enum>) g.getClass(), \"FAST\")); } catch (Throwable t) {}
-                                                                       ^
-/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:49: error: unclosed string literal
-                try { Object g = mc.options.graphicsMode().get(); if (!\"FAST\".equals(g.toString())) mc.options.graphicsMode().set(Enum.valueOf((Class<Enum>) g.getClass(), \"FAST\")); } catch (Throwable t) {}
-                                                                        ^
-/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:49: error: 'try' without 'catch', 'finally' or resource declarations
-                try { Object g = mc.options.graphicsMode().get(); if (!\"FAST\".equals(g.toString())) mc.options.graphicsMode().set(Enum.valueOf((Class<Enum>) g.getClass(), \"FAST\")); } catch (Throwable t) {}
-                ^
-/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:58: error: illegal character: '\'
-                try { mc.options.getCloudsType().set(Enum.valueOf((Class<Enum>) mc.options.getCloudsType().get().getClass(), \"OFF\")); } catch (Throwable t) {}
-                                                                                                                             ^
-/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:58: error: unclosed string literal
-                try { mc.options.getCloudsType().set(Enum.valueOf((Class<Enum>) mc.options.getCloudsType().get().getClass(), \"OFF\")); } catch (Throwable t) {}
-                                                                                                                              ^
-/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:58: error: 'try' without 'catch', 'finally' or resource declarations
-                try { mc.options.getCloudsType().set(Enum.valueOf((Class<Enum>) mc.options.getCloudsType().get().getClass(), \"OFF\")); } catch (Throwable t) {}
-                ^
-/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:60: error: 'catch' without 'try'
-        } catch (Throwable t) {}
-          ^
-/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:40: error: 'try' without 'catch', 'finally' or resource declarations
-        try {
-        ^
-/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:62: error: reached end of file while parsing
-}
- ^
-9 errors
+> Task :printBuildTarget
+Beryllium target: Minecraft 1.21.6; full optimization set; remapped Loom pipeline; ViewArea=true, drawInBatch text hooks=true; extract render state=false, moved chat types=false; excluded mixins=chat.ChatUnsignedIconModernMixin,render.BlockEntityExtractMixin
+Cannot remap tick because it does not exist in any of the targets [net/minecraft/client/renderer/debug/DebugRenderer, net/minecraft/client/renderer/debug/BeeDebugRenderer, net/minecraft/client/renderer/debug/GameEventListenerRenderer, net/minecraft/client/renderer/debug/VillageSectionsDebugRenderer, net/minecraft/client/renderer/debug/GameTestDebugRenderer]
+Cannot remap renderBee because it does not exist in any of the targets [net/minecraft/client/renderer/debug/DebugRenderer, net/minecraft/client/renderer/debug/BeeDebugRenderer, net/minecraft/client/renderer/debug/GameEventListenerRenderer, net/minecraft/client/renderer/debug/VillageSectionsDebugRenderer, net/minecraft/client/renderer/debug/GameTestDebugRenderer]
+Cannot remap renderVillageSections because it does not exist in any of the targets [net/minecraft/client/renderer/debug/DebugRenderer, net/minecraft/client/renderer/debug/BeeDebugRenderer, net/minecraft/client/renderer/debug/GameEventListenerRenderer, net/minecraft/client/renderer/debug/VillageSectionsDebugRenderer, net/minecraft/client/renderer/debug/GameTestDebugRenderer]
+Cannot remap isBoxInFrustum because it does not exist in any of the targets [net/minecraft/client/renderer/culling/Frustum, net/minecraft/client/renderer/LevelRenderer]
+Cannot remap renderWeather because it does not exist in any of the targets [net/minecraft/client/renderer/culling/Frustum, net/minecraft/client/renderer/LevelRenderer]
+Cannot remap mayPlace because it does not exist in any of the targets [net/minecraft/world/item/EndCrystalItem, net/minecraft/world/entity/boss/enderdragon/EndCrystal, net/minecraft/client/multiplayer/ClientPacketListener, net/minecraft/server/level/ServerPlayerGameMode, net/minecraft/world/level/block/state/BlockBehaviour]
+Cannot remap canPlaceCrystal because it does not exist in any of the targets [net/minecraft/world/item/EndCrystalItem, net/minecraft/world/entity/boss/enderdragon/EndCrystal, net/minecraft/client/multiplayer/ClientPacketListener, net/minecraft/server/level/ServerPlayerGameMode, net/minecraft/world/level/block/state/BlockBehaviour]
+Cannot remap build because it does not exist in any of the targets [net/minecraft/client/renderer/SectionBufferBuilderPack, net/minecraft/client/renderer/chunk/SectionRenderDispatcher]
+Cannot remap rebuild because it does not exist in any of the targets [net/minecraft/client/renderer/SectionBufferBuilderPack, net/minecraft/client/renderer/chunk/SectionRenderDispatcher]
+Cannot remap compile because it does not exist in any of the targets [net/minecraft/client/renderer/SectionBufferBuilderPack, net/minecraft/client/renderer/chunk/SectionRenderDispatcher]
+Cannot remap extractTitle because it does not exist in any of the targets [net/minecraft/client/gui/Gui]
+Cannot remap extractTitle because it does not exist in any of the targets [net/minecraft/client/gui/Gui]
+Cannot remap onHit because it does not exist in any of the targets [net/minecraft/world/item/EndCrystalItem, net/minecraft/world/entity/boss/enderdragon/EndCrystal, net/minecraft/client/multiplayer/ClientPacketListener, net/minecraft/server/level/ServerPlayerGameMode, net/minecraft/world/level/block/state/BlockBehaviour]
+Cannot remap extractTitle because it does not exist in any of the targets [net/minecraft/client/gui/Gui]
+Cannot remap handleInteraction because it does not exist in any of the targets [net/minecraft/world/item/EndCrystalItem, net/minecraft/world/entity/boss/enderdragon/EndCrystal, net/minecraft/client/multiplayer/ClientPacketListener, net/minecraft/server/level/ServerPlayerGameMode, net/minecraft/world/level/block/state/BlockBehaviour]
+Cannot remap extractTitle because it does not exist in any of the targets [net/minecraft/client/gui/Gui]
+Cannot remap compress because it does not exist in any of the targets [net/minecraft/network/protocol/game/ClientboundLevelChunkWithLightPacket, net/minecraft/network/Connection, net/minecraft/network/FriendlyByteBuf, net/minecraft/nbt/CompoundTag, net/minecraft/network/PacketEncoder, net/minecraft/network/PacketDecoder]
+Cannot remap decompress because it does not exist in any of the targets [net/minecraft/network/protocol/game/ClientboundLevelChunkWithLightPacket, net/minecraft/network/Connection, net/minecraft/network/FriendlyByteBuf, net/minecraft/nbt/CompoundTag, net/minecraft/network/PacketEncoder, net/minecraft/network/PacketDecoder]
+Cannot remap fromNetwork because it does not exist in any of the targets [net/minecraft/world/item/crafting/ShapedRecipe, net/minecraft/world/item/crafting/ShapelessRecipe, net/minecraft/world/item/crafting/RecipeManager]
+Cannot remap fromJson(Lcom/google/gson/JsonObject;)Lnet/minecraft/world/item/crafting/ShapedRecipe; because it does not exist in any of the targets [net/minecraft/world/item/crafting/ShapedRecipe, net/minecraft/world/item/crafting/ShapelessRecipe, net/minecraft/world/item/crafting/RecipeManager]
+Cannot remap fromJson(Lcom/google/gson/JsonObject;)Lnet/minecraft/world/item/crafting/ShapelessRecipe; because it does not exist in any of the targets [net/minecraft/world/item/crafting/ShapedRecipe, net/minecraft/world/item/crafting/ShapelessRecipe, net/minecraft/world/item/crafting/RecipeManager]
+Cannot remap replaceRecipes because it does not exist in any of the targets [net/minecraft/world/item/crafting/RecipeManager]
+Cannot remap replaceInput because it does not exist in any of the targets [net/minecraft/world/item/crafting/ShapedRecipe, net/minecraft/world/item/crafting/ShapelessRecipe, net/minecraft/world/item/crafting/RecipeManager]
+Cannot remap render(Lnet/minecraft/world/level/block/entity/ChestBlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V because it does not exist in any of the targets [net/minecraft/client/renderer/blockentity/ChestRenderer]
+Cannot remap render(Lnet/minecraft/world/level/block/entity/EnderChestBlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V because it does not exist in any of the targets [net/minecraft/client/renderer/blockentity/ChestRenderer]
+Cannot remap pollEvents because it does not exist in any of the targets [net/minecraft/client/Minecraft, com/mojang/blaze3d/platform/Window]
+Cannot remap handleEvents because it does not exist in any of the targets [net/minecraft/client/Minecraft, com/mojang/blaze3d/platform/Window]
+Cannot remap getRawInput because it does not exist in any of the targets [net/minecraft/client/Minecraft, com/mojang/blaze3d/platform/Window]
+Cannot remap pollRawInput because it does not exist in any of the targets [net/minecraft/client/Minecraft, com/mojang/blaze3d/platform/Window]
+Cannot remap extract because it does not exist in any of the targets [net/minecraft/client/particle/ParticleEngine]
+Cannot remap calculateTargetStrength because it does not exist in any of the targets [net/minecraft/world/level/block/RedStoneWireBlock]
+Cannot remap updateSurroundingRedstone because it does not exist in any of the targets [net/minecraft/world/level/block/RedStoneWireBlock]
+Cannot remap getPower because it does not exist in any of the targets [net/minecraft/world/level/block/RedStoneWireBlock]
+Cannot remap calculateTargetStrength because it does not exist in any of the targets [net/minecraft/world/level/block/RedStoneWireBlock]
+Cannot remap onRemove because it does not exist in any of the targets [net/minecraft/world/level/block/RedStoneWireBlock]
+Cannot remap onRemove because it does not exist in any of the targets [net/minecraft/world/level/block/RedStoneWireBlock]
+Cannot remap parseAddress because it does not exist in any of the targets [net/minecraft/client/multiplayer/resolver/ServerAddress]
+Cannot remap getByName because it does not exist in any of the targets [net/minecraft/client/multiplayer/resolver/ServerAddress]
+Cannot remap getProperty because it does not exist in any of the targets [net/minecraft/Util]
+Cannot remap getProperties because it does not exist in any of the targets [net/minecraft/Util]
+Cannot remap createWorldSessionEventSender because it does not exist in any of the targets [net/minecraft/client/telemetry/ClientTelemetryManager]
+Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;ILnet/minecraft/client/GuiMessageTag;Z)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;Lnet/minecraft/client/multiplayer/chat/GuiMessageSource;Lnet/minecraft/client/multiplayer/chat/GuiMessageTag;)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap updateLightmap because it does not exist in any of the targets [net/minecraft/client/renderer/GameRenderer, net/minecraft/client/renderer/LightTexture]
+Cannot remap update because it does not exist in any of the targets [net/minecraft/client/renderer/GameRenderer, net/minecraft/client/renderer/LightTexture]
+Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;ILnet/minecraft/client/GuiMessageTag;Z)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;Lnet/minecraft/client/multiplayer/chat/GuiMessageSource;Lnet/minecraft/client/multiplayer/chat/GuiMessageTag;)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap refreshTrimmedMessage because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
+Cannot remap drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
+Cannot remap tick because it does not exist in any of the targets [net/minecraft/server/MinecraftServer]
+Cannot remap getTooltipLines(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/TooltipFlag;)Ljava/util/List; because it does not exist in any of the targets [net/minecraft/world/item/ItemStack]
+Cannot remap tick because it does not exist in any of the targets [net/minecraft/server/MinecraftServer]
+Cannot remap getUvz because it does not exist in any of the targets [net/minecraft/client/renderer/texture/TextureAtlasSprite, net/minecraft/client/resources/model/ModelBakery, net/minecraft/client/renderer/block/model/ItemModelGenerator]
+Cannot remap processSprite because it does not exist in any of the targets [net/minecraft/client/renderer/texture/TextureAtlasSprite, net/minecraft/client/resources/model/ModelBakery, net/minecraft/client/renderer/block/model/ItemModelGenerator]
+Cannot remap generateBlockModel because it does not exist in any of the targets [net/minecraft/client/renderer/texture/TextureAtlasSprite, net/minecraft/client/resources/model/ModelBakery, net/minecraft/client/renderer/block/model/ItemModelGenerator]
+Cannot remap createModelElements because it does not exist in any of the targets [net/minecraft/client/renderer/texture/TextureAtlasSprite, net/minecraft/client/resources/model/ModelBakery, net/minecraft/client/renderer/block/model/ItemModelGenerator]
+Cannot remap render because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/chunk/SectionRenderDispatcher, net/minecraft/client/renderer/ViewArea]
+Cannot remap rebuildChunk because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/chunk/SectionRenderDispatcher, net/minecraft/client/renderer/ViewArea]
+Cannot remap rebuild because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/chunk/SectionRenderDispatcher, net/minecraft/client/renderer/ViewArea]
+Cannot remap compile because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/chunk/SectionRenderDispatcher, net/minecraft/client/renderer/ViewArea]
+Cannot remap upload because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer]
+Cannot remap build because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/chunk/SectionRenderDispatcher, net/minecraft/client/renderer/ViewArea]
+Cannot remap uploadSectionLayer because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer]
+Cannot remap update because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/chunk/SectionRenderDispatcher, net/minecraft/client/renderer/ViewArea]
+Cannot remap shouldCull because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/chunk/SectionRenderDispatcher, net/minecraft/client/renderer/ViewArea]
+Cannot remap isSectionVisible because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/chunk/SectionRenderDispatcher, net/minecraft/client/renderer/ViewArea]
+Cannot remap isVisible because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/chunk/SectionRenderDispatcher, net/minecraft/client/renderer/ViewArea]
+Cannot remap cull because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/chunk/SectionRenderDispatcher, net/minecraft/client/renderer/ViewArea]
+Cannot remap renderChunk because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/chunk/SectionRenderDispatcher, net/minecraft/client/renderer/ViewArea]
+Cannot remap renderSection because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/chunk/SectionRenderDispatcher, net/minecraft/client/renderer/ViewArea]
+Cannot remap renderVertexArray because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/chunk/SectionRenderDispatcher, net/minecraft/client/renderer/ViewArea]
+Cannot remap build because it does not exist in any of the targets [net/minecraft/server/level/ServerChunkCache, net/minecraft/world/level/chunk/ChunkGenerator]
+Cannot remap renderSnowAndRain because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer]
+Cannot remap tickRain because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer]
+Cannot remap getRandom because it does not exist in any of the targets [net/minecraft/world/level/levelgen/synth/PerlinNoise, net/minecraft/world/level/levelgen/synth/ImprovedNoise, net/minecraft/util/RandomSource, net/minecraft/world/phys/AABB]
+Cannot remap setLevel(Lnet/minecraft/client/multiplayer/ClientLevel;)V because it does not exist in any of the targets [net/minecraft/client/Minecraft]
+Cannot remap getSkyColor because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/DimensionSpecialEffects, net/minecraft/world/level/biome/BiomeManager]
+Cannot remap getSkyColorWithCubicSampler because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/DimensionSpecialEffects, net/minecraft/world/level/biome/BiomeManager]
+Cannot remap getSkyDarken because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/DimensionSpecialEffects, net/minecraft/world/level/biome/BiomeManager]
+Cannot remap getSkyColor because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/DimensionSpecialEffects, net/minecraft/world/level/biome/BiomeManager]
+Cannot remap getSkyColorWithCubicSampler because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/DimensionSpecialEffects, net/minecraft/world/level/biome/BiomeManager]
+Cannot remap shouldShowName(Lnet/minecraft/world/entity/Entity;)Z because it does not exist in any of the targets [net/minecraft/client/renderer/entity/EntityRenderer]
+Cannot remap spawnParticle because it does not exist in any of the targets [net/minecraft/client/particle/ParticleEngine, net/minecraft/world/level/Level]
+Cannot remap addParticleInternal because it does not exist in any of the targets [net/minecraft/client/particle/ParticleEngine, net/minecraft/world/level/Level]
+Cannot remap getRandomPosWithinLevel because it does not exist in any of the targets [net/minecraft/world/level/NaturalSpawner, net/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate, net/minecraft/world/entity/MobCategory, net/minecraft/server/level/ServerLevel]
+Cannot remap <init>(Lnet/minecraft/world/entity/Entity;Z)V because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
+Cannot remap isSpawnPositionOk because it does not exist in any of the targets [net/minecraft/world/level/NaturalSpawner, net/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate, net/minecraft/world/entity/MobCategory, net/minecraft/server/level/ServerLevel]
+Cannot remap <init>(Lnet/minecraft/world/entity/Entity;Z)V because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
+Cannot remap checkSpawnRules because it does not exist in any of the targets [net/minecraft/world/level/NaturalSpawner, net/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate, net/minecraft/world/entity/MobCategory, net/minecraft/server/level/ServerLevel]
+Cannot remap <init>(Lnet/minecraft/world/entity/Entity;Z)V because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
+Cannot remap getHeldItem because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
+Cannot remap canStandOnFluid(Lnet/minecraft/world/level/material/Fluid;Lnet/minecraft/world/level/material/Fluid;)Z because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
+Cannot remap init because it does not exist in any of the targets [net/minecraft/client/Minecraft, net/minecraft/client/main/Main, net/minecraft/client/renderer/texture/TextureManager]
+Cannot remap preload because it does not exist in any of the targets [net/minecraft/client/Minecraft, net/minecraft/client/main/Main, net/minecraft/client/renderer/texture/TextureManager]
+Cannot remap load because it does not exist in any of the targets [net/minecraft/nbt/CompoundTag, net/minecraft/nbt/ListTag, net/minecraft/nbt/NbtIo, net/minecraft/nbt/NbtAccounter]
+Cannot remap handleNetherPortalClient because it does not exist in any of the targets [net/minecraft/client/player/LocalPlayer]
+Cannot remap render(Lnet/minecraft/world/level/block/entity/BeaconBlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V because it does not exist in any of the targets [net/minecraft/client/renderer/blockentity/BeaconRenderer]
+Cannot remap handleConfusionTransitionEffect because it does not exist in any of the targets [net/minecraft/client/player/LocalPlayer]
+Cannot remap load because it does not exist in any of the targets [net/minecraft/nbt/CompoundTag, net/minecraft/nbt/ListTag, net/minecraft/nbt/NbtIo, net/minecraft/nbt/NbtAccounter]
+Cannot remap drawInBatch(Lnet/minecraft/network/chat/Component;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
+Cannot remap drawInBatch(Lnet/minecraft/util/FormattedText;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
+Cannot remap drawInBatch(Ljava/lang/String;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
+Cannot remap extractRenderState because it does not exist in any of the targets [net/minecraft/client/gui/screens/LoadingOverlay]
+Cannot remap of because it does not exist in any of the targets [net/minecraft/resources/ResourceLocation, net/minecraft/resources/ResourceKey, net/minecraft/client/renderer/block/ModelBlockRenderer]
+Cannot remap isReadyToFadeOut because it does not exist in any of the targets [net/minecraft/client/gui/screens/LoadingOverlay]
+Cannot remap extractRenderState because it does not exist in any of the targets [net/minecraft/client/gui/screens/LoadingOverlay]
+Cannot remap of because it does not exist in any of the targets [net/minecraft/resources/ResourceLocation, net/minecraft/resources/ResourceKey, net/minecraft/client/renderer/block/ModelBlockRenderer]
+Cannot remap load because it does not exist in any of the targets [net/minecraft/core/Registry, net/minecraft/nbt/TagParser]
+Cannot remap getTagOrThrow because it does not exist in any of the targets [net/minecraft/core/Registry, net/minecraft/nbt/TagParser]
+Cannot remap parseTag because it does not exist in any of the targets [net/minecraft/core/Registry, net/minecraft/nbt/TagParser]
+Cannot remap getTag because it does not exist in any of the targets [net/minecraft/core/Registry, net/minecraft/nbt/TagParser]
+Cannot remap upload because it does not exist in any of the targets [com/mojang/blaze3d/vertex/BufferBuilder, net/minecraft/client/renderer/RenderType]
+Cannot remap bind because it does not exist in any of the targets [com/mojang/blaze3d/vertex/BufferBuilder, net/minecraft/client/renderer/RenderType]
+Cannot remap allocate because it does not exist in any of the targets [com/mojang/blaze3d/vertex/BufferBuilder, net/minecraft/client/renderer/RenderType]
+Cannot remap sendChunk because it does not exist in any of the targets [net/minecraft/server/level/ServerChunkCache, net/minecraft/server/level/ChunkMap, net/minecraft/server/network/ServerGamePacketListenerImpl]
+Cannot remap sendLevelChunk because it does not exist in any of the targets [net/minecraft/server/level/ServerChunkCache, net/minecraft/server/level/ChunkMap, net/minecraft/server/network/ServerGamePacketListenerImpl]
+Cannot remap sendAllChunks because it does not exist in any of the targets [net/minecraft/server/level/ServerChunkCache, net/minecraft/server/level/ChunkMap, net/minecraft/server/network/ServerGamePacketListenerImpl]
+Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;ILnet/minecraft/client/GuiMessageTag;Z)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;Lnet/minecraft/client/multiplayer/chat/GuiMessageSource;Lnet/minecraft/client/multiplayer/chat/GuiMessageTag;)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap getRotation because it does not exist in any of the targets [net/minecraft/world/entity/item/ItemEntity, net/minecraft/client/renderer/entity/ItemEntityRenderer]
+Cannot remap getLerpedAmount because it does not exist in any of the targets [net/minecraft/world/entity/item/ItemEntity, net/minecraft/client/renderer/entity/ItemEntityRenderer]
+Cannot remap init because it does not exist in any of the targets [net/minecraft/client/renderer/RenderBuffers, net/minecraft/client/renderer/RenderType, com/mojang/blaze3d/vertex/BufferBuilder, com/mojang/blaze3d/systems/RenderSystem, net/minecraft/client/Minecraft]
+Cannot remap setup because it does not exist in any of the targets [net/minecraft/client/renderer/RenderBuffers, net/minecraft/client/renderer/RenderType, com/mojang/blaze3d/vertex/BufferBuilder, com/mojang/blaze3d/systems/RenderSystem, net/minecraft/client/Minecraft]
+Cannot remap bind because it does not exist in any of the targets [net/minecraft/client/renderer/RenderBuffers, net/minecraft/client/renderer/RenderType, com/mojang/blaze3d/vertex/BufferBuilder, com/mojang/blaze3d/systems/RenderSystem, net/minecraft/client/Minecraft]
+Cannot remap handleEvents because it does not exist in any of the targets [net/minecraft/client/renderer/RenderBuffers, net/minecraft/client/renderer/RenderType, com/mojang/blaze3d/vertex/BufferBuilder, com/mojang/blaze3d/systems/RenderSystem, net/minecraft/client/Minecraft]
+Cannot remap shouldRenderEntity because it does not exist in any of the targets [net/minecraft/client/renderer/entity/EntityRenderDispatcher, net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/entity/EntityRenderer]
+Cannot remap checkShouldRender because it does not exist in any of the targets [net/minecraft/client/renderer/entity/EntityRenderDispatcher, net/minecraft/client/renderer/LevelRenderer, net/minecraft/client/renderer/entity/EntityRenderer]
+Cannot remap isTickingChunk because it does not exist in any of the targets [net/minecraft/server/level/ServerChunkCache, net/minecraft/server/level/ServerLevel, net/minecraft/world/level/chunk/LevelChunk]
+Cannot remap tickEntities because it does not exist in any of the targets [net/minecraft/server/level/ServerLevel, net/minecraft/world/level/Level]
+Cannot remap tickEntities()V because it does not exist in any of the targets [net/minecraft/world/level/Level]
+Cannot remap tickNonPassenger(Lnet/minecraft/world/entity/Entity;)V because it does not exist in any of the targets [net/minecraft/world/level/Level]
+Cannot remap tickEntities()V because it does not exist in any of the targets [net/minecraft/world/level/Level]
+Cannot remap drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
+Cannot remap drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
+Cannot remap drawInBatch(Lnet/minecraft/util/FormattedCharSequence;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
+Cannot remap drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;IIZ)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
+Cannot remap drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;IIZ)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
+
+> Task :remapJar
+> Task :remapSourcesJar SKIPPED
+> Task :assemble
+> Task :build
 
 [Incubating] Problems report is available at: file:///home/runner/work/Beryllium/Beryllium/build/reports/problems/problems-report.html
-
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':compileClientJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
-> Compilation failed; see the compiler output below.
-  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:62: error: reached end of file while parsing
-  }
-   ^
-  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:60: error: 'catch' without 'try'
-          } catch (Throwable t) {}
-            ^
-  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:49: error: 'try' without 'catch', 'finally' or resource declarations
-                  try { Object g = mc.options.graphicsMode().get(); if (!\"FAST\".equals(g.toString())) mc.options.graphicsMode().set(Enum.valueOf((Class<Enum>) g.getClass(), \"FAST\")); } catch (Throwable t) {}
-                  ^
-  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:58: error: 'try' without 'catch', 'finally' or resource declarations
-                  try { mc.options.getCloudsType().set(Enum.valueOf((Class<Enum>) mc.options.getCloudsType().get().getClass(), \"OFF\")); } catch (Throwable t) {}
-                  ^
-  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:40: error: 'try' without 'catch', 'finally' or resource declarations
-          try {
-          ^
-  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:49: error: illegal character: '\'
-                  try { Object g = mc.options.graphicsMode().get(); if (!\"FAST\".equals(g.toString())) mc.options.graphicsMode().set(Enum.valueOf((Class<Enum>) g.getClass(), \"FAST\")); } catch (Throwable t) {}
-                                                                         ^
-  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:58: error: illegal character: '\'
-                  try { mc.options.getCloudsType().set(Enum.valueOf((Class<Enum>) mc.options.getCloudsType().get().getClass(), \"OFF\")); } catch (Throwable t) {}
-                                                                                                                               ^
-  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:49: error: unclosed string literal
-                  try { Object g = mc.options.graphicsMode().get(); if (!\"FAST\".equals(g.toString())) mc.options.graphicsMode().set(Enum.valueOf((Class<Enum>) g.getClass(), \"FAST\")); } catch (Throwable t) {}
-                                                                          ^
-  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/optimization/PotatoRenderOptimizer.java:58: error: unclosed string literal
-                  try { mc.options.getCloudsType().set(Enum.valueOf((Class<Enum>) mc.options.getCloudsType().get().getClass(), \"OFF\")); } catch (Throwable t) {}
-                                                                                                                                ^
-  9 errors
-
-* Try:
-> Check your code and dependencies to fix the compilation error(s)
-> Run with --scan to get full insights from a Build Scan (powered by Develocity).
 
 Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
 
@@ -94,5 +183,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD FAILED in 13s
-4 actionable tasks: 4 executed
+BUILD SUCCESSFUL in 18s
+10 actionable tasks: 10 executed
