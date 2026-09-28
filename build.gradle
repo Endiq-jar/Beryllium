@@ -87,6 +87,11 @@ def hasExtractRenderState = mcAtLeast(1, 21, 9)
  * package variants is built per release; the entry for the other is removed from the config.
  */
 def hasMovedChatTypes = unobfuscatedGame || versionParts[0] >= 22
+// JOML (org.joml.Matrix4f) replaced com.mojang.math.Matrix4f in 1.19.3-1.19.4 renderer.
+// Telemetry (net.minecraft.client.telemetry) added in 1.19.3.
+def hasJoml = mcAtLeast(1, 19, 3)
+def hasTelemetry = mcAtLeast(1, 19, 3)
+def hasChatRework = mcAtLeast(1, 19, 0)
 /*
  * Mixins that are only built on part of the range, by simple class name as the configs spell
  * them. Two things follow from this one list: the class file is excluded from the compile, and
@@ -104,6 +109,12 @@ if (!hasExtractRenderState) {
 	eraExcludedMixins << 'render.BlockEntityExtractMixin'
 }
 eraExcludedMixins << (hasMovedChatTypes ? 'chat.ChatUnsignedIconLegacyMixin' : 'chat.ChatUnsignedIconModernMixin')
+if (!hasJoml) {
+	eraExcludedMixins << 'culling.EntityRenderDispatcherMixin'
+}
+if (!hasTelemetry) {
+	eraExcludedMixins << 'misc.TelemetryMixin'
+}
 
 /*
  * The access widener is generated, not shipped as a literal resource, because the namespace
@@ -192,6 +203,21 @@ if (hasSplit) {
 				exclude (hasMovedChatTypes
 						? 'com/endiq/beryllium/mixin/chat/ChatUnsignedIconLegacyMixin.java'
 						: 'com/endiq/beryllium/mixin/chat/ChatUnsignedIconModernMixin.java')
+				if (!hasJoml) {
+					exclude 'com/endiq/beryllium/mixin/culling/EntityRenderDispatcherMixin.java'
+					exclude 'com/endiq/beryllium/culling/CameraAccess.java'
+					exclude 'com/endiq/beryllium/culling/RenderDistanceSync.java'
+					exclude 'com/endiq/beryllium/ClientFrameHooks.java'
+				}
+				if (!hasTelemetry) {
+					exclude 'com/endiq/beryllium/mixin/misc/TelemetryMixin.java'
+				}
+				if (!hasChatRework) {
+					exclude 'com/endiq/beryllium/chat/ChatCompactor.java'
+					// 1.17-1.18 use a completely different chat pipeline — both icon mixins would still fail
+					exclude 'com/endiq/beryllium/mixin/chat/ChatUnsignedIconLegacyMixin.java'
+					exclude 'com/endiq/beryllium/mixin/chat/ChatUnsignedIconModernMixin.java'
+				}
 			}
 		}
 	}
@@ -214,6 +240,20 @@ if (hasSplit) {
 				exclude (hasMovedChatTypes
 						? 'com/endiq/beryllium/mixin/chat/ChatUnsignedIconLegacyMixin.java'
 						: 'com/endiq/beryllium/mixin/chat/ChatUnsignedIconModernMixin.java')
+				if (!hasJoml) {
+					exclude 'com/endiq/beryllium/mixin/culling/EntityRenderDispatcherMixin.java'
+					exclude 'com/endiq/beryllium/culling/CameraAccess.java'
+					exclude 'com/endiq/beryllium/culling/RenderDistanceSync.java'
+					exclude 'com/endiq/beryllium/ClientFrameHooks.java'
+				}
+				if (!hasTelemetry) {
+					exclude 'com/endiq/beryllium/mixin/misc/TelemetryMixin.java'
+				}
+				if (!hasChatRework) {
+					exclude 'com/endiq/beryllium/chat/ChatCompactor.java'
+					exclude 'com/endiq/beryllium/mixin/chat/ChatUnsignedIconLegacyMixin.java'
+					exclude 'com/endiq/beryllium/mixin/chat/ChatUnsignedIconModernMixin.java'
+				}
 			}
 			resources {
 				srcDir 'src/client/resources'
