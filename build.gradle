@@ -134,19 +134,22 @@ accessWidenerDir.mkdirs()
 accessWidenerFile.text = (["accessWidener v${accessWidenerFormatVersion} ${accessWidenerNamespace}"]
 		+ accessWidenerLines.drop(1)).join('\n') + '\n'
 
+def hasSplit = mcAtLeast(1, 19, 4) || unobfuscatedGame
 loom {
 	accessWidenerPath = accessWidenerFile
 	// 1.17-1.18 use a merged jar (no bundled server jar to split), so splitEnvironmentSourceSets()
 	// would throw \"Only Minecraft versions using a bundled server jar can be split\". Keep the
 	// single source tree but only split where Loom actually supports it.
-	if (mcAtLeast(1, 19, 4) || unobfuscatedGame) {
+	if (hasSplit) {
 		splitEnvironmentSourceSets()
 	}
 
 	mods {
 		"beryllium" {
 			sourceSet sourceSets.main
-			sourceSet sourceSets.client
+			if (hasSplit) {
+				sourceSet sourceSets.client
+			}
 		}
 	}
 }
@@ -156,37 +159,66 @@ loom {
  * Loom has created the split source sets (referencing `sourceSets.client` before
  * `splitEnvironmentSourceSets()` would create an unmanaged source set and make Loom's own
  * split fail), so the same tree compiles everywhere without pre-processor tricks.
+ * For 1.17-1.18 merged-jar (no split) the client sources are merged into main.
  */
-sourceSets {
-	main {
-		resources {
-			// The generated widener, namespace-correct for this release, is what ships.
-			srcDir accessWidenerDir
+if (hasSplit) {
+	sourceSets {
+		main {
+			resources {
+				// The generated widener, namespace-correct for this release, is what ships.
+				srcDir accessWidenerDir
+			}
+		}
+		client {
+			java {
+				if (!textUsesDrawInBatch) {
+					// 26.2+ prepares text once and submits it later; the per-draw hooks that make
+					// sign text cheap no longer exist, so these files are only built below it.
+					exclude 'com/endiq/beryllium/mixin/text/FontSignTextMixin.java'
+				}
+				if (!hasViewArea) {
+					// ViewArea does not exist before 1.21.2; the LevelRenderer-level hook and
+					// SectionDirtyBridge (reflection) already cover those releases.
+					exclude 'com/endiq/beryllium/mixin/chunk/ViewAreaMixin.java'
+				}
+				if (!hasExtractRenderState) {
+					// Before 1.21.9 there is no render state to return; BlockEntityCullMixin
+					// hooks the direct render call on those releases instead.
+					exclude 'com/endiq/beryllium/mixin/render/BlockEntityExtractMixin.java'
+				}
+				// Exactly one of these names the chat tag type, and its package depends on the
+				// release: net.minecraft.client before the 26.x line, net.minecraft.client.
+				// multiplayer.chat from there on.
+				exclude (hasMovedChatTypes
+						? 'com/endiq/beryllium/mixin/chat/ChatUnsignedIconLegacyMixin.java'
+						: 'com/endiq/beryllium/mixin/chat/ChatUnsignedIconModernMixin.java')
+			}
 		}
 	}
-	client {
-		java {
-			if (!textUsesDrawInBatch) {
-				// 26.2+ prepares text once and submits it later; the per-draw hooks that make
-				// sign text cheap no longer exist, so these files are only built below it.
-				exclude 'com/endiq/beryllium/mixin/text/FontSignTextMixin.java'
+} else {
+	// 1.17-1.18: no split source set — merge client java/resources into main so the single-jar
+	// still contains the sodium competitor + potato culling. Era-excludes are applied to main.
+	sourceSets {
+		main {
+			java {
+				srcDir 'src/client/java'
+				if (!textUsesDrawInBatch) {
+					exclude 'com/endiq/beryllium/mixin/text/FontSignTextMixin.java'
+				}
+				if (!hasViewArea) {
+					exclude 'com/endiq/beryllium/mixin/chunk/ViewAreaMixin.java'
+				}
+				if (!hasExtractRenderState) {
+					exclude 'com/endiq/beryllium/mixin/render/BlockEntityExtractMixin.java'
+				}
+				exclude (hasMovedChatTypes
+						? 'com/endiq/beryllium/mixin/chat/ChatUnsignedIconLegacyMixin.java'
+						: 'com/endiq/beryllium/mixin/chat/ChatUnsignedIconModernMixin.java')
 			}
-			if (!hasViewArea) {
-				// ViewArea does not exist before 1.21.2; the LevelRenderer-level hook and
-				// SectionDirtyBridge (reflection) already cover those releases.
-				exclude 'com/endiq/beryllium/mixin/chunk/ViewAreaMixin.java'
+			resources {
+				srcDir 'src/client/resources'
+				srcDir accessWidenerDir
 			}
-			if (!hasExtractRenderState) {
-				// Before 1.21.9 there is no render state to return; BlockEntityCullMixin
-				// hooks the direct render call on those releases instead.
-				exclude 'com/endiq/beryllium/mixin/render/BlockEntityExtractMixin.java'
-			}
-			// Exactly one of these names the chat tag type, and its package depends on the
-			// release: net.minecraft.client before the 26.x line, net.minecraft.client.
-			// multiplayer.chat from there on.
-			exclude (hasMovedChatTypes
-					? 'com/endiq/beryllium/mixin/chat/ChatUnsignedIconLegacyMixin.java'
-					: 'com/endiq/beryllium/mixin/chat/ChatUnsignedIconModernMixin.java')
 		}
 	}
 }

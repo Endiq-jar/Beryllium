@@ -66,7 +66,31 @@ def main() -> int:
             return 1
 
         actual_version = metadata.get("depends", {}).get("minecraft")
-        if actual_version != expected_version:
+        # Standalone single-jar (1.17->latest): accept ">=1.17" or any range that covers expected_version.
+        # The build matrix still compiles one artifact per version, but all embed the same range so one jar works everywhere.
+        def _version_tuple(v: str):
+            try:
+                parts = v.lstrip(">= ").split(".")
+                return tuple(int(p) for p in parts[:3] if p.isdigit())
+            except Exception:
+                return None
+        is_ok = False
+        if actual_version == expected_version:
+            is_ok = True
+        elif isinstance(actual_version, str) and actual_version.strip() == ">=1.17":
+            is_ok = True
+        elif isinstance(actual_version, str) and actual_version.strip().startswith(">="):
+            try:
+                low = actual_version.strip()[2:].strip()
+                # Compare expected >= low
+                def parse(v): 
+                    m = v.split(".")
+                    return tuple(int(x) for x in m if x.isdigit())
+                if parse(expected_version) >= parse(low):
+                    is_ok = True
+            except Exception:
+                pass
+        if not is_ok:
             print(
                 f"{jar}: expected fabric.mod.json minecraft dependency {expected_version!r}, "
                 f"got {actual_version!r}",
