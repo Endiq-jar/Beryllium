@@ -1,7 +1,7 @@
 ## minecraft 1.18
-## commit: 16fb1f6
+## commit: f7c8706
 ## gradle exit: 1, validate exit: 1
-## compile errors: 0
+## compile errors: 72
 ## access widener: accessWidener v1 named
 ## packaged widener: 
 ## validate output: no non-sources jar found in build/libs 
@@ -11,20 +11,359 @@ Daemon will be stopped at the end of the build
 
 > Configure project :
 Fabric Loom: 1.17.21
+Failed to parse fabric.mod.json: /home/runner/work/Beryllium/Beryllium/src/main/resources/fabric.mod.json
+
+> Task :clean
+
+> Task :compileJava
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/CameraAccess.java:7: error: package org.joml does not exist
+import org.joml.Vector3f;
+               ^
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/CameraAccess.java:8: error: package org.joml does not exist
+import org.joml.Vector3fc;
+               ^
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/CameraAccess.java:32: error: cannot find symbol
+	private static final Vector3f SCRATCH = new Vector3f();
+	                     ^
+  symbol:   class Vector3f
+  location: class CameraAccess
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/CameraAccess.java:123: error: cannot find symbol
+	public static Vector3f lookVector(Camera camera) {
+	              ^
+  symbol:   class Vector3f
+  location: class CameraAccess
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/TelemetryMixin.java:6: error: package net.minecraft.client.telemetry does not exist
+import net.minecraft.client.telemetry.TelemetryEventSender;
+                                     ^
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/TelemetryMixin.java:36: error: cannot find symbol
+	private void beryllium$disableOutsideSessionTelemetry(CallbackInfoReturnable<TelemetryEventSender> cir) {
+	                                                                             ^
+  symbol:   class TelemetryEventSender
+  location: class TelemetryMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/TelemetryMixin.java:42: error: cannot find symbol
+	private void beryllium$disableSessionTelemetry(CallbackInfoReturnable<TelemetryEventSender> cir) {
+	                                                                      ^
+  symbol:   class TelemetryEventSender
+  location: class TelemetryMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/TelemetryMixin.java:48: error: cannot find symbol
+	private void beryllium$disableSessionTelemetryLegacy(CallbackInfoReturnable<TelemetryEventSender> cir) {
+	                                                                            ^
+  symbol:   class TelemetryEventSender
+  location: class TelemetryMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/TelemetryMixin.java:52: error: cannot find symbol
+	private void beryllium$disable(CallbackInfoReturnable<TelemetryEventSender> cir) {
+	                                                      ^
+  symbol:   class TelemetryEventSender
+  location: class TelemetryMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/culling/EntityRenderDispatcherMixin.java:13: error: package org.joml does not exist
+import org.joml.Vector3f;
+               ^
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/chat/ChatUnsignedIconLegacyMixin.java:5: error: cannot find symbol
+import net.minecraft.client.GuiMessageTag;
+                           ^
+  symbol:   class GuiMessageTag
+  location: package net.minecraft.client
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/chat/ChatUnsignedIconLegacyMixin.java:25: error: cannot find symbol
+	private void beryllium$hideUnsignedIcon(CallbackInfoReturnable<GuiMessageTag> cir) {
+	                                                               ^
+  symbol:   class GuiMessageTag
+  location: class ChatUnsignedIconLegacyMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:5: error: package org.joml does not exist
+import org.joml.Matrix4f;
+               ^
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:35: error: cannot find symbol
+		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+		                                                                 ^
+  symbol:   class Matrix4f
+  location: class FontSignTextLegacyMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:49: error: cannot find symbol
+		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+		                                                              ^
+  symbol:   class Matrix4f
+  location: class FontSignTextLegacyMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:6: error: package org.joml does not exist
+import org.joml.Matrix4f;
+               ^
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:60: error: cannot find symbol
+		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+		                                                              ^
+  symbol:   class Matrix4f
+  location: class FontSignTextMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:74: error: cannot find symbol
+		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+		                                                                 ^
+  symbol:   class Matrix4f
+  location: class FontSignTextMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:89: error: cannot find symbol
+		Matrix4f matrix, Object bufferSource, Object displayMode,
+		^
+  symbol:   class Matrix4f
+  location: class FontSignTextMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:104: error: cannot find symbol
+		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+		                                                              ^
+  symbol:   class Matrix4f
+  location: class FontSignTextMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:118: error: cannot find symbol
+		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+		                                                                 ^
+  symbol:   class Matrix4f
+  location: class FontSignTextMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:134: error: cannot find symbol
+		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+		                                                              ^
+  symbol:   class Matrix4f
+  location: class FontSignTextMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:148: error: cannot find symbol
+		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+		                                                                 ^
+  symbol:   class Matrix4f
+  location: class FontSignTextMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:163: error: cannot find symbol
+		Matrix4f matrix, Object bufferSource, Object displayMode,
+		^
+  symbol:   class Matrix4f
+  location: class FontSignTextMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:184: error: cannot find symbol
+		Matrix4f matrix, Object bufferSource, int packedLightCoords, CallbackInfo ci
+		^
+  symbol:   class Matrix4f
+  location: class FontSignTextMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/ClientFrameHooks.java:18: error: package org.joml does not exist
+import org.joml.Vector3f;
+               ^
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/RenderDistanceSync.java:40: error: cannot find symbol
+			Integer chunks = minecraft.options.renderDistance().get();
+			                                  ^
+  symbol:   method renderDistance()
+  location: variable options of type Options
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/CameraAccess.java:32: error: cannot find symbol
+	private static final Vector3f SCRATCH = new Vector3f();
+	                                            ^
+  symbol:   class Vector3f
+  location: class CameraAccess
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/CameraAccess.java:131: error: cannot find symbol
+			if (value instanceof Vector3fc vector) {
+			                     ^
+  symbol:   class Vector3fc
+  location: class CameraAccess
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/chat/ChatCompactor.java:166: error: cannot find symbol
+		return base.append(Component.literal(" (x" + count + ")").setStyle(COUNT_STYLE));
+		                            ^
+  symbol:   method literal(String)
+  location: interface Component
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/tooltip/TooltipWrapper.java:104: error: cannot find symbol
+			return ((Number) font.getClass().getMethod("width", compCls).invoke(font, Component.literal(text))).intValue(); } catch (Throwable ex) { return text.length()*6; } }
+			                                                                                   ^
+  symbol:   method literal(String)
+  location: interface Component
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/tooltip/TooltipWrapper.java:108: error: cannot find symbol
+		MutableComponent component = Component.literal(text);
+		                                      ^
+  symbol:   method literal(String)
+  location: interface Component
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/TelemetryMixin.java:58: error: cannot find symbol
+			Object disabled = Reflect.getStatic(TelemetryEventSender.class, "DISABLED");
+			                                    ^
+  symbol:   class TelemetryEventSender
+  location: class TelemetryMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/TelemetryMixin.java:59: error: cannot find symbol
+			if (disabled instanceof TelemetryEventSender sender) {
+			                        ^
+  symbol:   class TelemetryEventSender
+  location: class TelemetryMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/culling/EntityRenderDispatcherMixin.java:44: error: cannot find symbol
+		Vector3f forward = CameraAccess.lookVector(camera);
+		^
+  symbol:   class Vector3f
+  location: class EntityRenderDispatcherMixin
+/home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/ClientFrameHooks.java:140: error: cannot find symbol
+			Vector3f look = CameraAccess.lookVector(camera);
+			^
+  symbol:   class Vector3f
+  location: class ClientFrameHooks
+36 errors
+
+> Task :compileJava FAILED
+
+[Incubating] Problems report is available at: file:///home/runner/work/Beryllium/Beryllium/build/reports/problems/problems-report.html
 
 FAILURE: Build failed with an exception.
 
-* Where:
-Build file '/home/runner/work/Beryllium/Beryllium/build.gradle' line: 149
-
 * What went wrong:
-A problem occurred evaluating root project 'beryllium'.
-> Could not get unknown property 'client' for SourceSet container of type org.gradle.api.internal.tasks.DefaultSourceSetContainer.
+Execution failed for task ':compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
+> Compilation failed; see the compiler output below.
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/CameraAccess.java:32: error: cannot find symbol
+  	private static final Vector3f SCRATCH = new Vector3f();
+  	                     ^
+    symbol:   class Vector3f
+    location: class CameraAccess
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/CameraAccess.java:123: error: cannot find symbol
+  	public static Vector3f lookVector(Camera camera) {
+  	              ^
+    symbol:   class Vector3f
+    location: class CameraAccess
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/TelemetryMixin.java:36: error: cannot find symbol
+  	private void beryllium$disableOutsideSessionTelemetry(CallbackInfoReturnable<TelemetryEventSender> cir) {
+  	                                                                             ^
+    symbol:   class TelemetryEventSender
+    location: class TelemetryMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/TelemetryMixin.java:42: error: cannot find symbol
+  	private void beryllium$disableSessionTelemetry(CallbackInfoReturnable<TelemetryEventSender> cir) {
+  	                                                                      ^
+    symbol:   class TelemetryEventSender
+    location: class TelemetryMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/TelemetryMixin.java:48: error: cannot find symbol
+  	private void beryllium$disableSessionTelemetryLegacy(CallbackInfoReturnable<TelemetryEventSender> cir) {
+  	                                                                            ^
+    symbol:   class TelemetryEventSender
+    location: class TelemetryMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/TelemetryMixin.java:52: error: cannot find symbol
+  	private void beryllium$disable(CallbackInfoReturnable<TelemetryEventSender> cir) {
+  	                                                      ^
+    symbol:   class TelemetryEventSender
+    location: class TelemetryMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/chat/ChatUnsignedIconLegacyMixin.java:5: error: cannot find symbol
+  import net.minecraft.client.GuiMessageTag;
+                             ^
+    symbol:   class GuiMessageTag
+    location: package net.minecraft.client
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/chat/ChatUnsignedIconLegacyMixin.java:25: error: cannot find symbol
+  	private void beryllium$hideUnsignedIcon(CallbackInfoReturnable<GuiMessageTag> cir) {
+  	                                                               ^
+    symbol:   class GuiMessageTag
+    location: class ChatUnsignedIconLegacyMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:35: error: cannot find symbol
+  		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+  		                                                                 ^
+    symbol:   class Matrix4f
+    location: class FontSignTextLegacyMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:49: error: cannot find symbol
+  		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+  		                                                              ^
+    symbol:   class Matrix4f
+    location: class FontSignTextLegacyMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:60: error: cannot find symbol
+  		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+  		                                                              ^
+    symbol:   class Matrix4f
+    location: class FontSignTextMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:74: error: cannot find symbol
+  		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+  		                                                                 ^
+    symbol:   class Matrix4f
+    location: class FontSignTextMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:89: error: cannot find symbol
+  		Matrix4f matrix, Object bufferSource, Object displayMode,
+  		^
+    symbol:   class Matrix4f
+    location: class FontSignTextMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:104: error: cannot find symbol
+  		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+  		                                                              ^
+    symbol:   class Matrix4f
+    location: class FontSignTextMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:118: error: cannot find symbol
+  		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+  		                                                                 ^
+    symbol:   class Matrix4f
+    location: class FontSignTextMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:134: error: cannot find symbol
+  		String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+  		                                                              ^
+    symbol:   class Matrix4f
+    location: class FontSignTextMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:148: error: cannot find symbol
+  		Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix,
+  		                                                                 ^
+    symbol:   class Matrix4f
+    location: class FontSignTextMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:163: error: cannot find symbol
+  		Matrix4f matrix, Object bufferSource, Object displayMode,
+  		^
+    symbol:   class Matrix4f
+    location: class FontSignTextMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:184: error: cannot find symbol
+  		Matrix4f matrix, Object bufferSource, int packedLightCoords, CallbackInfo ci
+  		^
+    symbol:   class Matrix4f
+    location: class FontSignTextMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/CameraAccess.java:32: error: cannot find symbol
+  	private static final Vector3f SCRATCH = new Vector3f();
+  	                                            ^
+    symbol:   class Vector3f
+    location: class CameraAccess
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/CameraAccess.java:131: error: cannot find symbol
+  			if (value instanceof Vector3fc vector) {
+  			                     ^
+    symbol:   class Vector3fc
+    location: class CameraAccess
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/TelemetryMixin.java:58: error: cannot find symbol
+  			Object disabled = Reflect.getStatic(TelemetryEventSender.class, "DISABLED");
+  			                                    ^
+    symbol:   class TelemetryEventSender
+    location: class TelemetryMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/TelemetryMixin.java:59: error: cannot find symbol
+  			if (disabled instanceof TelemetryEventSender sender) {
+  			                        ^
+    symbol:   class TelemetryEventSender
+    location: class TelemetryMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/culling/EntityRenderDispatcherMixin.java:44: error: cannot find symbol
+  		Vector3f forward = CameraAccess.lookVector(camera);
+  		^
+    symbol:   class Vector3f
+    location: class EntityRenderDispatcherMixin
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/ClientFrameHooks.java:140: error: cannot find symbol
+  			Vector3f look = CameraAccess.lookVector(camera);
+  			^
+    symbol:   class Vector3f
+    location: class ClientFrameHooks
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/RenderDistanceSync.java:40: error: cannot find symbol
+  			Integer chunks = minecraft.options.renderDistance().get();
+  			                                  ^
+    symbol:   method renderDistance()
+    location: variable options of type Options
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/chat/ChatCompactor.java:166: error: cannot find symbol
+  		return base.append(Component.literal(" (x" + count + ")").setStyle(COUNT_STYLE));
+  		                            ^
+    symbol:   method literal(String)
+    location: interface Component
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/tooltip/TooltipWrapper.java:104: error: cannot find symbol
+  			return ((Number) font.getClass().getMethod("width", compCls).invoke(font, Component.literal(text))).intValue(); } catch (Throwable ex) { return text.length()*6; } }
+  			                                                                                   ^
+    symbol:   method literal(String)
+    location: interface Component
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/tooltip/TooltipWrapper.java:108: error: cannot find symbol
+  		MutableComponent component = Component.literal(text);
+  		                                      ^
+    symbol:   method literal(String)
+    location: interface Component
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/CameraAccess.java:7: error: package org.joml does not exist
+  import org.joml.Vector3f;
+                 ^
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/culling/CameraAccess.java:8: error: package org.joml does not exist
+  import org.joml.Vector3fc;
+                 ^
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/misc/TelemetryMixin.java:6: error: package net.minecraft.client.telemetry does not exist
+  import net.minecraft.client.telemetry.TelemetryEventSender;
+                                       ^
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/culling/EntityRenderDispatcherMixin.java:13: error: package org.joml does not exist
+  import org.joml.Vector3f;
+                 ^
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java:5: error: package org.joml does not exist
+  import org.joml.Matrix4f;
+                 ^
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/mixin/text/FontSignTextMixin.java:6: error: package org.joml does not exist
+  import org.joml.Matrix4f;
+                 ^
+  /home/runner/work/Beryllium/Beryllium/src/client/java/com/endiq/beryllium/ClientFrameHooks.java:18: error: package org.joml does not exist
+  import org.joml.Vector3f;
+                 ^
+  36 errors
 
 * Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
+> Check your code and dependencies to fix the compilation error(s)
 > Run with --scan to get full insights from a Build Scan (powered by Develocity).
-> Get more help at https://help.gradle.org.
 
-BUILD FAILED in 5s
+BUILD FAILED in 12s
+2 actionable tasks: 2 executed
