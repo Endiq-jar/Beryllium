@@ -1,5 +1,6 @@
 package com.endiq.beryllium.culling;
 
+import com.endiq.beryllium.compat.CompatibilityChecker;
 import com.endiq.beryllium.culling.async.AsyncCullingPipeline;
 import com.endiq.beryllium.culling.async.CullCache;
 import net.minecraft.client.Camera;
@@ -45,6 +46,7 @@ public final class BlockEntityCulling {
 	private static volatile boolean frustumFieldsResolved = false;
 
 	private static long asyncHits = 0;
+	private static long bypassedCustomBlockEntities = 0;
 
 	/**
 	 * @param blockEntity the block entity about to be rendered
@@ -54,6 +56,18 @@ public final class BlockEntityCulling {
 	public static boolean shouldCull(BlockEntity blockEntity, double safeRadius) {
 		try {
 			if (blockEntity == null) {
+				return false;
+			}
+
+			// A block entity that draws outside its own block cannot be culled by a test
+			// performed on that block. Create's shafts render through their neighbours, its
+			// belts span many blocks, and a moving contraption is positioned by the
+			// contraption rather than by any block at all — the 1x1x1 box tested here, even
+			// inflated, describes none of what the player actually sees. Checked by class
+			// name, so no Create class is ever loaded and an install without Create pays one
+			// string comparison.
+			if (CompatibilityChecker.isCustomBlockEntity(blockEntity)) {
+				bypassedCustomBlockEntities++;
 				return false;
 			}
 
@@ -115,6 +129,14 @@ public final class BlockEntityCulling {
 	/** Block-entity culls answered from the worker's cache rather than on the render thread. */
 	public static long asyncHits() {
 		return asyncHits;
+	}
+
+	/**
+	 * Block entities left alone because they belong to a mod whose rendering is not confined
+	 * to its own block. Non-zero only on an install with something like Create.
+	 */
+	public static long bypassedCustomBlockEntities() {
+		return bypassedCustomBlockEntities;
 	}
 
 	/**

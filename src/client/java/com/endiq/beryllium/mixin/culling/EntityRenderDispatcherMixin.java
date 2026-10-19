@@ -4,6 +4,7 @@ import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
 import com.endiq.beryllium.culling.CameraAccess;
 import com.endiq.beryllium.culling.BehindCameraCulling;
+import com.endiq.beryllium.culling.LodRendererCoordination;
 import com.endiq.beryllium.culling.RenderDistanceSync;
 import com.endiq.beryllium.throttle.LoadPressureMonitor;
 import net.minecraft.client.Camera;
@@ -59,9 +60,11 @@ public abstract class EntityRenderDispatcherMixin {
 			return;
 		}
 		if (config.entityRenderCulling && config.entityRenderCullDistance > 0.0) {
-			double maxDistance = config.entityRenderCullSyncWithRenderDistance
-				? RenderDistanceSync.effectiveCullDistance(config.entityRenderCullDistance, true)
-				: config.entityRenderCullDistance;
+			// LOD-aware: with Distant Horizons or Voxy installed the player can see terrain
+			// far beyond the vanilla render distance, so a ceiling calibrated for the smaller
+			// world would cull entities against a landscape that is still being drawn.
+			double maxDistance = LodRendererCoordination.distanceCeiling(
+				config.entityRenderCullDistance, config.entityRenderCullSyncWithRenderDistance);
 			// Dynamic load throttling: while the world is streaming in, entity rendering
 			// gives ground to terrain generation, which is on the critical path -- an
 			// unmeshed section is a hole the player can see, and a distant entity that is

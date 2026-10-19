@@ -3,7 +3,7 @@ package com.endiq.beryllium.mixin.text;
 import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
 import com.endiq.beryllium.culling.CameraAccess;
-import com.endiq.beryllium.culling.RenderDistanceSync;
+import com.endiq.beryllium.culling.LodRendererCoordination;
 import com.endiq.beryllium.text.TextCulling;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -66,7 +66,9 @@ public abstract class NameTagCullMixin {
 			return;
 		}
 
-		double range = RenderDistanceSync.effectiveCullDistance(
+		// LOD-aware, for the same reason the entity draw distance is: a name tag vanishing
+		// against terrain that is still being drawn reads as a bug, not as an optimisation.
+		double range = LodRendererCoordination.distanceCeiling(
 			config.nameTagCullRange,
 			config.cullRangeSyncWithRenderDistance
 		);
