@@ -2,6 +2,7 @@ package com.endiq.beryllium.chunk;
 
 import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
+import com.endiq.beryllium.render.adapter.RendererMode;
 import com.endiq.beryllium.util.BerylliumLog;
 
 import java.util.List;
@@ -98,6 +99,14 @@ public final class ChunkRebuildManager {
 			return false;
 		}
 		if (Beryllium.isChunkOptimizationDeferredToOtherMod()) {
+			return false;
+		}
+		// If Beryllium's own renderer has taken over the terrain, this queue has to stand
+		// down: it schedules work inside vanilla's dispatcher, and two systems scheduling the
+		// same section is how it gets rebuilt twice or not at all. Read from the single atomic
+		// mode switch rather than from a second flag, so the two renderers cannot disagree
+		// about who owns the ground.
+		if (!RendererMode.vanillaChunkSystemsActive()) {
 			return false;
 		}
 		if (!SectionDirtyBridge.canReschedule(rendererRef)) {

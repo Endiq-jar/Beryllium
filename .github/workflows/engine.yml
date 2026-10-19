@@ -38,8 +38,22 @@ jobs:
       - name: build (warnings are errors)
         run: make -j"$(nproc)" EXTRA_CFLAGS="-Werror"
 
+      # The suite's output is copied into the job summary, not just left in the log.
+      # Fetching raw action logs needs a blob host that is not always reachable, whereas a
+      # check-run summary can be read back through the ordinary API -- which is the
+      # difference between diagnosing a failure and guessing at it.
       - name: test
-        run: make test EXTRA_CFLAGS="-Werror"
+        run: |
+          set +e
+          make test EXTRA_CFLAGS="-Werror" > /tmp/engine-test.log 2>&1
+          status=$?
+          {
+            echo "### engine \`make test\` (exit ${status})"
+            echo '```'
+            tail -n 300 /tmp/engine-test.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit $status
 
       - name: render a frame and verify it is not blank
         run: |

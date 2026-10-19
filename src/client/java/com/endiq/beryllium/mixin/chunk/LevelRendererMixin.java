@@ -4,6 +4,7 @@ import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.chunk.ChunkRebuildManager;
 import com.endiq.beryllium.chunk.SectionPacking;
 import com.endiq.beryllium.config.BerylliumConfig;
+import com.endiq.beryllium.render.adapter.SectionRevisionClock;
 import net.minecraft.client.renderer.LevelRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -52,7 +53,18 @@ public abstract class LevelRendererMixin {
 	@Unique
 	private void beryllium$queue(long sectionPos, boolean important, CallbackInfo ci) {
 		ChunkRebuildManager manager = ChunkRebuildManager.instance();
-		if (manager == null || manager.isBypassing()) {
+		if (manager != null && manager.isBypassing()) {
+			// Beryllium is handing a parked section back to vanilla to rebuild, not
+			// recording a new change to it. Bumping here would invalidate a mesh that is
+			// still correctly describing the section.
+			return;
+		}
+		// The section's contents changed, whatever Beryllium goes on to do about it. This
+		// feeds the snapshot contract's staleness check, so it sits above every feature
+		// gate below: a revision clock that only ticks while rebuild prioritization is
+		// enabled would report a section as unchanged when it was not.
+		SectionRevisionClock.instance().noteDirty(sectionPos);
+		if (manager == null) {
 			return;
 		}
 		BerylliumConfig config = Beryllium.config();

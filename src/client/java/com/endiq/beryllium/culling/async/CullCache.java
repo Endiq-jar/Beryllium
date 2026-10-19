@@ -190,8 +190,10 @@ public final class CullCache {
 		int carried = 0;
 		for (ConcurrentHashMap<Long, Entry> map : buckets) {
 			// entrySet(), not values(): republishing has to be keyed, and iterating entries
-			// hands back both halves at once instead of forcing a lookup per box.
-			for (ConcurrentHashMap.Entry<Long, Entry> slot : map.entrySet()) {
+			// hands back both halves at once instead of forcing a lookup per box. The entry
+			// type is spelled out fully because CHM's own implementation class is
+			// package-private and shares its name with the nested Entry below.
+			for (java.util.Map.Entry<Long, Entry> slot : map.entrySet()) {
 				if (carried >= REVALIDATE_BUDGET) {
 					return carried;
 				}

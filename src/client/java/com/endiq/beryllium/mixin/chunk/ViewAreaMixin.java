@@ -5,6 +5,7 @@ import com.endiq.beryllium.chunk.ChunkRebuildManager;
 import com.endiq.beryllium.chunk.SectionDirtyBridge;
 import com.endiq.beryllium.chunk.SectionPacking;
 import com.endiq.beryllium.config.BerylliumConfig;
+import com.endiq.beryllium.render.adapter.SectionRevisionClock;
 import net.minecraft.client.renderer.ViewArea;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -42,7 +43,14 @@ public abstract class ViewAreaMixin {
 		int sectionX, int sectionY, int sectionZ, boolean important, CallbackInfo ci
 	) {
 		ChunkRebuildManager manager = ChunkRebuildManager.instance();
-		if (manager == null || manager.isBypassing()) {
+		if (manager != null && manager.isBypassing()) {
+			// Beryllium re-triggering a parked section, not a new change to it.
+			return;
+		}
+		// Above every feature gate: the section changed whether or not Beryllium is
+		// prioritizing its rebuild, and the revision clock has to reflect that.
+		SectionRevisionClock.instance().noteDirty(SectionPacking.pack(sectionX, sectionY, sectionZ));
+		if (manager == null) {
 			return;
 		}
 		BerylliumConfig config = Beryllium.config();

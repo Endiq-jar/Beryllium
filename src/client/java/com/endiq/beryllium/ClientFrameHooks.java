@@ -11,6 +11,7 @@ import com.endiq.beryllium.performance.FrameMaintenanceScheduler;
 import com.endiq.beryllium.profiler.DebugOverlay;
 import com.endiq.beryllium.profiler.FrameProfiler;
 import com.endiq.beryllium.render.BlockEntityMeshCache;
+import com.endiq.beryllium.render.adapter.CustomTerrainRenderer;
 import com.endiq.beryllium.text.SignTextState;
 import com.endiq.beryllium.throttle.LoadPressureMonitor;
 import com.endiq.beryllium.util.BerylliumLog;
@@ -133,6 +134,9 @@ public final class ClientFrameHooks {
 		// So does the measured load pressure, and so does the camera it was measured from:
 		// keeping it would make the first frame of the next world look like a teleport.
 		LoadPressureMonitor.instance().reset();
+		// Section revisions are per-world: a counter carried across a dimension change would
+		// make a mesh built in one world look current in the next.
+		CustomTerrainRenderer.instance().onWorldChanged();
 	}
 
 	private static void drainChunkRebuilds(long lastFrameNanos, long averageFrameNanos) {

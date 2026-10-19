@@ -376,6 +376,18 @@ public class BerylliumConfig {
 	 *  schedules chunk work itself. */
 	public boolean dynamicLoadThrottling = true;
 
+	// --- Custom terrain renderer (scaffold, not yet functional) ---
+
+	/** Whether Beryllium's own terrain renderer may take over from vanilla's. Off by
+	 *  default and currently unreachable in practice: the section-snapshot contract that
+	 *  feeds the engine is implemented and tested on the C side, but the mesher does not yet
+	 *  translate real Minecraft baked models, there is no Android GLES 3.0 backend, and
+	 *  nothing uploads or draws the result. Enabling this today would switch to a renderer
+	 *  that draws nothing where the world used to be. The switch is a single atomic mode
+	 *  (RendererMode) so vanilla and custom can never both draw the same terrain, and it also
+	 *  stands down automatically when another mod already renders the terrain. */
+	public boolean customTerrainRenderer = false;
+
 	// --- Hopper throttling ---
 
 	/** Idle hoppers stop running their full transfer attempt every tick. A hopper counts as
