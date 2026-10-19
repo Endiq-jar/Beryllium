@@ -1,5 +1,5 @@
 ## minecraft 1.21.1
-## commit: e1f7a16
+## commit: 738b4d7
 ## source files: 149
 
 === net.minecraft.client.gui.Font
@@ -350,8 +350,54 @@ public class net.minecraft.client.renderer.LevelRenderer implements net.minecraf
   public void renderClouds(com.mojang.blaze3d.vertex.PoseStack, org.joml.Matrix4f, org.joml.Matrix4f, float, double, double, double);
   private com.mojang.blaze3d.vertex.MeshData buildClouds(com.mojang.blaze3d.vertex.Tesselator, double, double, double, net.minecraft.world.phys.Vec3);
 
-=== net.minecraft.client.renderer.SectionRenderDispatcher
-Error: class not found: net.minecraft.client.renderer.SectionRenderDispatcher
+=== net.minecraft.client.renderer.chunk.ChunkRenderDispatcher
+Error: class not found: net.minecraft.client.renderer.chunk.ChunkRenderDispatcher
+
+=== net.minecraft.client.renderer.chunk.SectionRenderDispatcher
+Compiled from "SectionRenderDispatcher.java"
+public class net.minecraft.client.renderer.chunk.SectionRenderDispatcher {
+  private static final int MAX_HIGH_PRIORITY_QUOTA;
+  private final java.util.concurrent.PriorityBlockingQueue<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$CompileTask> toBatchHighPriority;
+  private final java.util.Queue<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$CompileTask> toBatchLowPriority;
+  private int highPriorityQuota;
+  private final java.util.Queue<java.lang.Runnable> toUpload;
+  final net.minecraft.client.renderer.SectionBufferBuilderPack fixedBuffers;
+  private final net.minecraft.client.renderer.SectionBufferBuilderPool bufferPool;
+  private volatile int toBatchCount;
+  private volatile boolean closed;
+  private final net.minecraft.util.thread.ProcessorMailbox<java.lang.Runnable> mailbox;
+  private final java.util.concurrent.Executor executor;
+  net.minecraft.client.multiplayer.ClientLevel level;
+  final net.minecraft.client.renderer.LevelRenderer renderer;
+  private net.minecraft.world.phys.Vec3 camera;
+  final net.minecraft.client.renderer.chunk.SectionCompiler sectionCompiler;
+  public net.minecraft.client.renderer.chunk.SectionRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, net.minecraft.client.renderer.RenderBuffers, net.minecraft.client.renderer.block.BlockRenderDispatcher, net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher);
+  public void setLevel(net.minecraft.client.multiplayer.ClientLevel);
+  private void runTask();
+  private net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$CompileTask pollTask();
+  public java.lang.String getStats();
+  public int getToBatchCount();
+  public int getToUpload();
+  public int getFreeBufferCount();
+  public void setCamera(net.minecraft.world.phys.Vec3);
+  public net.minecraft.world.phys.Vec3 getCameraPosition();
+  public void uploadAllPendingUploads();
+  public void rebuildSectionSync(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection, net.minecraft.client.renderer.chunk.RenderRegionCache);
+  public void blockUntilClear();
+  public void schedule(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$CompileTask);
+  public java.util.concurrent.CompletableFuture<java.lang.Void> uploadSectionLayer(com.mojang.blaze3d.vertex.MeshData, com.mojang.blaze3d.vertex.VertexBuffer);
+  public java.util.concurrent.CompletableFuture<java.lang.Void> uploadSectionIndexBuffer(com.mojang.blaze3d.vertex.ByteBufferBuilder$Result, com.mojang.blaze3d.vertex.VertexBuffer);
+  private void clearBatchQueue();
+  public boolean isQueueEmpty();
+  public void dispose();
+  private static void method_60907(com.mojang.blaze3d.vertex.VertexBuffer, com.mojang.blaze3d.vertex.ByteBufferBuilder$Result);
+  private static void method_43610(com.mojang.blaze3d.vertex.VertexBuffer, com.mojang.blaze3d.vertex.MeshData);
+  private void method_23086(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$CompileTask);
+  private void method_22755(net.minecraft.client.renderer.SectionBufferBuilderPack, net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult, java.lang.Throwable);
+  private void method_23618(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult, net.minecraft.client.renderer.SectionBufferBuilderPack);
+  private static java.util.concurrent.CompletionStage method_38555(java.util.concurrent.CompletableFuture);
+  private static java.util.concurrent.CompletableFuture method_22757(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$CompileTask, net.minecraft.client.renderer.SectionBufferBuilderPack);
+}
 
 === net.minecraft.client.renderer.ViewArea
 Compiled from "ViewArea.java"

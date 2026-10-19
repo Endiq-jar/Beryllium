@@ -1,5 +1,5 @@
 ## minecraft 1.21
-## commit: e1f7a16
+## commit: 738b4d7
 ## gradle exit: 0, validate exit: 0
 ## compile errors: 0
 ## access widener: accessWidener v1 named
@@ -36,29 +36,29 @@ Cannot remap extractTitle because it does not exist in any of the targets [net/m
 Cannot remap extractTitle because it does not exist in any of the targets [net/minecraft/client/gui/Gui]
 Cannot remap extractTitle because it does not exist in any of the targets [net/minecraft/client/gui/Gui]
 Cannot remap extract because it does not exist in any of the targets [net/minecraft/client/particle/ParticleEngine]
-Cannot remap drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
 Cannot remap createWorldSessionEventSender because it does not exist in any of the targets [net/minecraft/client/telemetry/ClientTelemetryManager]
+Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;ILnet/minecraft/client/GuiMessageTag;Z)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;Lnet/minecraft/client/multiplayer/chat/GuiMessageSource;Lnet/minecraft/client/multiplayer/chat/GuiMessageTag;)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;ILnet/minecraft/client/GuiMessageTag;Z)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;Lnet/minecraft/client/multiplayer/chat/GuiMessageSource;Lnet/minecraft/client/multiplayer/chat/GuiMessageTag;)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
 Cannot remap drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
-Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;ILnet/minecraft/client/GuiMessageTag;Z)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
-Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;Lnet/minecraft/client/multiplayer/chat/GuiMessageSource;Lnet/minecraft/client/multiplayer/chat/GuiMessageTag;)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
-Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;ILnet/minecraft/client/GuiMessageTag;Z)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
-Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;Lnet/minecraft/client/multiplayer/chat/GuiMessageSource;Lnet/minecraft/client/multiplayer/chat/GuiMessageTag;)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap getTooltipLines(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/TooltipFlag;)Ljava/util/List; because it does not exist in any of the targets [net/minecraft/world/item/ItemStack]
 Cannot remap refreshTrimmedMessage because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
 Cannot remap tick because it does not exist in any of the targets [net/minecraft/server/MinecraftServer]
 Cannot remap tick because it does not exist in any of the targets [net/minecraft/server/MinecraftServer]
-Cannot remap setLevel(Lnet/minecraft/client/multiplayer/ClientLevel;)V because it does not exist in any of the targets [net/minecraft/client/Minecraft]
 Cannot remap <init>(Lnet/minecraft/world/entity/Entity;Z)V because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
 Cannot remap <init>(Lnet/minecraft/world/entity/Entity;Z)V because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
 Cannot remap <init>(Lnet/minecraft/world/entity/Entity;Z)V because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
 Cannot remap getHeldItem because it does not exist in any of the targets [net/minecraft/world/phys/shapes/EntityCollisionContext]
-Cannot remap getTooltipLines(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/TooltipFlag;)Ljava/util/List; because it does not exist in any of the targets [net/minecraft/world/item/ItemStack]
+Cannot remap setLevel(Lnet/minecraft/client/multiplayer/ClientLevel;)V because it does not exist in any of the targets [net/minecraft/client/Minecraft]
 Cannot remap shouldShowName(Lnet/minecraft/world/entity/Entity;D)Z because it does not exist in any of the targets [net/minecraft/client/renderer/entity/EntityRenderer]
 Cannot remap handlePortalTransitionEffect because it does not exist in any of the targets [net/minecraft/client/player/LocalPlayer]
 Cannot remap handleNetherPortalClient because it does not exist in any of the targets [net/minecraft/client/player/LocalPlayer]
+Cannot remap handlePortalTransitionEffect because it does not exist in any of the targets [net/minecraft/client/player/LocalPlayer]
 Cannot remap drawInBatch(Lnet/minecraft/network/chat/Component;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
 Cannot remap drawInBatch(Lnet/minecraft/util/FormattedText;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
 Cannot remap drawInBatch(Ljava/lang/String;FFFFIZLcom/mojang/blaze3d/vertex/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I because it does not exist in any of the targets [net/minecraft/client/gui/Font]
-Cannot remap handlePortalTransitionEffect because it does not exist in any of the targets [net/minecraft/client/player/LocalPlayer]
 Cannot remap extractRenderState because it does not exist in any of the targets [net/minecraft/client/gui/screens/LoadingOverlay]
 Cannot remap isReadyToFadeOut because it does not exist in any of the targets [net/minecraft/client/gui/screens/LoadingOverlay]
 Cannot remap extractRenderState because it does not exist in any of the targets [net/minecraft/client/gui/screens/LoadingOverlay]
@@ -85,5 +85,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 12s
+BUILD SUCCESSFUL in 19s
 10 actionable tasks: 10 executed
