@@ -93,6 +93,45 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
   default, so players and their name tags could disappear tens or hundreds of blocks
   before the terrain itself would. The configured values become a floor rather than a
   cap — turn this off to go back to the flat, unsynced defaults.
+- **Asynchronous culling pipeline** — `asyncVisibilityCulling` (default `true`) moves the
+  per-frame visibility maths off the render thread. The camera position and the six frustum
+  planes are copied once per frame into an immutable snapshot, and a small daemon pool tests
+  the boxes actually queried last frame against that snapshot; the render thread publishes
+  the results and answers from them next frame. Three properties make this safe rather than
+  merely fast. The worker is given *only* the snapshot — it has no way to reach a `Frustum`,
+  a `LevelRenderer` or the level, because none of them were handed to it, and it stays that
+  way by construction rather than by discipline. The snapshot is discarded unless
+  self-validation reproduces `frustum.isVisible()` on a spread of probe boxes, which matters
+  because the plane layout is *not* known to be stable across the supported range — it is read
+  reflectively by field type, and an internal representation nobody has verified is not
+  something to do arithmetic with on a second thread. And a stale or absent verdict never
+  culls: the first frame of a world runs synchronously, and a box the worker has not seen
+  falls back to the same synchronous test that runs with this off.
+- **Concurrent culling cache** — the output of that pipeline lives in a bounded
+  `ConcurrentHashMap` keyed on the box's quantised position and its inflation bucket, so the
+  render thread reads a verdict instead of recomputing one. It is a *cross-frame* cache, which
+  is the part the existing visibility memo is not: that memo is cleared every frame and only
+  ever answers a repeat query within one frame. Invalidation is epoch-based rather than
+  per-entry — each frame carries an epoch derived from the section coordinates the camera is
+  in, and a verdict whose epoch differs from the current one is ignored where it lies and
+  never re-published. Nothing sweeps expired entries, so a cache whose contents all went stale
+  costs one failed lookup each rather than a traversal. Entries are dropped wholesale past
+  32,768 rather than evicted individually, because per-entry eviction would need a recency
+  field and a lock on a map that exists to avoid both.
+- **Dynamic load throttling** — `dynamicLoadThrottling` (default `true`) scales back entity
+  rendering while the world is being loaded hard, so terrain generation gets the frame budget
+  instead. The pressure signal is measured, not guessed, and needs no new instrumentation:
+  the rebuild queue depth against its configured cap, whether the upload pacer is still
+  deferring at the end of a frame, and frame health against the live frame budget. Those
+  combine into a 0–1 reading that is deliberately reluctant to rise — three consecutive
+  pressured frames to start throttling, eight calm frames to stop, and one frame to release on
+  a teleport — because a throttle that flapped would be visible as stutter. Teleporting is
+  detected as a camera jump of more than 64 blocks in a frame, which no ordinary movement
+  produces. At full pressure the entity draw distance and the angle at which behind-camera
+  culling becomes strict are both scaled to 40%, recovering to 100% once loading settles.
+  Everything is fail-open: no level, no config, or any unexpected state means "do not
+  throttle", and the whole thing stands down when the feature is off or when the mod is
+  already deferring culling to EntityCulling.
 - **Frame profiler & debug overlay** — FPS, frame time, 1% low, 0.1% low
   (`debugMode: true`), plus live counters for the three render-thread governors: the chunk
   rebuild queue (queued / drained / re-queued), the upload pacer (used vs. allowance this
@@ -468,6 +507,40 @@ optimization should never prevent Minecraft from reaching the title screen.
 | 22 — client quality-of-life set | ✅ done — chat, keybinds, overlay/loading, rendering switches, worlds, toasts/weather, tooltips, thread priorities |
 | 23 — parallel dimension ticking | ✅ done — per-tick barrier, deferred mutations, measured speedup gate, serial fallback |
 | 24 — conditional block entity meshing | ✅ done — captured render states for idle block entities on the extract pipeline (1.21.9+); the pre-1.21.9 path keeps the direct cull |
+| 25 — asynchronous culling pipeline | ✅ done — camera + frustum planes copied into an immutable per-frame snapshot, tested by a worker pool, published back and read next frame. Falls back to the synchronous test whenever the snapshot is unverified or absent |
+| 26 — concurrent culling cache | ✅ done — cross-frame `ConcurrentHashMap` of visibility verdicts, epoch-invalidated so a stale verdict is ignored where it lies instead of being swept |
+| 27 — dynamic load throttling | ✅ done — measured load pressure (rebuild backlog, upload deferral, frame health) scales entity draw distance and cull strictness down while the world loads, plus an immediate release on teleport |
+| 28 — mod compatibility: Create, Distant Horizons, Voxy | ✅ done — Create's block entities bypassed individually by class; LOD renderers floor entity and name-tag distances at the live render distance and stand Beryllium's own renderer down |
+| 29 — engine ↔ Minecraft section-snapshot contract | ✅ done on the engine side — format defined, implemented and tested in C (4199 checks); Java producer, extraction layer and revision tracking in place. Not wired to rendering |
+| 30 — Beryllium's own terrain renderer | ⛔ scaffold only — see below. Nothing renders, and it cannot be enabled |
+
+### What is live and what is scaffold
+
+Everything through phase 29 ships enabled or available. Phase 30 does not, and the distinction is
+worth stating plainly rather than leaving to the config default.
+
+`render/adapter/` holds the seam a custom terrain renderer would plug into: `RendererMode` is a
+single atomic switch between vanilla and custom rendering, read by `ChunkRebuildManager` so the
+vanilla-facing chunk systems stand down if custom rendering ever engages and the same section is
+never scheduled twice; `MinecraftTerrainAdapter` is the version seam; `SectionSnapshotFactory`
+extracts a section into an immutable snapshot; `SectionRevisionClock` makes staleness detectable
+where Minecraft exposes no revision counter of its own.
+
+What is missing is everything that would actually draw: a mesher that translates real Minecraft
+baked models rather than the engine's thirty-block registry, an Android GLES 3.0 backend that uses
+the launcher's existing context instead of assuming a desktop windowing library, a JNI layer, and
+anything that uploads a buffer or issues a draw call. `BerylliumNative.isReady()` is therefore
+false on every install and `RendererMode.tryEnableCustom()` cannot succeed, so
+`customTerrainRenderer: true` changes nothing today. Shipping the switch already able to flip
+would mean shipping a renderer that draws nothing where the world used to be.
+
+The adapter also refuses to run where staleness cannot be detected, which is stricter than it
+needs to be and deliberate. Section revisions are driven by the dirty-mark entry points the
+rebuild prioritisation already hooks; those exist from 1.19.4 through 26.1.2 and are gone in 26.2
+and 26.3, where the section update path was rewritten around a render-state list and
+`RenderSection` no longer carries a dirty flag. On those releases nothing would drive the clock,
+every section would look permanently current, and a stale mesh would be accepted rather than
+rejected. That failure is silent, so `isAvailable()` reports false there instead of approximating.
 ## Experimental & self-checking behaviour
 
 Two features on the list are genuinely risky, and they are the reason this section exists:
@@ -534,6 +607,20 @@ applied at class-load time).
 > names/descriptors against a decompile of the exact 1.21.4 build. The pure-Java
 > engine pieces (`SectionPacking`, queue/scoring, scheduler) carry no such caveat.
 
+> **Honest note on the asynchronous culling pipeline:** this one moves arithmetic onto a
+> worker thread, and the arithmetic depends on the internal layout of Minecraft's `Frustum` —
+> which is *not* verified anywhere in the supported range. `ci-probe` dumps `LevelRenderer`'s
+> frustum fields but never the `Frustum` class itself, so across 30 releases there is no
+> ground truth for whether the planes are six `org.joml.Vector4f`, a `double[][]`, or
+> something else again. Rather than pick a layout and hope, the snapshotter reads candidate
+> fields reflectively *by type* and then self-validates: it reproduces `frustum.isVisible()`
+> on a spread of probe boxes and throws the whole snapshot away unless the copy agrees. A
+> release whose layout nobody anticipated therefore runs synchronous culling — the feature is
+> off, the frame is unchanged, and nothing is culled on arithmetic that was never checked.
+> Worth knowing because the failure mode is invisible: if async culling reports no pending
+> work in the debug overlay on your release, this is why, and it is the intended behaviour
+> rather than a bug to chase.
+
 > **Honest note on "Sodium replacement":** Sodium's headline FPS gain comes from
 > replacing the entire chunk-meshing and lighting pipeline (per-quad culling, vertex
 > packing, dynamic lighting). Beryllium is not that rewrite — it is the
@@ -581,7 +668,7 @@ with ambient occlusion, a PVS culler, a mesh store fed by worker threads), in a
 form that can be built and *run* without a JVM, Minecraft, or a GPU.
 
 ```
-make -C engine test            # 2502 checks, no GPU/network/driver needed
+make -C engine test            # 6709 checks, no GPU/network/driver needed
 make -C engine                 # ./build/beryl renders generated terrain to a PNG
 make -C engine ANDROID=1 test  # the phone profile: LTO, --gc-sections, mobile presets
 ```
@@ -597,6 +684,39 @@ rasterizer and the OpenGL backend are exercised by tests (the GL one through a
 recording loader, since there is no driver here), while the Vulkan slot in the
 backend interface is deliberately left unimplemented rather than shipped on
 transcribed constants nobody could check.
+
+### The Minecraft boundary (`engine/src/snapshot.h`)
+
+The engine can currently only draw the world it generates itself. What connects it to a real
+Minecraft world is a documented binary contract for one immutable 16×16×16 section snapshot,
+implemented and tested on the C side and transcribed on the Java side in
+`render/snapshot/SnapshotFormat.java`. The two are the same contract seen from either end and
+have to change together; the format version is what makes a mismatch survivable rather than
+silently corrupt.
+
+The rule it enforces is that a native worker thread never reads a live Minecraft world object.
+Those are mutated by the game thread while a build runs, and a build reading a half-updated
+section produces geometry corresponding to no state the world was ever in. So the render thread
+copies a section into a snapshot, the worker meshes the copy, and the render thread validates
+the result against the world, section revision and resource-pack generation it was built from
+before uploading it. A rejected mesh costs one wasted build and the section is rebuilt; an
+accepted stale one is geometry that does not match the world, with no error anywhere to point at.
+
+The palette carries full material descriptors rather than block ids, and that is the substance
+of the format. The engine's own registry is a frozen `uint8` enum of about thirty blocks;
+Minecraft has tens of thousands of states. An id-only contract would be limited to those thirty
+or would map everything else onto one of them. So each entry carries solidity, opacity, cutout
+and translucency, light emission and attenuation, render layer, a model kind, and an opaque blob
+reserved for real baked-model geometry. A block the engine has never heard of resolves by
+registry name first, then falls back from its own material flags — translucent stays
+translucent, liquid stays liquid, a light emitter keeps emitting. Never air: an
+unknown-name-to-air fallback is the obvious implementation and it would make a modded world
+arrive looking deleted, so the test asserts against it by name.
+
+Parsing is treated like a network protocol, because it is one. Every length is checked against
+the buffer before it is read, and the test feeds the parser every truncation of a valid buffer,
+bad magic, an unsupported version, nine bit widths that cannot pack a palette, an out-of-range
+voxel index and a repeated palette index. All refused, none partially believed.
 
 ## Config (`config/beryllium.json`)
 
@@ -638,6 +758,9 @@ transcribed constants nobody could check.
 | `entityRenderCullDistance` | `64.0` | Entities beyond this distance are not rendered (`0` = off) |
 | `entityRenderCullSyncWithRenderDistance` | `false` | Treat the above as a floor as well, so it never culls closer than the live Render Distance option |
 | `visibilityCulling` | `true` | Reuse one visibility answer per block (and per test-box inflation) per frame instead of re-testing geometry |
+| `asyncVisibilityCulling` | `true` | Move the per-frame visibility maths onto a worker pool, against an immutable snapshot of the camera and frustum planes. Falls back to the synchronous test whenever the snapshot is unavailable or unverified, and never culls on a stale verdict |
+| `dynamicLoadThrottling` | `true` | Scale back entity rendering while chunks are loading hard or just after a teleport, so terrain generation gets the frame budget. Entity draw distance and cull strictness recover to 100% once loading settles |
+| `customTerrainRenderer` | `false` | **Scaffold — does nothing yet.** Would let Beryllium's own renderer draw the terrain instead of vanilla's. The snapshot contract that feeds the engine exists and is tested in C, but there is no mesher for real Minecraft models, no Android GLES backend, no JNI layer and nothing that uploads or draws. Cannot currently be enabled even if set to `true` |
 | `chunkUploadPacing` | `true` | Spread GPU uploads of compiled chunk geometry across frames |
 | `chunkUploadsPerFrame` | `2` | Individual uploads allowed per frame (`0` = let vanilla drain freely); shrinks on slow frames, and a large backlog also gets a catch-up slice so a world load still appears quickly |
 | `hopperThrottling` | `true` | Idle hoppers skip their transfer attempt on most ticks |
@@ -718,8 +841,10 @@ transcribed constants nobody could check.
 
 With `compatibilityModeEnabled: true`, Beryllium defers automatically:
 
-- **Sodium** loaded → Beryllium's chunk-rebuild work stays inert (Sodium owns the
-  mesh pipeline). Shape caching and culling remain active (complementary).
+- **Sodium** or **Voxy** loaded → Beryllium's chunk-rebuild work stays inert (they own the
+  mesh pipeline). Shape caching and culling remain active (complementary). Voxy counts as a
+  replacement rather than an addition because it does not use vanilla's section meshes at all,
+  so a mixin aimed at vanilla's dispatcher would be intercepting a code path Voxy never takes.
 - **EntityCulling** loaded → Beryllium's behind-camera entity culling and block
   entity frustum culling are disabled for the session.
 - **Lithium** loaded → Beryllium's hopper throttling stands down (Lithium ships its own).
@@ -727,6 +852,25 @@ With `compatibilityModeEnabled: true`, Beryllium defers automatically:
   the config; the two cache layers are compatible (Beryllium's cache sits in front of
   the same vanilla entry points). If you see odd behavior with both installed, set
   `voxelShapeOptimizations: false` and restart.
+- **Distant Horizons** or **Voxy** loaded → Beryllium's own terrain renderer stays off, and
+  entity draw distance and name-tag range stop being allowed to fall below the live render
+  distance. The conflict is not that both mods cull the same entities — neither LOD renderer
+  draws entities at all. It is that they disagree about how far the player can see: every
+  distance Beryllium derives comes from vanilla's render distance, which with an LOD renderer
+  installed describes only the near field. A render distance of 12 beside Distant Horizons at
+  128 chunks means the player is looking at terrain two thousand blocks away while Beryllium
+  reasons as though the world ended at 192, and a ceiling calibrated for the smaller world
+  then culls entities and name tags against a landscape that is plainly still being drawn.
+  Behind-camera culling and sign text are deliberately *not* floored this way — an LOD
+  renderer changes how far ahead you can see, not what is behind you, and sign text is
+  legible at a few dozen blocks at most.
+- **Create** loaded → its block entities are bypassed by bounding-box culling, individually,
+  by class. Bounding-box culling is only sound for a block entity that stays inside the box it
+  is tested against, and Create's do not: a shaft renders through its neighbours, a belt spans
+  many blocks, and a contraption in motion carries a whole assembly positioned by the
+  contraption rather than by any block. Testing those against a 1×1×1 box inflated by half a
+  block culls geometry that is plainly on screen. Identified by class-name prefix, so no Create
+  class is ever loaded and an install without Create pays one string comparison.
 
 ## License
 
