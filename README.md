@@ -133,10 +133,13 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
   throttle", and the whole thing stands down when the feature is off or when the mod is
   already deferring culling to EntityCulling.
 - **Frame profiler & debug overlay** — FPS, frame time, 1% low, 0.1% low
-  (`debugMode: true`), plus live counters for the three render-thread governors: the chunk
-  rebuild queue (queued / drained / re-queued), the upload pacer (used vs. allowance this
-  frame, deferrals, last upload cost) and the visibility memo (hit rate and peak size). A
-  clean compile only proves a hook resolves; these are what prove it is doing something.
+  (`debugMode: true`), plus live counters for the render-thread governors: the chunk rebuild
+  queue (queued / drained / re-queued), the upload pacer (used vs. allowance this frame,
+  deferrals, last upload cost), the visibility memo (hit rate and peak size), the
+  asynchronous culling pipeline (frames published, boxes carried, tasks coalesced — or why it
+  retired), the cross-frame cull cache (entries, hit rate, stale verdicts, drops over the cap)
+  and the load throttle (pressure state, the entity-distance scale in force, teleports seen).
+  A clean compile only proves a hook resolves; these are what prove it is doing something.
 - **Entity render distance** — a hard ceiling (`entityRenderCullDistance`, default 64
   blocks) on how far away an entity may be and still be rendered. Vanilla has no entity
   render distance at all: it renders every entity in the loaded area, so crowded servers
@@ -617,9 +620,11 @@ applied at class-load time).
 > on a spread of probe boxes and throws the whole snapshot away unless the copy agrees. A
 > release whose layout nobody anticipated therefore runs synchronous culling — the feature is
 > off, the frame is unchanged, and nothing is culled on arithmetic that was never checked.
-> Worth knowing because the failure mode is invisible: if async culling reports no pending
-> work in the debug overlay on your release, this is why, and it is the intended behaviour
-> rather than a bug to chase.
+> Worth knowing because the failure mode is otherwise invisible: nothing logs, nothing
+> breaks, the frame just looks the same. `debugMode: true` makes it visible -- the overlay
+> line reads `ASYNC CULL: off (retired: snapshot did not validate)` when self-validation
+> rejected the plane layout on your release, and `ASYNC CULL: <n> frames published, ...`
+> when it is working. Seeing the first is intended behaviour, not a bug to chase.
 
 > **Honest note on "Sodium replacement":** Sodium's headline FPS gain comes from
 > replacing the entire chunk-meshing and lighting pipeline (per-quad culling, vertex

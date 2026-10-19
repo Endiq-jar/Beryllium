@@ -5,6 +5,10 @@ import com.endiq.beryllium.chunk.ChunkRebuildManager;
 import com.endiq.beryllium.chunk.ChunkUploadPacer;
 import com.endiq.beryllium.config.BerylliumConfig;
 import com.endiq.beryllium.culling.VisibilityCulling;
+import com.endiq.beryllium.culling.async.AsyncCullingPipeline;
+import com.endiq.beryllium.culling.async.CullCache;
+import com.endiq.beryllium.throttle.LoadPressure;
+import com.endiq.beryllium.throttle.LoadPressureMonitor;
 import net.minecraft.client.Minecraft;
 
 import java.util.ArrayList;
@@ -53,6 +57,9 @@ public final class DebugOverlay {
 			lines.add(chunkSchedulingLine());
 			lines.add(uploadPacingLine());
 			lines.add(visibilityLine());
+			lines.add(asyncCullingLine());
+			lines.add(cullCacheLine());
+			lines.add(loadThrottleLine());
 		}
 		return lines;
 	}
@@ -89,6 +96,52 @@ public final class DebugOverlay {
 		return String.format("VISIBILITY: memo %d%% hit (%d/%d), peak %d entries",
 			Math.round(100.0 * hits / total), hits, total,
 			VisibilityCulling.largestMemoThisFrame());
+	}
+
+	/**
+	 * The asynchronous culling pipeline.
+	 *
+	 * <p>Worth its own line because this feature's failure mode is invisible: it validates its
+	 * frustum-plane snapshot against {@code frustum.isVisible()} before using it, and a release
+	 * whose internal plane layout nobody anticipated simply runs synchronous culling instead.
+	 * Nothing logs, nothing breaks, the frame looks the same -- so the only way to tell whether
+	 * it is working on your release is to look.
+	 */
+	private static String asyncCullingLine() {
+		AsyncCullingPipeline pipeline = AsyncCullingPipeline.instance();
+		if (!pipeline.isRunning()) {
+			return "ASYNC CULL: off" + (pipeline.isRetired() ? " (retired: snapshot did not validate)" : "");
+		}
+		return String.format("ASYNC CULL: %d frames published, %d boxes carried, %d coalesced",
+			pipeline.framesPublished(), pipeline.boxesCarried(), pipeline.tasksCoalesced());
+	}
+
+	/** The cross-frame verdict cache backing it. */
+	private static String cullCacheLine() {
+		CullCache cache = AsyncCullingPipeline.instance().cache();
+		if (cache == null || cache.size() == 0) {
+			return "CULL CACHE: empty";
+		}
+		long hits = cache.hits();
+		long total = hits + cache.misses();
+		return String.format("CULL CACHE: %d entries, %d%% hit%s%s",
+			cache.size(),
+			total == 0 ? 0 : Math.round(100.0 * hits / total),
+			cache.stale() == 0 ? "" : ", " + cache.stale() + " stale",
+			cache.droppedOverCap() == 0 ? "" : ", " + cache.droppedOverCap() + " dropped over cap");
+	}
+
+	/**
+	 * Load throttling. Shown as the distance scale actually in force, since that is the number
+	 * that changes what the player sees; the pressure state explains why.
+	 */
+	private static String loadThrottleLine() {
+		LoadPressureMonitor monitor = LoadPressureMonitor.instance();
+		LoadPressure pressure = monitor.pressure();
+		String teleports = monitor.teleportsSeen() == 0
+			? "" : ", " + monitor.teleportsSeen() + " teleports";
+		return String.format("LOAD: %s, entity distance x%.2f%s",
+			pressure.name(), pressure.distanceScale(), teleports);
 	}
 
 	public int lineHeight() {
