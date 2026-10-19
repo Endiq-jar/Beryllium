@@ -1,6 +1,6 @@
 ## minecraft 26.1
-## commit: 36fcb0d
-## source files: 151
+## commit: 00faee0
+## source files: 157
 
 === net.minecraft.client.gui.Font
 Compiled from "Font.java"
