@@ -143,7 +143,10 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
   never defer a GPU resource cleanup. A catch-up term lets a frame take a slice of a large
   backlog, so a world load still finishes appearing quickly while the work is spread out.
   Uploads are deferred, never dropped, and the allowance shrinks automatically when frames
-  are already expensive. Live 1.19.4–1.21.11; from 26.1 the renderer uploads compiled
+  are already expensive. The one drain that is never paced is the dispatcher's own teardown
+  flush inside `dispose()` (1.20.6+), where each remaining upload is also what returns its
+  buffer pack to the pool — deferring there would be a GPU resource leak, not a smoother
+  frame. Live 1.19.4–1.21.11; from 26.1 the renderer uploads compiled
   geometry inline into shared uber-buffers and there is no per-section upload queue left to
   pace, so compilation scheduling is the lever on those releases.
 

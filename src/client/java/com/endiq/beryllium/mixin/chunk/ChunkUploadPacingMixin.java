@@ -3,7 +3,9 @@ package com.endiq.beryllium.mixin.chunk;
 import com.endiq.beryllium.chunk.ChunkUploadPacer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Queue;
 
@@ -32,8 +34,10 @@ import java.util.Queue;
  * so this file compiles for every release. {@code LevelRenderer} and the 1.21.2
  * {@code ViewArea} are kept as candidates because they are the drain's callers and cost
  * nothing to target: every injector here is {@code require = 0}, so a target that does not
- * carry the method is skipped rather than guessed at. From 26.2 the drain is gone entirely
- * (uploads happen inline with compilation there), so no target matches and upload pacing
+ * carry the method is skipped rather than guessed at. From 26.1 the drain is gone entirely —
+ * compiled geometry is uploaded inline into shared uber-buffers, flushed by
+ * {@code uploadGlobalGeomBuffersToGPU} / {@code uploadTerrainBuffersToGpu} in a fixed handful
+ * of bulk copies rather than one call per section — so no target matches and upload pacing
  * degrades to compilation scheduling, which is the lever that still exists on those releases.
  */
 @Mixin(targets = {
@@ -55,5 +59,23 @@ public abstract class ChunkUploadPacingMixin {
 	)
 	private Object beryllium$pacedUploadPoll(Queue<?> queue) {
 		return ChunkUploadPacer.instance().nextUpload(queue);
+	}
+
+	/**
+	 * From 1.20.6 the dispatcher's {@code dispose()} uses the same drain as its teardown
+	 * flush, and there every remaining upload is also what hands its buffer pack back to the
+	 * pool. Pacing it would strand those at world exit, so the pacer is told to let the whole
+	 * queue through for the duration of the call. (On 1.19.4 and 1.20.1 {@code dispose()}
+	 * clears its buffers instead and never calls the drain; the injectors simply do nothing
+	 * harmful there.)
+	 */
+	@Inject(method = "dispose()V", at = @At("HEAD"), require = 0)
+	private void beryllium$beginUnpacedUploadFlush(CallbackInfo ci) {
+		ChunkUploadPacer.instance().beginUnpacedFlush();
+	}
+
+	@Inject(method = "dispose()V", at = @At("TAIL"), require = 0)
+	private void beryllium$endUnpacedUploadFlush(CallbackInfo ci) {
+		ChunkUploadPacer.instance().endUnpacedFlush();
 	}
 }

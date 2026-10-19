@@ -34,6 +34,10 @@ import java.util.Queue;
  *
  * <p>The allowance is the larger of the two, so pacing only ever bites when the backlog is
  * small enough that spreading it out costs the player nothing.
+ *
+ * <p>One drain is never paced: the dispatcher's own {@code dispose()} flush, where each
+ * remaining upload is also what returns its buffer pack to the pool. See
+ * {@link #beginUnpacedFlush()}.
  */
 public final class ChunkUploadPacer {
 	/**
@@ -50,6 +54,7 @@ public final class ChunkUploadPacer {
 	private boolean pacing;
 	private int allowance;
 	private int uploadsUsed;
+	private int unpacedFlushDepth;
 	private FrameHealth frameHealth = FrameHealth.HEALTHY;
 
 	private long lastPollNanos;
@@ -90,6 +95,30 @@ public final class ChunkUploadPacer {
 		}
 		uploadsUsed = 0;
 		lastPollNanos = 0L;
+		// Self-healing: a teardown flush that threw would otherwise leave pacing off for the
+		// rest of the session. The flush is synchronous inside dispose(), so it is always
+		// finished again before the next frame starts.
+		unpacedFlushDepth = 0;
+	}
+
+	/**
+	 * Marks the start of a drain that must not be paced.
+	 *
+	 * <p>From 1.20.6 the dispatcher's own {@code dispose()} calls
+	 * {@code uploadAllPendingUploads()} as its teardown flush: every upload still queued has
+	 * to run, because each one is also what hands its buffer pack back to the pool. Pacing
+	 * that call would strand them at world exit, which is a GPU resource leak — the one
+	 * thing a deferral must never turn into.
+	 */
+	public void beginUnpacedFlush() {
+		unpacedFlushDepth++;
+	}
+
+	/** Ends a {@link #beginUnpacedFlush()} scope. */
+	public void endUnpacedFlush() {
+		if (unpacedFlushDepth > 0) {
+			unpacedFlushDepth--;
+		}
 	}
 
 	/**
@@ -106,7 +135,7 @@ public final class ChunkUploadPacer {
 		if (queue == null) {
 			return null;
 		}
-		if (!pacing) {
+		if (!pacing || unpacedFlushDepth > 0) {
 			return timedPoll(queue);
 		}
 		Object head = safePeek(queue);
@@ -155,6 +184,7 @@ public final class ChunkUploadPacer {
 		uploadsUsed = 0;
 		lastPollNanos = 0L;
 		lastUploadNanos = -1L;
+		unpacedFlushDepth = 0;
 	}
 
 	private Object timedPoll(Queue<?> queue) {
