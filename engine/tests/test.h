@@ -48,5 +48,6 @@ void test_pool(void);
 void test_perf(void);
 void test_soft_render(void);
 void test_gl_backend(void);
+void test_snapshot(void);
 
 #endif /* BERYL_TEST_H */
