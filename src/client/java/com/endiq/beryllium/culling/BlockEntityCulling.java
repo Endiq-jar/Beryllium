@@ -1,5 +1,7 @@
 package com.endiq.beryllium.culling;
 
+import com.endiq.beryllium.culling.async.AsyncCullingPipeline;
+import com.endiq.beryllium.culling.async.CullCache;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -42,6 +44,8 @@ public final class BlockEntityCulling {
 	private static volatile Field[] frustumFields;
 	private static volatile boolean frustumFieldsResolved = false;
 
+	private static long asyncHits = 0;
+
 	/**
 	 * @param blockEntity the block entity about to be rendered
 	 * @param safeRadius  block entities closer than this distance to the camera are never culled
@@ -79,16 +83,38 @@ public final class BlockEntityCulling {
 				return false;
 			}
 
+			// The asynchronous pipeline may already know this answer: the worker re-tested
+			// every box it remembers against this frame's frustum before rendering got here.
+			// A hit means the intersection math happened on another thread entirely.
+			AsyncCullingPipeline async = AsyncCullingPipeline.instance();
+			int bucket = CullCache.bucketOf(BOX_INFLATION);
+			long key = pos.asLong();
+			Boolean carried = async.cachedVisibility(key, bucket);
+			if (carried != null) {
+				asyncHits++;
+				return !carried;
+			}
+
 			AABB box = new AABB(
 				pos.getX() - BOX_INFLATION, pos.getY() - BOX_INFLATION, pos.getZ() - BOX_INFLATION,
 				pos.getX() + 1.0 + BOX_INFLATION, pos.getY() + 1.0 + BOX_INFLATION, pos.getZ() + 1.0 + BOX_INFLATION
 			);
 
-			return !frustum.isVisible(box);
+			boolean visible = frustum.isVisible(box);
+			// Store the bounds alongside the answer so the next frame's worker pass can
+			// re-derive it without this class ever being called again for the same block.
+			async.record(key, bucket, visible,
+				box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
+			return !visible;
 		} catch (Throwable t) {
 			// Never let a culling decision take rendering down with it.
 			return false;
 		}
+	}
+
+	/** Block-entity culls answered from the worker's cache rather than on the render thread. */
+	public static long asyncHits() {
+		return asyncHits;
 	}
 
 	/**
@@ -127,6 +153,9 @@ public final class BlockEntityCulling {
 			try {
 				Object value = field.get(levelRenderer);
 				if (value instanceof Frustum frustum) {
+					// Publishes this frame's plane snapshot to the asynchronous pipeline the
+					// first time it is asked for; a no-op on every later call in the frame.
+					AsyncCullingPipeline.instance().publish(frustum);
 					return frustum;
 				}
 			} catch (Throwable ignored) {

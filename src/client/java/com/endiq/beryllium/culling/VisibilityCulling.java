@@ -2,6 +2,7 @@ package com.endiq.beryllium.culling;
 
 import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
+import com.endiq.beryllium.culling.async.AsyncCullingPipeline;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -67,6 +68,7 @@ public final class VisibilityCulling {
 
 	private static long cacheHits = 0;
 	private static long cacheMisses = 0;
+	private static long asyncHits = 0;
 	private static int largestMemoThisFrame = 0;
 
 	private VisibilityCulling() {
@@ -87,6 +89,10 @@ public final class VisibilityCulling {
 			memo.clear();
 		}
 		largestMemoThisFrame = largest;
+		// The asynchronous pipeline keeps its answers across frames — that is the whole
+		// point of it — but it does need to know a new frame started, so it can refuse to
+		// hand back an answer measured against the previous camera.
+		AsyncCullingPipeline.instance().beginFrame();
 	}
 
 	/**
@@ -98,15 +104,37 @@ public final class VisibilityCulling {
 			return true;
 		}
 		double slack = Math.max(0.0, inflation);
+
+		// Resolve the frustum first. Besides being needed for the test anyway, this is what
+		// publishes the frame's snapshot to the asynchronous pipeline, and the snapshot has
+		// to exist before its cache can be consulted.
+		Frustum frustum = currentFrustum();
+		if (frustum == null) {
+			return true;
+		}
+
 		int bucket = cacheEnabled() ? bucketOf(slack) : -1;
 		if (bucket < 0) {
 			// Memoisation off, or an inflation too large to represent exactly: answer the
 			// question directly every time.
-			return isBoxVisible(boxAt(pos, slack));
+			return isVisible(frustum, boxAt(pos, slack));
 		}
 
+		long key = pos.asLong();
+		AsyncCullingPipeline async = AsyncCullingPipeline.instance();
+
+		// First the concurrent cache, which the worker filled with answers already measured
+		// against this frame's frustum. A hit here is the cheap case: a map lookup and no
+		// intersection math on the render thread at all.
+		Boolean carried = async.cachedVisibility(key, bucket);
+		if (carried != null) {
+			cacheHits++;
+			asyncHits++;
+			return carried;
+		}
+
+		// Then this frame's own memo, for a box already asked about since the frame began.
 		Map<Long, Boolean> memo = blockVisibilityCache[bucket];
-		Long key = pos.asLong();
 		Boolean cached = memo.get(key);
 		if (cached != null) {
 			cacheHits++;
@@ -114,9 +142,25 @@ public final class VisibilityCulling {
 		}
 		cacheMisses++;
 
-		boolean visible = isBoxVisible(boxAt(pos, slack));
+		AABB box = boxAt(pos, slack);
+		boolean visible = isVisible(frustum, box);
 		memo.put(key, visible);
+		// And remember the bounds, not just the answer: that is what lets the worker
+		// re-derive next frame's result without ever touching a Minecraft object.
+		async.record(key, bucket, visible, box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
 		return visible;
+	}
+
+	/** Frustum test against an already-resolved frustum. Never culls on an error. */
+	private static boolean isVisible(Frustum frustum, AABB box) {
+		if (box == null) {
+			return true;
+		}
+		try {
+			return frustum.isVisible(box);
+		} catch (Throwable t) {
+			return true;
+		}
 	}
 
 	private static AABB boxAt(BlockPos pos, double inflation) {
@@ -257,6 +301,12 @@ public final class VisibilityCulling {
 		return cacheMisses;
 	}
 
+	/** How many answers came from the asynchronous pipeline's cache rather than from a
+	 *  frustum test on the render thread. */
+	public static long asyncHits() {
+		return asyncHits;
+	}
+
 	/** The largest single-inflation memo the previous frame needed. */
 	public static int largestMemoThisFrame() {
 		return largestMemoThisFrame;
@@ -307,6 +357,11 @@ public final class VisibilityCulling {
 				try {
 					Object value = field.get(levelRenderer);
 					if (value instanceof Frustum frustum) {
+						// This is the earliest moment in the frame at which the frustum is
+						// guaranteed to describe the camera culling is about to be done for,
+						// so it is where the asynchronous pipeline gets its snapshot. Every
+						// later call in the same frame is a no-op.
+						AsyncCullingPipeline.instance().publish(frustum);
 						return frustum;
 					}
 				} catch (Throwable ignored) {

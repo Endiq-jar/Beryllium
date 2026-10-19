@@ -339,6 +339,16 @@ public class BerylliumConfig {
 	 *  a frame or a world it was not measured in. */
 	public boolean visibilityCulling = true;
 
+	/** Moves the frustum intersection math behind visibility culling onto a background
+	 *  worker. Each frame the render thread copies the frustum into an immutable plane
+	 *  snapshot (validated against the original before it is trusted); the worker re-tests
+	 *  every box it remembers against that snapshot, so the answers are already in a
+	 *  concurrent cache by the time the render thread asks. A miss costs exactly what
+	 *  culling cost before — one synchronous test against the live frustum — and the worker
+	 *  is never waited on, so a slow device gets a colder cache rather than a longer frame.
+	 *  Retires itself permanently if the snapshot ever stops agreeing with the live frustum. */
+	public boolean asyncVisibilityCulling = true;
+
 	// --- Chunk compilation scheduling & upload pacing ---
 
 	/** Spreads GPU uploads of freshly compiled chunk geometry across frames instead of
@@ -352,6 +362,19 @@ public class BerylliumConfig {
 	 *  a teleport still finishes appearing quickly while the work is spread over frames.
 	 *  Uploads that do not fit are left in vanilla's queue — deferred, never dropped. */
 	public int chunkUploadsPerFrame = 2;
+
+	// --- Dynamic load throttling ---
+
+	/** Scales entity rendering back while the world is loading hard, so terrain generation
+	 *  gets the frame. Pressure is read from the state the chunk governors already keep —
+	 *  the rebuild backlog against its configured limit, upload drains that had to be
+	 *  stopped early, and the same frame-health verdict those governors use — plus a
+	 *  teleport detector for the case where the whole visible area has to be generated at
+	 *  once. Rises immediately, eases one step at a time, and holds a surge for a minimum
+	 *  number of frames so the draw distance cannot pulse during a load. Entity draw
+	 *  distance is never throttled below 16 blocks, and the monitor only observes: it never
+	 *  schedules chunk work itself. */
+	public boolean dynamicLoadThrottling = true;
 
 	// --- Hopper throttling ---
 
