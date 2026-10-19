@@ -40,25 +40,53 @@ import java.util.Map;
  * missed optimisation.
  */
 public final class VisibilityCulling {
-	private static final int CACHE_CLEAR_THRESHOLD = 4096;
+	/** Inflation is quantised to 1/64 of a block, which is far finer than any caller uses. */
+	private static final double INFLATION_STEP = 1.0 / 64.0;
+
+	/** Inflations past this are not memoised at all rather than rounded into a wrong bucket. */
+	private static final double MAX_MEMOISED_INFLATION = 4.0;
+	private static final int INFLATION_BUCKETS = (int) (MAX_MEMOISED_INFLATION / INFLATION_STEP) + 1;
 
 	private static volatile Field[] frustumFields;
 	private static volatile boolean frustumFieldsResolved;
 
-	private static final Map<Long, Boolean> blockVisibilityCache = new HashMap<>(512);
-	private static int cacheHits = 0;
-	private static int cacheMisses = 0;
+	/**
+	 * One memo per inflation, because the answer depends on both the block and how far the
+	 * test box was grown around it. A single map keyed on the block position alone lets the
+	 * first caller's inflation answer every later caller's question, which is how a sign at
+	 * 0.75 blocks of slack would end up deciding whether a tighter box is on screen.
+	 */
+	@SuppressWarnings("unchecked")
+	private static final Map<Long, Boolean>[] blockVisibilityCache = new Map[INFLATION_BUCKETS];
+
+	static {
+		for (int i = 0; i < INFLATION_BUCKETS; i++) {
+			blockVisibilityCache[i] = new HashMap<>(256);
+		}
+	}
+
+	private static long cacheHits = 0;
+	private static long cacheMisses = 0;
+	private static int largestMemoThisFrame = 0;
 
 	private VisibilityCulling() {
 	}
 
-	/** Resets the per-frame memo. Called once per rendered frame. */
+	/**
+	 * Resets the per-frame memo. Called once per rendered frame, and again when the level
+	 * changes.
+	 *
+	 * <p>A per-frame memo has exactly one correct lifetime: the frame. Nothing here survives
+	 * it, whatever it grew to — a stale "visible" answer is a piece of geometry drawn that
+	 * should not have been, and a stale "invisible" one is a hole in the world.
+	 */
 	public static void onFrameStart() {
-		if (blockVisibilityCache.size() > CACHE_CLEAR_THRESHOLD) {
-			blockVisibilityCache.clear();
-		} else {
-			blockVisibilityCache.clear();
+		int largest = 0;
+		for (Map<Long, Boolean> memo : blockVisibilityCache) {
+			largest = Math.max(largest, memo.size());
+			memo.clear();
 		}
+		largestMemoThisFrame = largest;
 	}
 
 	/**
@@ -69,35 +97,45 @@ public final class VisibilityCulling {
 		if (pos == null) {
 			return true;
 		}
-		if (!cacheEnabled()) {
-			// Memoisation off: answer the question directly every time.
-			return isBoxVisible(new AABB(
-				pos.getX() - inflation,
-				pos.getY() - inflation,
-				pos.getZ() - inflation,
-				pos.getX() + 1.0 + inflation,
-				pos.getY() + 1.0 + inflation,
-				pos.getZ() + 1.0 + inflation
-			));
+		double slack = Math.max(0.0, inflation);
+		int bucket = cacheEnabled() ? bucketOf(slack) : -1;
+		if (bucket < 0) {
+			// Memoisation off, or an inflation too large to represent exactly: answer the
+			// question directly every time.
+			return isBoxVisible(boxAt(pos, slack));
 		}
+
+		Map<Long, Boolean> memo = blockVisibilityCache[bucket];
 		Long key = pos.asLong();
-		Boolean cached = blockVisibilityCache.get(key);
+		Boolean cached = memo.get(key);
 		if (cached != null) {
 			cacheHits++;
 			return cached;
 		}
 		cacheMisses++;
 
-		boolean visible = isBoxVisible(new AABB(
+		boolean visible = isBoxVisible(boxAt(pos, slack));
+		memo.put(key, visible);
+		return visible;
+	}
+
+	private static AABB boxAt(BlockPos pos, double inflation) {
+		return new AABB(
 			pos.getX() - inflation,
 			pos.getY() - inflation,
 			pos.getZ() - inflation,
 			pos.getX() + 1.0 + inflation,
 			pos.getY() + 1.0 + inflation,
 			pos.getZ() + 1.0 + inflation
-		));
-		blockVisibilityCache.put(key, visible);
-		return visible;
+		);
+	}
+
+	/** @return the memo bucket for an inflation, or {@code -1} when it must not be memoised. */
+	private static int bucketOf(double inflation) {
+		if (inflation > MAX_MEMOISED_INFLATION) {
+			return -1;
+		}
+		return (int) Math.min(INFLATION_BUCKETS - 1, Math.round(inflation / INFLATION_STEP));
 	}
 
 	/** Frustum test for an arbitrary box. Never culls when the frustum is unavailable. */
@@ -211,12 +249,17 @@ public final class VisibilityCulling {
 		return config == null || config.visibilityCulling;
 	}
 
-	public static int cacheHits() {
+	public static long cacheHits() {
 		return cacheHits;
 	}
 
-	public static int cacheMisses() {
+	public static long cacheMisses() {
 		return cacheMisses;
+	}
+
+	/** The largest single-inflation memo the previous frame needed. */
+	public static int largestMemoThisFrame() {
+		return largestMemoThisFrame;
 	}
 
 	/**

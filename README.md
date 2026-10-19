@@ -94,7 +94,10 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
   before the terrain itself would. The configured values become a floor rather than a
   cap — turn this off to go back to the flat, unsynced defaults.
 - **Frame profiler & debug overlay** — FPS, frame time, 1% low, 0.1% low
-  (`debugMode: true`).
+  (`debugMode: true`), plus live counters for the three render-thread governors: the chunk
+  rebuild queue (queued / drained / re-queued), the upload pacer (used vs. allowance this
+  frame, deferrals, last upload cost) and the visibility memo (hit rate and peak size). A
+  clean compile only proves a hook resolves; these are what prove it is doing something.
 - **Entity render distance** — a hard ceiling (`entityRenderCullDistance`, default 64
   blocks) on how far away an entity may be and still be rendered. Vanilla has no entity
   render distance at all: it renders every entity in the loaded area, so crowded servers
@@ -114,16 +117,35 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
   asks "is this visible?" repeatedly for the same geometry inside a single frame, and the
   invisible answer is the expensive one — it is exactly what makes a room full of chests
   or signs cost real frame time. Beryllium memoises it (`visibilityCulling`), so that work
-  happens once.
+  happens once. The memo is cleared every frame and is kept per test-box inflation, so one
+  caller's slack can never answer another caller's question. Live on every covered release.
 - **Chunk compilation scheduling** — how many queued section rebuilds are handed back to
   vanilla in one frame is decided from live frame time, not a constant: a healthy frame
   gets the configured allowance, an overrunning frame gets half, and a frame in trouble
   gets one. The queue always keeps moving; it just refuses to make a slow frame worse, and
   the frame spikes caused by rebuild bursts are spread out instead of landing at once.
+  "Healthy" is measured against *this device's* rolling average frame time rather than a
+  fixed 60 Hz, because judging a 30 FPS phone against 16.7 ms would put every frame in the
+  spike band and pin the scheduler at one rebuild forever — starving the queue it exists to
+  pace. Nothing is intercepted at all unless the mark can be handed back to vanilla on the
+  running release, and a request that still fails to re-trigger goes back into the queue
+  rather than being dropped, so this can never cost an update. Live 1.19.4–26.1.2; from
+  26.2 vanilla has no dirty-marking entry point left to intercept (see
+  [Version coverage](#version-coverage)).
 - **Chunk upload pacing** — GPU uploads of freshly compiled geometry are distributed
   across frames (`chunkUploadsPerFrame`, default 2) instead of letting one frame drain the
-  whole queue after a flight, a world load or a redstone flood. Uploads are deferred, never
-  dropped, and the allowance shrinks automatically when frames are already expensive.
+  whole queue after a flight, a world load or a redstone flood. Vanilla's drain is a
+  `while ((task = toUpload.poll()) != null) task.run();` loop, so Beryllium answers the
+  poll: once the frame's allowance is spent it returns nothing, the loop ends, and the
+  remaining uploads stay queued for the next frame. That paces the *individual* uploads
+  rather than the whole batch, and it leaves the second queue the same method drains on
+  1.21.8+ — meshes waiting to be closed — completely alone, so deferring an upload can
+  never defer a GPU resource cleanup. A catch-up term lets a frame take a slice of a large
+  backlog, so a world load still finishes appearing quickly while the work is spread out.
+  Uploads are deferred, never dropped, and the allowance shrinks automatically when frames
+  are already expensive. Live 1.19.4–1.21.11; from 26.1 the renderer uploads compiled
+  geometry inline into shared uber-buffers and there is no per-section upload queue left to
+  pace, so compilation scheduling is the lever on those releases.
 
 ### Client quality-of-life
 
@@ -380,7 +402,8 @@ because of how the mixins are written rather than by withholding them:
 | Version-only members are reached through access wideners or reflection | `ViewArea`, `Entity#getCommandSenderWorld`, `Level`'s build-height accessor and the shape internals never have to link at compile time. |
 | Two era-specific files are swapped by `build.gradle` | `FontSignTextMixin` (the per-draw text hook, which exists up to 26.1) and `ViewAreaMixin` (1.21.2+). Both are excluded per release rather than guessed at. |
 | Overloads of the same method are declared side by side | `Font#drawInBatch` changed its return type from `int` to `void` *and back* inside the covered range, and gained and lost an argument. All variants are declared; each release matches exactly one. |
-| Reflection for vanilla bodies and cross-class state | `VanillaBridges`, `SectionDirtyBridge` — a drift in a private method or a renamed getter disables one feature instead of failing class transformation. |
+| Reflection for vanilla bodies and cross-class state | `VanillaBridges`, `SectionDirtyBridge` — a drift in a private method or a renamed getter disables one feature instead of failing class transformation. Reflection that names a Minecraft member goes through `MappedNames` first: Loom remaps bytecode references but not string literals, and a production Fabric runtime calls Minecraft by its intermediary names, so a Mojang-spelled string matches nothing on any obfuscated release. `SectionDirtyBridge` then falls back to the literal name and finally to the method's *shape*, and refuses an ambiguous shape rather than guess. |
+| A governor that cannot hand work back does not take it | `ChunkRebuildManager` only intercepts a dirty mark once `SectionDirtyBridge` has proved the mark can be re-triggered on the running release. A queue that accepts an update and then cannot replay it has *lost* it, which is worse than not reordering it at all. |
 | Containment everywhere | Every new hook is wrapped so a throw is logged and vanilla behaviour continues. |
 
 The access widener itself is generated per release (`build.gradle` writes it into
@@ -394,6 +417,7 @@ What this means per release:
 |---|---|
 | Every covered release | The full optimization set. Anything whose hook does not match that exact release degrades to vanilla behaviour *for that feature* — visibly, in the log, rather than silently. |
 | 26.1+ (the extract/submit renderer) | Block entity and chest culling hook `tryExtractRenderState` instead of the old dispatcher `render` call, because that is where a block entity's draw now comes from. Sign text is the one feature that switches itself off there: 26.2 replaced `Font#drawInBatch` with a prepare-then-submit pipeline that has no per-draw hook to make the decision at. |
+| 26.2+ | The renderer stopped exposing a dirty-marking entry point at all — `LevelRenderer#setSectionDirty`, `setBlocksDirty`, `setSectionDirtyWithNeighbors` and `ViewArea#setDirty` are gone, and sections to update now arrive as a `SectionUpdateRenderState` list built during render-state extraction. Chunk rebuild prioritization and chunk compilation scheduling therefore have nothing to intercept and stay vanilla. Upload pacing was already inert from 26.1, where compiled geometry is uploaded inline into shared uber-buffers instead of through a per-section queue. Visibility culling is unaffected: it is driven by Beryllium's own frustum memo, not by a vanilla hook. Skipping a `SectionUpdateRenderState` was deliberately not attempted — with no dirty flag left on `RenderSection` there is no evidence the skipped update would be produced again, and losing one is a hole in the world. |
 | Any release on an Android/Pojav/Zalith/TurtleLauncher host | Still governed by `androidSafeMode`, which suppresses Beryllium's mixins entirely before the title screen. |
 
 No artifact depends on Fabric API on any release (see below).
@@ -610,9 +634,9 @@ transcribed constants nobody could check.
 | `entityRenderCulling` | `true` | Hard ceiling on how far away an entity may be and still render |
 | `entityRenderCullDistance` | `64.0` | Entities beyond this distance are not rendered (`0` = off) |
 | `entityRenderCullSyncWithRenderDistance` | `false` | Treat the above as a floor as well, so it never culls closer than the live Render Distance option |
-| `visibilityCulling` | `true` | Reuse one visibility answer per block per frame instead of re-testing geometry |
+| `visibilityCulling` | `true` | Reuse one visibility answer per block (and per test-box inflation) per frame instead of re-testing geometry |
 | `chunkUploadPacing` | `true` | Spread GPU uploads of compiled chunk geometry across frames |
-| `chunkUploadsPerFrame` | `2` | Uploads allowed per frame (`0` = let vanilla drain freely); shrinks automatically on slow frames |
+| `chunkUploadsPerFrame` | `2` | Individual uploads allowed per frame (`0` = let vanilla drain freely); shrinks on slow frames, and a large backlog also gets a catch-up slice so a world load still appears quickly |
 | `hopperThrottling` | `true` | Idle hoppers skip their transfer attempt on most ticks |
 | `hopperThrottleInterval` | `4` | Run an idle hopper once every this many ticks (`1` = off) |
 | `hopperIdleSamples` | `3` | Unchanged-content fingerprints before a hopper counts as idle |
@@ -628,7 +652,7 @@ transcribed constants nobody could check.
 | `parallelEntityTickMinEntities` | `32` | Below this many eligible entities, entity work stays sequential |
 | `parallelEntityTickChunkSize` | `8` | Entities per worker task |
 | `chunkRebuildPrioritization` | `true` | Reorder chunk-section rebuilds by proximity + view alignment + urgency |
-| `chunkRebuildsPerFrame` | `3` | Prioritized rebuilds re-triggered per rendered frame |
+| `chunkRebuildsPerFrame` | `3` | Prioritized rebuilds re-triggered per rendered frame; halved on a frame that overran this device's own average, reduced to `1` on a spike |
 | `chunkRebuildQueueLimit` | `128` | Hard cap on the prioritization queue; past it, vanilla schedules directly (bounded staleness) |
 | `frameBudgetScheduling` | `true` | Run deferred maintenance work inside a per-frame millisecond budget |
 | `frameBudgetMillisPerFrame` | `2.0` | Upper bound of non-critical work per rendered frame (ms) |

@@ -2,6 +2,10 @@ package com.endiq.beryllium.chunk;
 
 import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
+import com.endiq.beryllium.performance.FrameBudget;
+import com.endiq.beryllium.performance.FrameHealth;
+
+import java.util.Queue;
 
 /**
  * Chunk upload pacing.
@@ -12,19 +16,45 @@ import com.endiq.beryllium.config.BerylliumConfig;
  * uploads. The upload itself is a driver call, and a burst of them is a textbook frame
  * spike — visible as a hitch exactly when the player is moving.
  *
- * <p>The pacer gives each frame a small allowance (default 2, so a normal frame still
- * uploads promptly) and defers the rest to the following frames. Nothing is dropped, and
- * the queue cannot grow without bound: the moment a frame is cheap again, the allowance is
- * restored, and when frames are expensive the allowance shrinks to keep the hitch from
- * compounding rather than to stop progress.
+ * <p>Vanilla's drain is a {@code while ((task = toUpload.poll()) != null) task.run();} loop.
+ * That shape is what makes real pacing possible: answering {@code null} from the poll ends
+ * the loop with everything still queued, so the remaining uploads happen on a later frame.
+ * Nothing is dropped, nothing is reordered, and the queue cannot grow without bound because
+ * the allowance below always clears a slice of the backlog.
+ *
+ * <p>Two terms decide how many uploads a frame may take:
+ * <ul>
+ *   <li><strong>{@code chunkUploadsPerFrame}</strong> — the steady-state allowance, halved
+ *       on a frame that overran this device's normal cost and reduced to one on a spike.</li>
+ *   <li><strong>a catch-up term</strong> — a fixed fraction of whatever is currently queued,
+ *       so a large backlog always shrinks geometrically instead of trickling at the
+ *       steady-state rate. This is what keeps a world load or a teleport from taking seconds
+ *       to finish appearing, while still spreading the work over many frames.</li>
+ * </ul>
+ *
+ * <p>The allowance is the larger of the two, so pacing only ever bites when the backlog is
+ * small enough that spreading it out costs the player nothing.
  */
 public final class ChunkUploadPacer {
-	private static final long TARGET_FRAME_NANOS = 16_666_667L;
+	/**
+	 * A frame clears at least {@code 1/divisor} of the backlog. The divisor widens as frames
+	 * get more expensive, so a struggling device spreads the same backlog over more frames
+	 * rather than adding to the spike it is already having.
+	 */
+	private static final int CATCH_UP_DIVISOR_HEALTHY = 8;
+	private static final int CATCH_UP_DIVISOR_OVERRUNNING = 16;
+	private static final int CATCH_UP_DIVISOR_IN_TROUBLE = 32;
 
 	private static final ChunkUploadPacer INSTANCE = new ChunkUploadPacer();
 
-	private int budget;
-	private int used;
+	private boolean pacing;
+	private int allowance;
+	private int uploadsUsed;
+	private FrameHealth frameHealth = FrameHealth.HEALTHY;
+
+	private long lastPollNanos;
+	private long lastUploadNanos = -1L;
+	private long uploadedTotal;
 	private long deferredTotal;
 
 	private ChunkUploadPacer() {
@@ -35,50 +65,147 @@ public final class ChunkUploadPacer {
 	}
 
 	/**
-	 * @param lastFrameNanos the previous frame's duration, or -1 if not yet known
+	 * @param lastFrameNanos    duration of the frame that just finished, or a non-positive
+	 *                          value if it has not been measured
+	 * @param averageFrameNanos this device's rolling average frame time, or a non-positive
+	 *                          value if it has not been measured yet
 	 */
-	public void onFrameStart(long lastFrameNanos) {
+	public void onFrameStart(long lastFrameNanos, long averageFrameNanos) {
 		BerylliumConfig config = Beryllium.config();
 		int configured = config == null ? 2 : Math.max(0, config.chunkUploadsPerFrame);
+		frameHealth = FrameBudget.healthOf(lastFrameNanos, averageFrameNanos);
+
 		if (configured == 0 || config == null || !config.enabled || !config.chunkUploadPacing
 			|| Beryllium.isChunkOptimizationDeferredToOtherMod()) {
 			// 0 (or the feature off) means "no pacing" — let vanilla drain as it pleases.
-			budget = 0;
-		} else if (lastFrameNanos > TARGET_FRAME_NANOS * 2L) {
-			// A frame that already blew its budget: upload the bare minimum this frame.
-			budget = 1;
-		} else if (lastFrameNanos > TARGET_FRAME_NANOS) {
-			budget = Math.max(1, configured / 2);
+			pacing = false;
+			allowance = 0;
 		} else {
-			budget = configured;
+			pacing = true;
+			allowance = switch (frameHealth) {
+				case IN_TROUBLE -> 1;
+				case OVERRUNNING -> Math.max(1, configured / 2);
+				case HEALTHY -> configured;
+			};
 		}
-		used = 0;
+		uploadsUsed = 0;
+		lastPollNanos = 0L;
 	}
 
 	/**
-	 * @return true if an upload may proceed this frame
+	 * Stands in for the {@code Queue.poll()} inside vanilla's upload drain.
+	 *
+	 * <p>Returning {@code null} ends vanilla's loop. The entry that would have been polled
+	 * stays in the queue and is uploaded on a later frame — which is safe precisely because
+	 * it is a queue.
+	 *
+	 * @param queue the queue vanilla is polling
+	 * @return the next upload, or {@code null} to stop the drain here
 	 */
-	public boolean allowUpload() {
-		int current = budget;
-		if (current <= 0) {
-			return true;
+	public Object nextUpload(Queue<?> queue) {
+		if (queue == null) {
+			return null;
 		}
-		if (used >= current) {
+		if (!pacing) {
+			return timedPoll(queue);
+		}
+		Object head = safePeek(queue);
+		if (!(head instanceof Runnable)) {
+			/*
+			 * Not the upload queue. From 1.21.8 the same method also drains a queue of
+			 * SectionMesh objects that have to be *closed*, and every entry in the upload
+			 * queue is a Runnable while none of those are. Passing that queue straight
+			 * through matters: an upload pacer that also stopped mesh cleanup would leak GPU
+			 * resources for as long as it deferred.
+			 */
+			return queue.poll();
+		}
+
+		int allowed = allowanceFor(safeSize(queue));
+		if (uploadsUsed >= allowed) {
 			deferredTotal++;
-			return false;
+			return null;
 		}
-		used++;
-		return true;
+		uploadsUsed++;
+		return timedPoll(queue);
 	}
 
+	/**
+	 * The steady-state allowance, raised by a slice of the current backlog so a big queue
+	 * always shrinks geometrically instead of waiting its way through at two per frame.
+	 */
+	private int allowanceFor(int backlog) {
+		if (backlog <= 0) {
+			return allowance;
+		}
+		int divisor = switch (frameHealth) {
+			case IN_TROUBLE -> CATCH_UP_DIVISOR_IN_TROUBLE;
+			case OVERRUNNING -> CATCH_UP_DIVISOR_OVERRUNNING;
+			case HEALTHY -> CATCH_UP_DIVISOR_HEALTHY;
+		};
+		int catchUp = Math.max(1, (backlog + divisor - 1) / divisor);
+		return Math.max(allowance, catchUp);
+	}
+
+	/**
+	 * Drops every measurement. Called when the level changes: the upload backlog, and what an
+	 * upload costs, both belong to the world that just went away.
+	 */
+	public void reset() {
+		uploadsUsed = 0;
+		lastPollNanos = 0L;
+		lastUploadNanos = -1L;
+	}
+
+	private Object timedPoll(Queue<?> queue) {
+		long now = System.nanoTime();
+		if (lastPollNanos != 0L) {
+			// The gap between two polls is the cost of running the upload in between.
+			lastUploadNanos = now - lastPollNanos;
+		}
+		lastPollNanos = now;
+		Object polled = queue.poll();
+		if (polled != null) {
+			uploadedTotal++;
+		}
+		return polled;
+	}
+
+	private static Object safePeek(Queue<?> queue) {
+		try {
+			return queue.peek();
+		} catch (Throwable t) {
+			return null;
+		}
+	}
+
+	private static int safeSize(Queue<?> queue) {
+		try {
+			return queue.size();
+		} catch (Throwable t) {
+			return 0;
+		}
+	}
+
+	/** Uploads allowed this frame before the catch-up term is applied; 0 when pacing is off. */
 	public int budget() {
-		return budget;
+		return allowance;
 	}
 
 	public int used() {
-		return used;
+		return uploadsUsed;
 	}
 
+	/** Nanoseconds the most recent single upload took, or {@code -1} before the second one. */
+	public long lastUploadNanos() {
+		return lastUploadNanos;
+	}
+
+	public long uploadedTotal() {
+		return uploadedTotal;
+	}
+
+	/** How many times a drain was stopped early; the entries stayed queued and were not lost. */
 	public long deferredTotal() {
 		return deferredTotal;
 	}

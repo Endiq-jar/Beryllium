@@ -1,7 +1,10 @@
 package com.endiq.beryllium.profiler;
 
 import com.endiq.beryllium.Beryllium;
+import com.endiq.beryllium.chunk.ChunkRebuildManager;
+import com.endiq.beryllium.chunk.ChunkUploadPacer;
 import com.endiq.beryllium.config.BerylliumConfig;
+import com.endiq.beryllium.culling.VisibilityCulling;
 import net.minecraft.client.Minecraft;
 
 import java.util.ArrayList;
@@ -9,8 +12,9 @@ import java.util.List;
 
 /**
  * Produces the "BERYLLIUM / FPS / 1% Low / 0.1% Low" block from spec section 8 (top-left
- * corner), plus the live server-tick summary when one is available. Only produces lines
- * when {@code debugMode} is on in beryllium.json.
+ * corner), plus the live server-tick summary when one is available, and — while a world is
+ * loaded — one line each for the chunk rebuild queue, the upload pacer and the visibility
+ * memo. Only produces lines when {@code debugMode} is on in beryllium.json.
  *
  * <p>The drawing itself lives in {@code HudOverlayBridge} (Fabric API's HUD callback, when
  * it is present) or in the per-version GUI mixin. That split is deliberate: the text is
@@ -42,12 +46,49 @@ public final class DebugOverlay {
 		lines.add(String.format("0.1%% Low: %.0f", snapshot.zeroPointOnePercentLowFps()));
 
 		Minecraft client = Minecraft.getInstance();
-		if (client != null && client.font != null) {
-			// Kept as a hook for future per-subsystem rows; line height is the overlay's
-			// concern, the renderer decides where each line lands.
+		if (client != null && client.level != null) {
+			// Live counters for the three render-thread governors. A clean compile only
+			// proves a hook resolves; these are what prove it is doing something in game.
 			lines.add("");
+			lines.add(chunkSchedulingLine());
+			lines.add(uploadPacingLine());
+			lines.add(visibilityLine());
 		}
 		return lines;
+	}
+
+	private static String chunkSchedulingLine() {
+		ChunkRebuildManager manager = ChunkRebuildManager.instance();
+		if (manager == null) {
+			return "CHUNKS: scheduler not installed";
+		}
+		long requeued = manager.requeueTotal();
+		return String.format("CHUNKS: queued %d, drained %d%s",
+			manager.pendingCount(), manager.drainedTotal(),
+			requeued == 0 ? "" : ", re-queued " + requeued);
+	}
+
+	private static String uploadPacingLine() {
+		ChunkUploadPacer pacer = ChunkUploadPacer.instance();
+		if (pacer.budget() <= 0) {
+			return "UPLOADS: pacing off (vanilla drains freely)";
+		}
+		long lastNanos = pacer.lastUploadNanos();
+		return String.format("UPLOADS: %d/%d this frame, %d deferred, last %.2f ms",
+			pacer.used(), pacer.budget(), pacer.deferredTotal(),
+			lastNanos < 0 ? 0.0 : lastNanos / 1_000_000.0);
+	}
+
+	private static String visibilityLine() {
+		long hits = VisibilityCulling.cacheHits();
+		long misses = VisibilityCulling.cacheMisses();
+		long total = hits + misses;
+		if (total == 0) {
+			return "VISIBILITY: no frustum queries yet";
+		}
+		return String.format("VISIBILITY: memo %d%% hit (%d/%d), peak %d entries",
+			Math.round(100.0 * hits / total), hits, total,
+			VisibilityCulling.largestMemoThisFrame());
 	}
 
 	public int lineHeight() {

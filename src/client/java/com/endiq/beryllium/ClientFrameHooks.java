@@ -74,7 +74,13 @@ public final class ClientFrameHooks {
 			// into the next frame, even if a renderer forgot to close its scope.
 			SignTextState.onFrame();
 			VisibilityCulling.onFrameStart();
-			ChunkUploadPacer.instance().onFrameStart(frameProfiler == null ? -1L : frameProfiler.lastFrameNanos());
+
+			// Both chunk governors read the frame that just *finished*: at this point in the
+			// hook the frame now starting has no duration yet, so a measurement taken here
+			// would always look like a healthy one.
+			long lastFrameNanos = frameProfiler == null ? -1L : frameProfiler.lastFrameNanos();
+			long averageFrameNanos = frameProfiler == null ? -1L : frameProfiler.averageFrameNanos();
+			ChunkUploadPacer.instance().onFrameStart(lastFrameNanos, averageFrameNanos);
 
 			// The static block entity meshes expire by frame count, and the priorities of
 			// the render/server/worker threads are re-checked on a timer rather than every
@@ -82,7 +88,7 @@ public final class ClientFrameHooks {
 			BlockEntityMeshCache.tick();
 			ThreadPriorityTuner.applyIfDue();
 
-			drainChunkRebuilds(frameProfiler);
+			drainChunkRebuilds(lastFrameNanos, averageFrameNanos);
 
 			FrameMaintenanceScheduler scheduler = maintenance;
 			if (scheduler != null) {
@@ -115,11 +121,13 @@ public final class ClientFrameHooks {
 		}
 		VisibilityCulling.onFrameStart();
 		SignTextState.onFrame();
+		// The upload backlog, and what a drain costs, belonged to the world that just went away.
+		ChunkUploadPacer.instance().reset();
 		// Cached block entity render states belong to the world that just went away.
 		BlockEntityMeshCache.invalidateAll();
 	}
 
-	private static void drainChunkRebuilds(FrameProfiler frameProfiler) {
+	private static void drainChunkRebuilds(long lastFrameNanos, long averageFrameNanos) {
 		ChunkRebuildManager manager = ChunkRebuildManager.instance();
 		if (manager == null) {
 			return;
@@ -138,11 +146,10 @@ public final class ClientFrameHooks {
 				return;
 			}
 			Vector3f look = CameraAccess.lookVector(camera);
-			long lastFrameNanos = frameProfiler == null ? -1L : frameProfiler.lastFrameNanos();
 			manager.onFrameStart(
 				cameraPosition.x, cameraPosition.y, cameraPosition.z,
 				look.x(), look.y(), look.z(),
-				lastFrameNanos
+				lastFrameNanos, averageFrameNanos
 			);
 		} catch (Throwable t) {
 			BerylliumLog.debug("[BERYLLIUM] Per-frame hook failed: " + t);

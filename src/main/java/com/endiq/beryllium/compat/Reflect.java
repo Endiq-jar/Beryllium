@@ -3,6 +3,7 @@ package com.endiq.beryllium.compat;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -250,6 +251,114 @@ public final class Reflect {
 			return number.byteValue();
 		}
 		return value;
+	}
+
+	/**
+	 * Finds a method by its exact parameter types, walking the class hierarchy.
+	 *
+	 * <p>Prefer this over {@link #findMethod(Class, String, int, Object[])} whenever the
+	 * signature is known: the arity-based search returns the first method of that name and
+	 * length, which is a coin toss when a class overloads the name.
+	 */
+	public static Method findMethod(Class<?> owner, String methodName, Class<?>... parameterTypes) {
+		if (owner == null || methodName == null) {
+			return null;
+		}
+		Class<?>[] wanted = parameterTypes == null ? new Class<?>[0] : parameterTypes;
+		String key = "P:" + owner.getName() + '#' + methodName + '/' + signatureKey(wanted);
+		Object cached = CACHE.computeIfAbsent(key, unused -> {
+			for (Class<?> current = owner; current != null && current != Object.class; current = current.getSuperclass()) {
+				try {
+					Method method = current.getDeclaredMethod(methodName, wanted);
+					try {
+						method.setAccessible(true);
+					} catch (Throwable ignored) {
+						// Some JDK types refuse it; the method may still be invokable.
+					}
+					return method;
+				} catch (Throwable ignored) {
+					// keep walking: it may be declared further up
+				}
+			}
+			for (Class<?> iface : owner.getInterfaces()) {
+				try {
+					Method method = iface.getMethod(methodName, wanted);
+					try {
+						method.setAccessible(true);
+					} catch (Throwable ignored) {
+						// as above
+					}
+					return method;
+				} catch (Throwable ignored) {
+					// try the next interface
+				}
+			}
+			return MISSING;
+		});
+		return cached == MISSING ? null : (Method) cached;
+	}
+
+	/**
+	 * Finds the <em>only</em> {@code void} method on a class with exactly these parameter
+	 * types, by shape and not by name.
+	 *
+	 * <p>This is the mapping-independent last resort: a Fabric runtime carries intermediary
+	 * names, so a lookup spelled with Mojang names can miss even when the method is right
+	 * there. Shape survives every mapping. Returning null when the shape is not unique is
+	 * the point — guessing between {@code setSectionDirty(int,int,int)} and
+	 * {@code setSectionDirtyWithNeighbors(int,int,int)} would silently over-mark six
+	 * neighbouring sections, so an ambiguous shape means "not found".
+	 */
+	public static Method findUniqueVoidMethod(Class<?> owner, Class<?>... parameterTypes) {
+		if (owner == null) {
+			return null;
+		}
+		Class<?>[] wanted = parameterTypes == null ? new Class<?>[0] : parameterTypes;
+		String key = "V:" + owner.getName() + '#' + signatureKey(wanted);
+		Object cached = CACHE.computeIfAbsent(key, unused -> {
+			Method found = null;
+			for (Class<?> current = owner; current != null && current != Object.class; current = current.getSuperclass()) {
+				Method[] methods;
+				try {
+					methods = current.getDeclaredMethods();
+				} catch (Throwable t) {
+					return MISSING;
+				}
+				for (Method method : methods) {
+					if (method.isSynthetic() || method.isBridge()) {
+						// Compiler-generated duplicates of a real method would look like a
+						// second candidate with the same shape and wrongly void the answer.
+						continue;
+					}
+					if (method.getReturnType() != void.class || !Arrays.equals(method.getParameterTypes(), wanted)) {
+						continue;
+					}
+					if (found != null) {
+						// Two candidates with the same shape: refuse to guess.
+						return MISSING;
+					}
+					found = method;
+				}
+			}
+			if (found == null) {
+				return MISSING;
+			}
+			try {
+				found.setAccessible(true);
+			} catch (Throwable ignored) {
+				// Some JDK types refuse it; the method may still be invokable.
+			}
+			return found;
+		});
+		return cached == MISSING ? null : (Method) cached;
+	}
+
+	private static String signatureKey(Class<?>[] parameterTypes) {
+		StringBuilder key = new StringBuilder(parameterTypes.length * 12);
+		for (Class<?> type : parameterTypes) {
+			key.append(type == null ? "null" : type.getName()).append(',');
+		}
+		return key.toString();
 	}
 
 	/** Convenience: the string form of a possibly-not-a-String value. */

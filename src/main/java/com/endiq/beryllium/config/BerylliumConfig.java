@@ -171,7 +171,10 @@ public class BerylliumConfig {
 	/** How many prioritized section rebuilds are re-triggered per rendered frame. Vanilla
 	 *  effectively completes a small fixed number of section builds per frame anyway, so
 	 *  this only changes the *order* of the work — values of 2-4 are sensible; larger
-	 *  values let the queue drain faster at the cost of more main-thread work per frame. */
+	 *  values let the queue drain faster at the cost of more main-thread work per frame.
+	 *  This is the ceiling, not a constant: a frame that overran this device's rolling
+	 *  average gets half of it and a frame that was a spike gets one, so a rebuild burst is
+	 *  spread out instead of landing on the frame that is already late. */
 	public int chunkRebuildsPerFrame = 3;
 
 	/** Hard cap on the number of sections held in the prioritization queue. When the
@@ -330,7 +333,10 @@ public class BerylliumConfig {
 	/** Remembers, for the duration of one frame, whether a piece of geometry was already
 	 *  found to be invisible, so the same question is only answered once. The invisible case
 	 *  is the expensive one — it is what makes a room full of chests or signs cost real
-	 *  frame time — and it is exactly where repeated processing is pure waste. */
+	 *  frame time — and it is exactly where repeated processing is pure waste. The memo is
+	 *  kept per block position *and* per test-box inflation, and is dropped whole at the
+	 *  start of every frame and on every world change, so it can never carry an answer into
+	 *  a frame or a world it was not measured in. */
 	public boolean visibilityCulling = true;
 
 	// --- Chunk compilation scheduling & upload pacing ---
@@ -339,9 +345,12 @@ public class BerylliumConfig {
 	 *  letting one frame drain the whole queue. Uploads are deferred, never dropped. */
 	public boolean chunkUploadPacing = true;
 
-	/** How many chunk-geometry uploads a single frame may perform (0 = let vanilla drain the
-	 *  queue whenever it likes). Halved automatically when the previous frame overran its
-	 *  target, and reduced to 1 when a frame was in real trouble. */
+	/** How many individual chunk-geometry uploads a single frame may perform (0 = let vanilla
+	 *  drain the queue whenever it likes). Halved automatically when the previous frame
+	 *  overran this device's own average frame time, and reduced to 1 when a frame was a
+	 *  spike. A large backlog also earns a catch-up slice on top of this, so a world load or
+	 *  a teleport still finishes appearing quickly while the work is spread over frames.
+	 *  Uploads that do not fit are left in vanilla's queue — deferred, never dropped. */
 	public int chunkUploadsPerFrame = 2;
 
 	// --- Hopper throttling ---

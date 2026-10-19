@@ -1,5 +1,8 @@
 package com.endiq.beryllium.chunk;
 
+import com.endiq.beryllium.performance.FrameBudget;
+import com.endiq.beryllium.performance.FrameHealth;
+
 /**
  * Chunk compilation scheduling: decides how many queued rebuilds to hand back to vanilla
  * in one frame.
@@ -11,36 +14,49 @@ package com.endiq.beryllium.chunk;
  *
  * <p>The rule is a frame-time governor, not a constant:
  * <ul>
- *   <li>a healthy frame gets the configured allowance (default 2);</li>
- *   <li>a frame already over its target gets half of it, so the queue keeps moving without
- *       piling on;</li>
- *   <li>a frame in trouble (more than twice the target) gets exactly one, which keeps
- *       staleness bounded — Beryllium never stops scheduling rebuilds entirely, it just
- *       refuses to make a bad frame worse.</li>
+ *   <li>a healthy frame gets the configured allowance;</li>
+ *   <li>a frame that overran this device's normal cost gets half of it, so the queue keeps
+ *       moving without piling on;</li>
+ *   <li>a frame that was a spike gets exactly one, which keeps staleness bounded —
+ *       Beryllium never stops scheduling rebuilds entirely, it just refuses to make a bad
+ *       frame worse.</li>
  * </ul>
+ *
+ * <p>"Normal cost" is this device's own rolling average frame time, not a fixed 60 Hz
+ * (see {@link FrameBudget#targetFrameNanosFor(long)}). A low-end phone that runs at 30 FPS
+ * is not having a bad frame every frame; judging it against 16.7 ms would have pinned this
+ * scheduler at one rebuild per frame forever, which is the opposite of spreading a burst
+ * out — it turns every burst into a queue that never drains.
  */
 public final class ChunkCompilationScheduler {
-	private static final long TARGET_FRAME_NANOS = 16_666_667L;
-
 	private ChunkCompilationScheduler() {
 	}
 
 	/**
 	 * @param configuredPerFrame the configured allowance
-	 * @param lastFrameNanos     previous frame duration, or a negative value if unknown
+	 * @param lastFrameNanos     duration of the frame that just finished, or a non-positive
+	 *                           value if it has not been measured
 	 * @return how many sections to re-trigger this frame (always at least 1)
 	 */
 	public static int rebuildsThisFrame(int configuredPerFrame, long lastFrameNanos) {
+		return rebuildsThisFrame(configuredPerFrame, lastFrameNanos, -1L);
+	}
+
+	/**
+	 * @param configuredPerFrame the configured allowance
+	 * @param lastFrameNanos     duration of the frame that just finished, or a non-positive
+	 *                           value if it has not been measured
+	 * @param averageFrameNanos  this device's rolling average frame time, or a non-positive
+	 *                           value if it has not been measured yet
+	 * @return how many sections to re-trigger this frame (always at least 1)
+	 */
+	public static int rebuildsThisFrame(int configuredPerFrame, long lastFrameNanos, long averageFrameNanos) {
 		int configured = Math.max(1, configuredPerFrame);
-		if (lastFrameNanos <= 0L) {
-			return configured;
-		}
-		if (lastFrameNanos > TARGET_FRAME_NANOS * 2L) {
-			return 1;
-		}
-		if (lastFrameNanos > TARGET_FRAME_NANOS) {
-			return Math.max(1, configured / 2);
-		}
-		return configured;
+		FrameHealth health = FrameBudget.healthOf(lastFrameNanos, averageFrameNanos);
+		return switch (health) {
+			case IN_TROUBLE -> 1;
+			case OVERRUNNING -> Math.max(1, configured / 2);
+			case HEALTHY -> configured;
+		};
 	}
 }
