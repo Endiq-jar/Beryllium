@@ -1,5 +1,5 @@
 ## minecraft 1.19.4
-## commit: f2e7b4f
+## commit: 36fcb0d
 ## classpath entries: 56
 
 ### class names matching the features under test
