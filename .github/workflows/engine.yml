@@ -1,0 +1,64 @@
+# Native engine CI.
+#
+# The C engine under engine/ has its own build and its own test suite, and until
+# now nothing ran it: engine/ci/engine-job.yml described the job but no workflow
+# referenced it, so a regression in the engine could land on main unnoticed. That
+# is exactly what happened -- `make test` was failing intermittently on a
+# live-edit check, and it stayed invisible because the only thing that ever ran
+# the suite was a developer's terminal.
+#
+# Every step below was run and passes locally before this file was added. The
+# sanitizer pass is the slow one; the whole job is a couple of minutes.
+
+name: engine
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: beryllium-engine-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  engine:
+    name: native engine (build, test, sanitizers)
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: engine
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+
+      - name: build (warnings are errors)
+        run: make -j"$(nproc)" EXTRA_CFLAGS="-Werror"
+
+      - name: test
+        run: make test EXTRA_CFLAGS="-Werror"
+
+      - name: render a frame and verify it is not blank
+        run: |
+          ./build/beryl --quiet --frames 1 --view-distance 12 --screenshot ci-frame.png
+          python3 tools/pngstat.py --strict ci-frame.png
+
+      - name: phone profile builds and passes the same suite
+        run: make clean && make ANDROID=1 -j"$(nproc)" test
+
+      - name: test under address/undefined sanitizers
+        run: |
+          make clean
+          make test -j"$(nproc)" \
+            EXTRA_CFLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g" \
+            EXTRA_LDFLAGS="-fsanitize=address,undefined"
+
+      - name: upload the rendered frame
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: beryllium-engine-frame
+          path: engine/ci-frame.png

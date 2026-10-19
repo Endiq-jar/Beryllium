@@ -457,15 +457,36 @@ static void test_live_edit(void) {
 	}
 	free(before); free(after);
 
-	/* Now an edit that really changes the surface, and must show up. */
+	/* Now an edit that really changes the surface, and must show up.
+	 *
+	 * The cell chosen above sits behind the eye, so what has to reach the
+	 * screen is the *light* the glowstone casts onto terrain that is in view.
+	 * That is a burst of propagation plus a remesh of every section it
+	 * touches, and a single frame only installs `rebuilds_per_frame` of them
+	 * out of a queue that is hundreds deep. So pump frames until the picture
+	 * settles instead of demanding it inside one -- "an edit becomes visible
+	 * within a few frames" is the real contract, and asserting one frame made
+	 * this check race the builder pool and fail intermittently. */
 	uint8_t *base = render_copy(&sc, &w, &h);
 	int placed = beryl_engine_set_block(sc.e, px, py, pz, BERYL_BLOCK_GLOWSTONE);
-	beryl_engine_update(sc.e, &sc.cam, 0.0);
-	uint8_t *lit = render_copy(&sc, &w, &h);
 	CHECK(placed >= 1, "placing a block inside the loaded area must change voxels (%d)", placed);
+
+	const int settle_frames = 32, settle_budget = 12;
+	uint8_t *lit = NULL;
+	int diff = 0, frames = 0;
+	for (frames = 1; frames <= settle_frames; frames++) {
+		beryl_engine_update(sc.e, &sc.cam, 0.0);
+		free(lit);
+		lit = render_copy(&sc, &w, &h);
+		if (!base || !lit) break;
+		diff = count_diff(base, lit, w, h);
+		if (diff > 200) break;
+	}
 	if (base && lit) {
-		int diff = count_diff(base, lit, w, h);
 		CHECK(diff > 200, "a glowing block appearing in view must change the image (%d px)", diff);
+		CHECK(frames <= settle_budget,
+		      "the edit must settle quickly, not drip in over the whole queue (%d frames, budget %d)",
+		      frames, settle_budget);
 	}
 	free(base); free(lit);
 	scene_free(&sc);

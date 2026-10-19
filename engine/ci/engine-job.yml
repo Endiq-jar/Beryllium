@@ -1,20 +1,26 @@
-# Engine CI job — drop this into .github/workflows/ to enable it.
+# Engine CI job — reference copy.
 #
-# It cannot be committed under .github/workflows/ from this sandbox: the GitHub
-# App Arena pushes with has no `workflows` permission, so GitHub rejects any
-# commit that adds or edits a file in that directory. The job below is exactly
-# what CI should run; `cp engine/ci/engine-job.yml .github/workflows/` from a
-# checkout with permission (or paste the `engine:` block into the existing
-# build.yml) enables it. All five steps were run and passed locally:
+# This is now LIVE: the same job runs from .github/workflows/engine.yml on every
+# push and pull request. Keep the two in sync if you change the steps; this file
+# is the annotated original, the workflow is what GitHub actually executes.
+#
+# The header below used to claim this could not be committed under
+# .github/workflows/ because the pushing GitHub App lacked the `workflows`
+# permission. That was wrong, or stopped being true — .github/workflows/probe.yml
+# has been edited from the same setup, and engine.yml landed the same way. Do not
+# repeat the claim without testing it.
+#
+# All steps were run and passed locally (ubuntu, gcc):
 #
 #   make -j"$(nproc)" EXTRA_CFLAGS="-Werror"                    # clean, no warnings
-#   make test                       -> 691 checks, 0 failed
+#   make test                       -> 2510 checks, 0 failed
 #   ./build/beryl ... --screenshot  # + tools/pngstat.py --strict
 #   make test under -fsanitize=address,undefined  -> clean, leak-free
 #   make ANDROID=1 test                           -> same suite under LTO + --gc-sections
 #
-# Steps 1-4 take about a minute on ubuntu-24.04; the sanitizer pass is the slow
-# one (~20 s for the suite itself).
+# The `[beryl error] gl: draw_indexed without a bind in the current pass` line in
+# the test output is expected: test_gl_backend deliberately asserts that drawing
+# before a bind is *refused*, and refusing it is what logs that error.
 
 name: engine
 on: [push, pull_request]
