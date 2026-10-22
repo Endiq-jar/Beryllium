@@ -1,0 +1,157 @@
+# Forward coverage for the next Minecraft release, while it is still in development.
+#
+# Beryllium ships one jar per release and `build.yml` compiles every release from 1.19.4
+# through Mojang's latest. That leaves a gap: between the first snapshot of a new drop and
+# the day it ships, nobody is compiling against it, so the breakage is discovered on release
+# day rather than six weeks earlier with time to do something about it.
+#
+# This closes that gap for the upcoming line (26.4-snapshot-N as of writing) without letting
+# it gate anything. Three deliberate choices follow from that:
+#
+#   - It does not run on `pull_request`. A snapshot failing to compile is information about
+#     Mojang's work in progress, not a defect in a pull request, and a red check that nobody
+#     can act on teaches people to ignore red checks.
+#   - An empty development line is a normal state, not a failure. Between a release and its
+#     first snapshot there is nothing to build against, so the resolve job reports
+#     `has_targets=false` and the build job does not run at all. GitHub Actions rejects a
+#     matrix with no vectors, which is why that flag exists rather than just passing the
+#     empty matrix through.
+#   - The day 26.4 ships, this workflow goes quiet by itself and `build.yml` picks the
+#     version up. `latest.release` becomes 26.4, so it joins the release matrix, and the
+#     development line for it is no longer "upcoming" so this matrix empties. No edit to
+#     either workflow is needed, which is the whole reason the version list is derived from
+#     Mojang's manifest instead of being written down somewhere.
+
+name: snapshot
+
+on:
+  schedule:
+    # Weekly, after Mojang's usual Wednesday snapshot drop.
+    - cron: "0 6 * * 4"
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "How many of the newest development builds to compile"
+        required: false
+        default: "3"
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  checks: write
+
+concurrency:
+  group: beryllium-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  development-matrix:
+    name: resolve the upcoming development line
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.developments.outputs.matrix }}
+      upcoming: ${{ steps.developments.outputs.latest }}
+      has_targets: ${{ steps.developments.outputs.has_targets }}
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+
+      - name: resolve development builds of the next release
+        id: developments
+        run: >-
+          python3 scripts/resolve_minecraft_releases.py --development --github-output
+          --limit "${{ github.event.inputs.limit || '3' }}"
+
+      - name: show coverage
+        run: |
+          if [ "${{ steps.developments.outputs.has_targets }}" != "true" ]; then
+            echo "Nothing is in development right now, so there is nothing to build against."
+            echo "Mojang's manifest reports no upcoming line beyond the latest release."
+            echo "This workflow picks the next one up automatically when it opens."
+            exit 0
+          fi
+          echo "Upcoming release: ${{ steps.developments.outputs.latest }}"
+          echo '${{ steps.developments.outputs.matrix }}' | python3 -m json.tool
+
+  build:
+    name: Minecraft ${{ matrix.minecraft }} (${{ matrix.loom_pipeline }})
+    needs: development-matrix
+    # Skipped entirely when there is no development line, rather than failing on an
+    # empty matrix.
+    if: needs.development-matrix.outputs.has_targets == 'true'
+    runs-on: ubuntu-24.04
+    strategy:
+      # One snapshot breaking says nothing about the others; compile all of them.
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.development-matrix.outputs.matrix) }}
+
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+
+      - name: setup JDK 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: "25"
+          distribution: microsoft
+          cache: gradle
+
+      - name: make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: build against the development version
+        run: |
+          set -o pipefail
+          ./gradlew --no-daemon clean build -Pminecraft_version=${{ matrix.minecraft }} 2>&1 \
+            | tee build-output.log
+
+      # Published through the Checks API for the same reason build.yml does it: the raw
+      # Actions log blobs are not reachable from every API client, and a snapshot failure is
+      # only useful if the compile error can actually be read.
+      - name: capture diagnostics
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "## Forward coverage — Minecraft ${{ matrix.minecraft }}"
+            echo
+            echo "This is a development build of the upcoming" \
+                 "${{ needs.development-matrix.outputs.upcoming }} release, not a supported" \
+                 "target. A failure here means the mod will need work before that version" \
+                 "ships; it does not block anything and it is not a regression."
+            echo
+            if [ -f build-output.log ]; then
+              echo "### Gradle errors"
+              echo '```'
+              grep -n -A 3 "error: " build-output.log | head -c 20000 || echo "(no javac errors)"
+              echo '```'
+              echo
+              echo "### Gradle tail"
+              echo '```'
+              tail -c 12000 build-output.log
+              echo '```'
+            fi
+          } > diagnostics.txt
+
+          job_name="Minecraft ${{ matrix.minecraft }} (${{ matrix.loom_pipeline }})"
+          job_id=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs?per_page=100" \
+            --jq '.jobs[] | [.id, .name] | @tsv' \
+            | awk -F'\t' -v target="$job_name" '$2 == target {print $1; exit}')
+          if [ -z "$job_id" ]; then
+            echo "::error::could not resolve check-run id for '$job_name'"
+            exit 0
+          fi
+          python3 - "$job_id" <<'PY'
+          import json, os, subprocess, sys
+          job_id = sys.argv[1]
+          body = open("diagnostics.txt", encoding="utf-8", errors="replace").read()
+          payload = json.dumps({"output": {"title": "forward coverage diagnostics", "summary": body[:60000]}})
+          subprocess.run(
+              ["gh", "api", "-X", "PATCH",
+               f"repos/{os.environ['GITHUB_REPOSITORY']}/check-runs/{job_id}",
+               "--input", "-"],
+              input=payload, text=True, check=False)
+          PY

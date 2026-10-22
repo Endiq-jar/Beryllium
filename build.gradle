@@ -18,11 +18,18 @@ def berylliumVersion = providers.gradleProperty("mod_version").getOrElse("0.2.0"
  * Mojang stopped obfuscating the distributed game jar in 26.1.  Fabric Loom uses a
  * deliberately separate plugin for that format; selecting it here is what lets the
  * same command build both 1.19.4 and current releases.
+ *
+ * A development id ("26.4-snapshot-5", "26.4-pre-2", "26.4-rc-1") is accepted as well as a
+ * plain release, because `snapshot.yml` compiles the upcoming line before it ships.  Only the
+ * numeric part is returned: it is what selects the Loom pipeline and drives the era-gated
+ * mixin exclusions below, and a snapshot of 26.4 needs exactly the same decisions as 26.4
+ * will.  The suffix survives in the artifact name (`beryllium-mc26.4-snapshot-5`), so a
+ * development jar says plainly that it is one -- nothing here publishes it as a release.
  */
 def numericVersion = { String value ->
-	def match = (value =~ /^(\d+)\.(\d+)(?:\.(\d+))?$/)
+	def match = (value =~ /^(\d+)\.(\d+)(?:\.(\d+))?(?:-(?:snapshot|pre|rc)-?\d+)?$/)
 	if (!match.matches()) {
-		throw new GradleException("minecraft_version must be a released numeric version, got '${value}'")
+		throw new GradleException("minecraft_version must be a numeric release or development version, got '${value}'")
 	}
 	return [match.group(1).toInteger(), match.group(2).toInteger(),
 			match.group(3) == null ? 0 : match.group(3).toInteger()]

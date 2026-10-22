@@ -434,6 +434,42 @@ and renderer changes are not stable enough to make a launch-safety promise. When
 **stable** release arrives, the CI resolver adds it automatically and the build must pass
 before it can be called covered.
 
+### Forward coverage of the next release (`snapshot.yml`)
+
+Building only shipped releases leaves a gap: between the first snapshot of a new drop and the
+day it ships, nothing compiles against it, so the breakage surfaces on release day instead of
+six weeks earlier when there is time to do something about it. `snapshot.yml` closes that gap
+for the upcoming line — **26.4** as of writing, which Mojang's manifest reports as
+`latest.snapshot: 26.4-snapshot-5` while `latest.release` is still `26.3`. There is no 26.4
+release to build against yet; what exists is five weekly snapshots, and that is what gets
+compiled (the three newest by default).
+
+It is deliberately **not** a gate:
+
+- It does not run on `pull_request`. A snapshot failing to compile is information about
+  Mojang's work in progress, not a defect in a pull request, and a red check nobody can act on
+  teaches people to ignore red checks.
+- An empty development line is a normal state, not a failure — between a release and its first
+  snapshot there is nothing to build against, so the resolve job reports `has_targets=false` and
+  the build job does not run. GitHub Actions rejects a matrix with no vectors, which is why that
+  flag exists rather than passing an empty matrix through.
+- **The day 26.4 ships, this goes quiet and `build.yml` picks it up, with no edit to either.**
+  `latest.release` becomes 26.4, so it joins the supported matrix, and it is no longer an
+  *upcoming* line, so this matrix empties. That automatic promotion is the reason the version
+  list is derived from Mojang's manifest instead of written down somewhere.
+
+`build.gradle` accepts a development id (`26.4-snapshot-5`, `26.4-pre-2`, `26.4-rc-1`) as well
+as a plain release. Only the numeric part drives the Loom pipeline choice and the era-gated
+mixin exclusions, because a snapshot of 26.4 needs exactly the same decisions 26.4 will; the
+suffix survives in the artifact name, so a development jar says plainly that it is one.
+
+> **Worth flagging for 26.4 specifically:** snapshot 1 made **Vulkan the default graphics API**
+> and removed automatic renderer switching after a startup crash. Both matter here. Beryllium's
+> device tiering and its Android safe mode reason about OpenGL capability, and `engine/` has a
+> Vulkan slot in its backend interface that is deliberately *unimplemented* rather than shipped
+> on transcribed constants nobody could check. Expect the forward-coverage job to be where that
+> shows up first.
+
 ### One source tree, every release
 
 Beryllium used to ship a stripped "compatibility core" to every release except one, which
