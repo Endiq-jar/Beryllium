@@ -171,7 +171,10 @@ public class BerylliumConfig {
 	/** How many prioritized section rebuilds are re-triggered per rendered frame. Vanilla
 	 *  effectively completes a small fixed number of section builds per frame anyway, so
 	 *  this only changes the *order* of the work — values of 2-4 are sensible; larger
-	 *  values let the queue drain faster at the cost of more main-thread work per frame. */
+	 *  values let the queue drain faster at the cost of more main-thread work per frame.
+	 *  This is the ceiling, not a constant: a frame that overran this device's rolling
+	 *  average gets half of it and a frame that was a spike gets one, so a rebuild burst is
+	 *  spread out instead of landing on the frame that is already late. */
 	public int chunkRebuildsPerFrame = 3;
 
 	/** Hard cap on the number of sections held in the prioritization queue. When the
@@ -330,8 +333,21 @@ public class BerylliumConfig {
 	/** Remembers, for the duration of one frame, whether a piece of geometry was already
 	 *  found to be invisible, so the same question is only answered once. The invisible case
 	 *  is the expensive one — it is what makes a room full of chests or signs cost real
-	 *  frame time — and it is exactly where repeated processing is pure waste. */
+	 *  frame time — and it is exactly where repeated processing is pure waste. The memo is
+	 *  kept per block position *and* per test-box inflation, and is dropped whole at the
+	 *  start of every frame and on every world change, so it can never carry an answer into
+	 *  a frame or a world it was not measured in. */
 	public boolean visibilityCulling = true;
+
+	/** Moves the frustum intersection math behind visibility culling onto a background
+	 *  worker. Each frame the render thread copies the frustum into an immutable plane
+	 *  snapshot (validated against the original before it is trusted); the worker re-tests
+	 *  every box it remembers against that snapshot, so the answers are already in a
+	 *  concurrent cache by the time the render thread asks. A miss costs exactly what
+	 *  culling cost before — one synchronous test against the live frustum — and the worker
+	 *  is never waited on, so a slow device gets a colder cache rather than a longer frame.
+	 *  Retires itself permanently if the snapshot ever stops agreeing with the live frustum. */
+	public boolean asyncVisibilityCulling = true;
 
 	// --- Chunk compilation scheduling & upload pacing ---
 
@@ -339,10 +355,38 @@ public class BerylliumConfig {
 	 *  letting one frame drain the whole queue. Uploads are deferred, never dropped. */
 	public boolean chunkUploadPacing = true;
 
-	/** How many chunk-geometry uploads a single frame may perform (0 = let vanilla drain the
-	 *  queue whenever it likes). Halved automatically when the previous frame overran its
-	 *  target, and reduced to 1 when a frame was in real trouble. */
+	/** How many individual chunk-geometry uploads a single frame may perform (0 = let vanilla
+	 *  drain the queue whenever it likes). Halved automatically when the previous frame
+	 *  overran this device's own average frame time, and reduced to 1 when a frame was a
+	 *  spike. A large backlog also earns a catch-up slice on top of this, so a world load or
+	 *  a teleport still finishes appearing quickly while the work is spread over frames.
+	 *  Uploads that do not fit are left in vanilla's queue — deferred, never dropped. */
 	public int chunkUploadsPerFrame = 2;
+
+	// --- Dynamic load throttling ---
+
+	/** Scales entity rendering back while the world is loading hard, so terrain generation
+	 *  gets the frame. Pressure is read from the state the chunk governors already keep —
+	 *  the rebuild backlog against its configured limit, upload drains that had to be
+	 *  stopped early, and the same frame-health verdict those governors use — plus a
+	 *  teleport detector for the case where the whole visible area has to be generated at
+	 *  once. Rises immediately, eases one step at a time, and holds a surge for a minimum
+	 *  number of frames so the draw distance cannot pulse during a load. Entity draw
+	 *  distance is never throttled below 16 blocks, and the monitor only observes: it never
+	 *  schedules chunk work itself. */
+	public boolean dynamicLoadThrottling = true;
+
+	// --- Custom terrain renderer (scaffold, not yet functional) ---
+
+	/** Whether Beryllium's own terrain renderer may take over from vanilla's. Off by
+	 *  default and currently unreachable in practice: the section-snapshot contract that
+	 *  feeds the engine is implemented and tested on the C side, but the mesher does not yet
+	 *  translate real Minecraft baked models, there is no Android GLES 3.0 backend, and
+	 *  nothing uploads or draws the result. Enabling this today would switch to a renderer
+	 *  that draws nothing where the world used to be. The switch is a single atomic mode
+	 *  (RendererMode) so vanilla and custom can never both draw the same terrain, and it also
+	 *  stands down automatically when another mod already renders the terrain. */
+	public boolean customTerrainRenderer = false;
 
 	// --- Hopper throttling ---
 

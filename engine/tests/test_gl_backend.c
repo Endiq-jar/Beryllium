@@ -392,18 +392,52 @@ static void test_gl_loader_contract(void) {
 	      "and name it (got %s)", partial.missing ? partial.missing : "(null)");
 	g.fail_name = NULL;
 
-	/* The real libGL probe: reported honestly as unavailable in a container. */
+	/* The real libGL probe.
+	 *
+	 * Two different questions, which this test used to conflate. beryl_backend_available
+	 * asks "can libGL be dlopened at all"; beryl_gl_loader_default asks that *and* "does
+	 * every required entry point resolve out of it". Those come apart on a machine that
+	 * has Mesa's libGL installed but no GL context to resolve against -- which is a CI
+	 * runner, and is not a container without libGL. The old else branch assumed that a
+	 * loader failure meant the library was absent and asserted the availability probe
+	 * must agree, so this suite passed wherever libGL was missing and failed wherever it
+	 * was present.
+	 *
+	 * The loader says which of the two happened, in `missing`: "libGL" when dlopen failed,
+	 * the entry point's name when resolution did. Branching on that keeps both cases
+	 * asserted properly instead of one being silently wrong. */
+	char why[128] = { 0 };
+	bool available = beryl_backend_available(BERYL_BACKEND_OPENGL, why, sizeof(why));
+
 	BerylGLLoader real;
-	if (beryl_gl_loader_default(&real)) {
+	memset(&real, 0, sizeof(real));
+	bool loaded = beryl_gl_loader_default(&real);
+
+	if (loaded) {
+		CHECK(real.ok, "if libGL loaded it must be fully resolved");
+		CHECK(available,
+		      "a loader that resolved every entry point implies libGL is present, "
+		      "so the availability probe cannot disagree (%s)", why);
 #if defined(__unix__) || defined(__APPLE__)
 		if (real.handle) dlclose(real.handle);
 #endif
-		CHECK(real.ok, "if libGL loaded it must be fully resolved");
-	} else {
-		char why[128] = { 0 };
-		CHECK(!beryl_backend_available(BERYL_BACKEND_OPENGL, why, sizeof(why)),
-		      "with no libGL the availability probe must say so");
+	} else if (real.missing != NULL && strcmp(real.missing, "libGL") == 0) {
+		/* No libGL at all -- the container case. Both probes must say so, and the
+		 * availability probe must name the library rather than reporting a bare
+		 * "unavailable" that gives nobody anywhere to look. */
+		CHECK(!available, "with no libGL the availability probe must say so");
 		CHECK(strstr(why, "libGL") != NULL, "and name the missing library (%s)", why);
+	} else {
+		/* libGL is present but an entry point did not resolve out of it. Legitimate on
+		 * a headless runner, and not a failure -- but it must not be reported as a
+		 * missing library, or whoever reads the log goes looking for a package that is
+		 * already installed. */
+		CHECK(available,
+		      "libGL is present but '%s' did not resolve; the availability probe "
+		      "should still report the backend as available",
+		      real.missing ? real.missing : "?");
+		CHECK(strstr(why, "no libGL") == NULL,
+		      "a missing entry point must not be reported as a missing library (%s)", why);
 	}
 }
 

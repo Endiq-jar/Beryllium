@@ -2,6 +2,7 @@ package com.endiq.beryllium.culling;
 
 import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
+import com.endiq.beryllium.culling.async.AsyncCullingPipeline;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -40,25 +41,58 @@ import java.util.Map;
  * missed optimisation.
  */
 public final class VisibilityCulling {
-	private static final int CACHE_CLEAR_THRESHOLD = 4096;
+	/** Inflation is quantised to 1/64 of a block, which is far finer than any caller uses. */
+	private static final double INFLATION_STEP = 1.0 / 64.0;
+
+	/** Inflations past this are not memoised at all rather than rounded into a wrong bucket. */
+	private static final double MAX_MEMOISED_INFLATION = 4.0;
+	private static final int INFLATION_BUCKETS = (int) (MAX_MEMOISED_INFLATION / INFLATION_STEP) + 1;
 
 	private static volatile Field[] frustumFields;
 	private static volatile boolean frustumFieldsResolved;
 
-	private static final Map<Long, Boolean> blockVisibilityCache = new HashMap<>(512);
-	private static int cacheHits = 0;
-	private static int cacheMisses = 0;
+	/**
+	 * One memo per inflation, because the answer depends on both the block and how far the
+	 * test box was grown around it. A single map keyed on the block position alone lets the
+	 * first caller's inflation answer every later caller's question, which is how a sign at
+	 * 0.75 blocks of slack would end up deciding whether a tighter box is on screen.
+	 */
+	@SuppressWarnings("unchecked")
+	private static final Map<Long, Boolean>[] blockVisibilityCache = new Map[INFLATION_BUCKETS];
+
+	static {
+		for (int i = 0; i < INFLATION_BUCKETS; i++) {
+			blockVisibilityCache[i] = new HashMap<>(256);
+		}
+	}
+
+	private static long cacheHits = 0;
+	private static long cacheMisses = 0;
+	private static long asyncHits = 0;
+	private static int largestMemoThisFrame = 0;
 
 	private VisibilityCulling() {
 	}
 
-	/** Resets the per-frame memo. Called once per rendered frame. */
+	/**
+	 * Resets the per-frame memo. Called once per rendered frame, and again when the level
+	 * changes.
+	 *
+	 * <p>A per-frame memo has exactly one correct lifetime: the frame. Nothing here survives
+	 * it, whatever it grew to — a stale "visible" answer is a piece of geometry drawn that
+	 * should not have been, and a stale "invisible" one is a hole in the world.
+	 */
 	public static void onFrameStart() {
-		if (blockVisibilityCache.size() > CACHE_CLEAR_THRESHOLD) {
-			blockVisibilityCache.clear();
-		} else {
-			blockVisibilityCache.clear();
+		int largest = 0;
+		for (Map<Long, Boolean> memo : blockVisibilityCache) {
+			largest = Math.max(largest, memo.size());
+			memo.clear();
 		}
+		largestMemoThisFrame = largest;
+		// The asynchronous pipeline keeps its answers across frames — that is the whole
+		// point of it — but it does need to know a new frame started, so it can refuse to
+		// hand back an answer measured against the previous camera.
+		AsyncCullingPipeline.instance().beginFrame();
 	}
 
 	/**
@@ -69,35 +103,83 @@ public final class VisibilityCulling {
 		if (pos == null) {
 			return true;
 		}
-		if (!cacheEnabled()) {
-			// Memoisation off: answer the question directly every time.
-			return isBoxVisible(new AABB(
-				pos.getX() - inflation,
-				pos.getY() - inflation,
-				pos.getZ() - inflation,
-				pos.getX() + 1.0 + inflation,
-				pos.getY() + 1.0 + inflation,
-				pos.getZ() + 1.0 + inflation
-			));
+		double slack = Math.max(0.0, inflation);
+
+		// Resolve the frustum first. Besides being needed for the test anyway, this is what
+		// publishes the frame's snapshot to the asynchronous pipeline, and the snapshot has
+		// to exist before its cache can be consulted.
+		Frustum frustum = currentFrustum();
+		if (frustum == null) {
+			return true;
 		}
-		Long key = pos.asLong();
-		Boolean cached = blockVisibilityCache.get(key);
+
+		int bucket = cacheEnabled() ? bucketOf(slack) : -1;
+		if (bucket < 0) {
+			// Memoisation off, or an inflation too large to represent exactly: answer the
+			// question directly every time.
+			return isVisible(frustum, boxAt(pos, slack));
+		}
+
+		long key = pos.asLong();
+		AsyncCullingPipeline async = AsyncCullingPipeline.instance();
+
+		// First the concurrent cache, which the worker filled with answers already measured
+		// against this frame's frustum. A hit here is the cheap case: a map lookup and no
+		// intersection math on the render thread at all.
+		Boolean carried = async.cachedVisibility(key, bucket);
+		if (carried != null) {
+			cacheHits++;
+			asyncHits++;
+			return carried;
+		}
+
+		// Then this frame's own memo, for a box already asked about since the frame began.
+		Map<Long, Boolean> memo = blockVisibilityCache[bucket];
+		Boolean cached = memo.get(key);
 		if (cached != null) {
 			cacheHits++;
 			return cached;
 		}
 		cacheMisses++;
 
-		boolean visible = isBoxVisible(new AABB(
+		AABB box = boxAt(pos, slack);
+		boolean visible = isVisible(frustum, box);
+		memo.put(key, visible);
+		// And remember the bounds, not just the answer: that is what lets the worker
+		// re-derive next frame's result without ever touching a Minecraft object.
+		async.record(key, bucket, visible, box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
+		return visible;
+	}
+
+	/** Frustum test against an already-resolved frustum. Never culls on an error. */
+	private static boolean isVisible(Frustum frustum, AABB box) {
+		if (box == null) {
+			return true;
+		}
+		try {
+			return frustum.isVisible(box);
+		} catch (Throwable t) {
+			return true;
+		}
+	}
+
+	private static AABB boxAt(BlockPos pos, double inflation) {
+		return new AABB(
 			pos.getX() - inflation,
 			pos.getY() - inflation,
 			pos.getZ() - inflation,
 			pos.getX() + 1.0 + inflation,
 			pos.getY() + 1.0 + inflation,
 			pos.getZ() + 1.0 + inflation
-		));
-		blockVisibilityCache.put(key, visible);
-		return visible;
+		);
+	}
+
+	/** @return the memo bucket for an inflation, or {@code -1} when it must not be memoised. */
+	private static int bucketOf(double inflation) {
+		if (inflation > MAX_MEMOISED_INFLATION) {
+			return -1;
+		}
+		return (int) Math.min(INFLATION_BUCKETS - 1, Math.round(inflation / INFLATION_STEP));
 	}
 
 	/** Frustum test for an arbitrary box. Never culls when the frustum is unavailable. */
@@ -211,12 +293,23 @@ public final class VisibilityCulling {
 		return config == null || config.visibilityCulling;
 	}
 
-	public static int cacheHits() {
+	public static long cacheHits() {
 		return cacheHits;
 	}
 
-	public static int cacheMisses() {
+	public static long cacheMisses() {
 		return cacheMisses;
+	}
+
+	/** How many answers came from the asynchronous pipeline's cache rather than from a
+	 *  frustum test on the render thread. */
+	public static long asyncHits() {
+		return asyncHits;
+	}
+
+	/** The largest single-inflation memo the previous frame needed. */
+	public static int largestMemoThisFrame() {
+		return largestMemoThisFrame;
 	}
 
 	/**
@@ -264,6 +357,11 @@ public final class VisibilityCulling {
 				try {
 					Object value = field.get(levelRenderer);
 					if (value instanceof Frustum frustum) {
+						// This is the earliest moment in the frame at which the frustum is
+						// guaranteed to describe the camera culling is about to be done for,
+						// so it is where the asynchronous pipeline gets its snapshot. Every
+						// later call in the same frame is a no-op.
+						AsyncCullingPipeline.instance().publish(frustum);
 						return frustum;
 					}
 				} catch (Throwable ignored) {

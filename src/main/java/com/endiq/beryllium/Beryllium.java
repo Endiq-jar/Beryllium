@@ -22,6 +22,9 @@ public class Beryllium implements ModInitializer {
 	private static volatile boolean deferBlockEntityCullingToOtherMod = false;
 	private static volatile boolean deferChunkOptimizationsToOtherMod = false;
 	private static volatile boolean deferHopperOptimizationsToOtherMod = false;
+	private static volatile boolean deferCustomTerrainRendering = false;
+	private static volatile boolean lodRendererPresent = false;
+	private static volatile boolean customBlockEntitiesPresent = false;
 
 	@Override
 	public void onInitialize() {
@@ -57,17 +60,52 @@ public class Beryllium implements ModInitializer {
 		return deferHopperOptimizationsToOtherMod;
 	}
 
+	/**
+	 * Whether Beryllium's own terrain renderer must stay off, because another mod already
+	 * draws the terrain. Consulted by the renderer mode switch: it is the compatibility half
+	 * of the rule that only one renderer ever owns the ground.
+	 */
+	public static boolean isCustomTerrainRenderingDeferred() {
+		return deferCustomTerrainRendering;
+	}
+
+	/**
+	 * Whether a level-of-detail renderer (Distant Horizons, Voxy) is drawing terrain beyond
+	 * the vanilla render distance. When it is, distances derived from vanilla's render
+	 * distance describe only the near field and must not be used as culling ceilings.
+	 */
+	public static boolean isLodRendererPresent() {
+		return lodRendererPresent;
+	}
+
+	/** Whether any loaded mod has block entities that render outside their own block. */
+	public static boolean hasCustomBlockEntities() {
+		return customBlockEntitiesPresent;
+	}
+
 	private void checkCompatibility() {
 		if (!config.compatibilityModeEnabled) {
 			return;
 		}
 
 		List<String> loaded = CompatibilityChecker.detectLoadedOptimizationMods();
+		List<String> terrainRenderers = CompatibilityChecker.detectLoadedTerrainRendererMods();
+		List<String> customBlockEntities = CompatibilityChecker.detectLoadedCustomBlockEntityMods();
+
+		List<String> everything = CompatibilityChecker.detectAllKnownMods();
+		if (!everything.isEmpty()) {
+			BerylliumLog.compat("Detected known mods: " + String.join(", ", everything));
+		}
+
+		// Terrain renderers and block-entity mods are checked even when no optimisation mod
+		// is present: Distant Horizons and Create are not optimisations, and an install with
+		// only those still needs the decisions below.
+		checkTerrainRendererCompatibility(terrainRenderers);
+		checkBlockEntityCompatibility(customBlockEntities);
+
 		if (loaded.isEmpty()) {
 			return;
 		}
-
-		BerylliumLog.compat("Detected optimization mods: " + String.join(", ", loaded));
 
 		if (CompatibilityChecker.shouldDeferBehindCameraCullingTo(loaded)) {
 			deferCullingToOtherMod = true;
@@ -89,12 +127,55 @@ public class Beryllium implements ModInitializer {
 					+ "Beryllium's hopper throttling is disabled for this session.");
 		}
 
-		if (CompatibilityChecker.isChunkRendererReplaced(loaded)) {
+		List<String> rendererAware = new java.util.ArrayList<>(loaded);
+		rendererAware.addAll(terrainRendererModsForSession);
+		if (CompatibilityChecker.isChunkRendererReplaced(rendererAware)) {
 			deferChunkOptimizationsToOtherMod = true;
-			BerylliumLog.compat("Sodium is loaded — it replaces vanilla's chunk renderer wholesale, "
-				+ "so Beryllium's own chunk rebuild prioritization is disabled for this session. "
-				+ "Sodium already does this, and better, on the platforms where it can run at all.");
+			BerylliumLog.compat("Another mod replaces vanilla's chunk renderer ("
+				+ String.join(", ", rendererAware) + "), so Beryllium's own chunk rebuild "
+				+ "prioritization and upload pacing are disabled for this session. They schedule "
+				+ "work inside vanilla's dispatcher, which that mod no longer uses; the "
+				+ "replacement already does this, and better, on the platforms where it runs.");
 		}
+	}
+
+	/** Terrain renderers found at startup, kept so the chunk-deferral check can see them. */
+	private static volatile List<String> terrainRendererModsForSession = List.of();
+
+	private void checkTerrainRendererCompatibility(List<String> terrainRenderers) {
+		terrainRendererModsForSession = List.copyOf(terrainRenderers);
+
+		if (CompatibilityChecker.isLodRendererPresent(terrainRenderers)) {
+			lodRendererPresent = true;
+			BerylliumLog.compat("A level-of-detail terrain renderer is loaded ("
+				+ String.join(", ", terrainRenderers) + "). It draws terrain well beyond the "
+				+ "vanilla render distance and does its own frustum and distance culling over "
+				+ "that area, so Beryllium stops deriving cull distances from vanilla's render "
+				+ "distance — a ceiling computed from a render distance of 12 sits far inside a "
+				+ "world the player can see for a thousand blocks. Frustum culling is unaffected: "
+				+ "both renderers agree on where the camera is pointing.");
+		}
+
+		if (CompatibilityChecker.shouldDeferCustomTerrainRenderingTo(terrainRenderers)) {
+			deferCustomTerrainRendering = true;
+			BerylliumLog.compat("Terrain rendering on this install belongs to "
+				+ String.join(", ", terrainRenderers) + ", so Beryllium's own terrain renderer "
+				+ "stays off. Two renderers drawing the same ground is not a tuning problem — it "
+				+ "is z-fighting, doubled geometry and a seam where each one stops.");
+		}
+	}
+
+	private void checkBlockEntityCompatibility(List<String> customBlockEntityMods) {
+		if (!CompatibilityChecker.hasCustomBlockEntityMods(customBlockEntityMods)) {
+			return;
+		}
+		customBlockEntitiesPresent = true;
+		BerylliumLog.compat("A mod with block entities that render outside their own block is "
+			+ "loaded (" + String.join(", ", customBlockEntityMods) + "). Bounding-box culling is "
+			+ "only sound for a block entity that stays inside the box it is tested against, so "
+			+ "those are bypassed individually by class: Create's shafts draw through their "
+			+ "neighbours, its belts span many blocks, and a contraption in motion is positioned "
+			+ "by the contraption rather than by any block.");
 	}
 
 	private void logStartupBanner() {

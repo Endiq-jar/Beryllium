@@ -4,7 +4,9 @@ import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
 import com.endiq.beryllium.culling.CameraAccess;
 import com.endiq.beryllium.culling.BehindCameraCulling;
+import com.endiq.beryllium.culling.LodRendererCoordination;
 import com.endiq.beryllium.culling.RenderDistanceSync;
+import com.endiq.beryllium.throttle.LoadPressureMonitor;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -58,9 +60,17 @@ public abstract class EntityRenderDispatcherMixin {
 			return;
 		}
 		if (config.entityRenderCulling && config.entityRenderCullDistance > 0.0) {
-			double maxDistance = config.entityRenderCullSyncWithRenderDistance
-				? RenderDistanceSync.effectiveCullDistance(config.entityRenderCullDistance, true)
-				: config.entityRenderCullDistance;
+			// LOD-aware: with Distant Horizons or Voxy installed the player can see terrain
+			// far beyond the vanilla render distance, so a ceiling calibrated for the smaller
+			// world would cull entities against a landscape that is still being drawn.
+			double maxDistance = LodRendererCoordination.distanceCeiling(
+				config.entityRenderCullDistance, config.entityRenderCullSyncWithRenderDistance);
+			// Dynamic load throttling: while the world is streaming in, entity rendering
+			// gives ground to terrain generation, which is on the critical path -- an
+			// unmeshed section is a hole the player can see, and a distant entity that is
+			// not drawn this frame is not. The scale never goes to zero and never pulls the
+			// ceiling inside 16 blocks, so nothing near the player blinks out.
+			maxDistance = LoadPressureMonitor.instance().scaledEntityCullDistance(maxDistance);
 			double dx = x - camPos.x;
 			double dy = y - camPos.y;
 			double dz = z - camPos.z;
@@ -74,6 +84,10 @@ public abstract class EntityRenderDispatcherMixin {
 			Beryllium.config().cullAggressiveDistance,
 			Beryllium.config().cullRangeSyncWithRenderDistance
 		);
+		// Under load the behind-camera test gets stricter rather than laxer: this is the one
+		// cull that removes work without removing anything the player could have seen, so a
+		// struggling device should start applying it sooner.
+		aggressiveDistance = LoadPressureMonitor.instance().scaledAggressiveDistance(aggressiveDistance);
 
 		boolean behind = BehindCameraCulling.isBehindCamera(
 			camPos.x, camPos.y, camPos.z,

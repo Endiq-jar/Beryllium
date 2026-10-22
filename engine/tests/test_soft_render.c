@@ -40,7 +40,20 @@ static void scene_init(Scene *sc, int render_mode, bool occlusion) {
 	beryl_blocks_init();
 	beryl_settings_default(&sc->set, SHOT_W, SHOT_H, BERYL_BACKEND_SOFTWARE);
 	sc->set.view_distance_sections = 10;
-	sc->set.builder_threads = 0;
+	/* One builder thread, and not 0 ("auto").
+	 *
+	 * Auto sizes the pool from the machine it happens to run on -- min(cores-1, 4) --
+	 * so the same test builds one section at a time on a laptop and three at a time on
+	 * a CI runner. With several builders in flight, *which* sections have finished by
+	 * the time a frame installs its budget of them is a scheduling outcome, and these
+	 * are image tests: they assert on pixels. That made test_live_edit pass or fail
+	 * depending on the core count of whoever ran it.
+	 *
+	 * A single builder still exercises the whole asynchronous path (queue, heap
+	 * priority, drain, deferred upload) but completes jobs in priority order, so the
+	 * set of sections installed after N frames is reproducible. Parallelism itself is
+	 * covered directly by test_pool, which does not assert on rendered output. */
+	sc->set.builder_threads = 1;
 	sc->set.occlusion_culling = occlusion;
 	sc->set.render_mode = render_mode;
 	sc->set.day_factor = 1.0f;
@@ -457,15 +470,36 @@ static void test_live_edit(void) {
 	}
 	free(before); free(after);
 
-	/* Now an edit that really changes the surface, and must show up. */
+	/* Now an edit that really changes the surface, and must show up.
+	 *
+	 * The cell chosen above sits behind the eye, so what has to reach the
+	 * screen is the *light* the glowstone casts onto terrain that is in view.
+	 * That is a burst of propagation plus a remesh of every section it
+	 * touches, and a single frame only installs `rebuilds_per_frame` of them
+	 * out of a queue that is hundreds deep. So pump frames until the picture
+	 * settles instead of demanding it inside one -- "an edit becomes visible
+	 * within a few frames" is the real contract, and asserting one frame made
+	 * this check race the builder pool and fail intermittently. */
 	uint8_t *base = render_copy(&sc, &w, &h);
 	int placed = beryl_engine_set_block(sc.e, px, py, pz, BERYL_BLOCK_GLOWSTONE);
-	beryl_engine_update(sc.e, &sc.cam, 0.0);
-	uint8_t *lit = render_copy(&sc, &w, &h);
 	CHECK(placed >= 1, "placing a block inside the loaded area must change voxels (%d)", placed);
+
+	const int settle_frames = 96, settle_budget = 48;
+	uint8_t *lit = NULL;
+	int diff = 0, frames = 0;
+	for (frames = 1; frames <= settle_frames; frames++) {
+		beryl_engine_update(sc.e, &sc.cam, 0.0);
+		free(lit);
+		lit = render_copy(&sc, &w, &h);
+		if (!base || !lit) break;
+		diff = count_diff(base, lit, w, h);
+		if (diff > 200) break;
+	}
 	if (base && lit) {
-		int diff = count_diff(base, lit, w, h);
 		CHECK(diff > 200, "a glowing block appearing in view must change the image (%d px)", diff);
+		CHECK(frames <= settle_budget,
+		      "the edit must settle quickly, not drip in over the whole queue (%d frames, budget %d)",
+		      frames, settle_budget);
 	}
 	free(base); free(lit);
 	scene_free(&sc);

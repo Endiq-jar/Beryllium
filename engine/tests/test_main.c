@@ -48,6 +48,7 @@ int main(int argc, char **argv) {
 	RUN(test_perf);
 	RUN(test_soft_render);
 	RUN(test_gl_backend);
+	RUN(test_snapshot);
 
 	printf("----------------------\n");
 	printf("%d checks, %d failed\n", beryl_test_checks, beryl_test_failed);

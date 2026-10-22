@@ -4,13 +4,16 @@ import com.endiq.beryllium.chunk.ChunkRebuildManager;
 import com.endiq.beryllium.chunk.ChunkUploadPacer;
 import com.endiq.beryllium.culling.CameraAccess;
 import com.endiq.beryllium.culling.VisibilityCulling;
+import com.endiq.beryllium.culling.async.AsyncCullingPipeline;
 import com.endiq.beryllium.debug.HudOverlayBridge;
 import com.endiq.beryllium.misc.ThreadPriorityTuner;
 import com.endiq.beryllium.performance.FrameMaintenanceScheduler;
 import com.endiq.beryllium.profiler.DebugOverlay;
 import com.endiq.beryllium.profiler.FrameProfiler;
 import com.endiq.beryllium.render.BlockEntityMeshCache;
+import com.endiq.beryllium.render.adapter.CustomTerrainRenderer;
 import com.endiq.beryllium.text.SignTextState;
+import com.endiq.beryllium.throttle.LoadPressureMonitor;
 import com.endiq.beryllium.util.BerylliumLog;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -74,7 +77,13 @@ public final class ClientFrameHooks {
 			// into the next frame, even if a renderer forgot to close its scope.
 			SignTextState.onFrame();
 			VisibilityCulling.onFrameStart();
-			ChunkUploadPacer.instance().onFrameStart(frameProfiler == null ? -1L : frameProfiler.lastFrameNanos());
+
+			// Both chunk governors read the frame that just *finished*: at this point in the
+			// hook the frame now starting has no duration yet, so a measurement taken here
+			// would always look like a healthy one.
+			long lastFrameNanos = frameProfiler == null ? -1L : frameProfiler.lastFrameNanos();
+			long averageFrameNanos = frameProfiler == null ? -1L : frameProfiler.averageFrameNanos();
+			ChunkUploadPacer.instance().onFrameStart(lastFrameNanos, averageFrameNanos);
 
 			// The static block entity meshes expire by frame count, and the priorities of
 			// the render/server/worker threads are re-checked on a timer rather than every
@@ -82,7 +91,7 @@ public final class ClientFrameHooks {
 			BlockEntityMeshCache.tick();
 			ThreadPriorityTuner.applyIfDue();
 
-			drainChunkRebuilds(frameProfiler);
+			drainChunkRebuilds(lastFrameNanos, averageFrameNanos);
 
 			FrameMaintenanceScheduler scheduler = maintenance;
 			if (scheduler != null) {
@@ -115,15 +124,22 @@ public final class ClientFrameHooks {
 		}
 		VisibilityCulling.onFrameStart();
 		SignTextState.onFrame();
+		// Cached visibility answers were measured against the world that just went away, and
+		// the frustum they were derived from belonged to its renderer.
+		AsyncCullingPipeline.instance().onWorldChanged();
+		// The upload backlog, and what a drain costs, belonged to the world that just went away.
+		ChunkUploadPacer.instance().reset();
 		// Cached block entity render states belong to the world that just went away.
 		BlockEntityMeshCache.invalidateAll();
+		// So does the measured load pressure, and so does the camera it was measured from:
+		// keeping it would make the first frame of the next world look like a teleport.
+		LoadPressureMonitor.instance().reset();
+		// Section revisions are per-world: a counter carried across a dimension change would
+		// make a mesh built in one world look current in the next.
+		CustomTerrainRenderer.instance().onWorldChanged();
 	}
 
-	private static void drainChunkRebuilds(FrameProfiler frameProfiler) {
-		ChunkRebuildManager manager = ChunkRebuildManager.instance();
-		if (manager == null) {
-			return;
-		}
+	private static void drainChunkRebuilds(long lastFrameNanos, long averageFrameNanos) {
 		try {
 			Minecraft minecraft = Minecraft.getInstance();
 			if (minecraft == null || minecraft.gameRenderer == null) {
@@ -137,12 +153,25 @@ public final class ClientFrameHooks {
 			if (cameraPosition == null) {
 				return;
 			}
+
+			// The load-pressure monitor needs the same camera and the same frame timings as
+			// the rebuild drain, and it has to run even when the rebuild manager is absent
+			// (a release where Beryllium's rebuild interception did not apply still loads
+			// chunks, and still benefits from giving terrain the frame).
+			LoadPressureMonitor.instance().onFrameStart(
+				cameraPosition.x, cameraPosition.y, cameraPosition.z,
+				lastFrameNanos, averageFrameNanos
+			);
+
+			ChunkRebuildManager manager = ChunkRebuildManager.instance();
+			if (manager == null) {
+				return;
+			}
 			Vector3f look = CameraAccess.lookVector(camera);
-			long lastFrameNanos = frameProfiler == null ? -1L : frameProfiler.lastFrameNanos();
 			manager.onFrameStart(
 				cameraPosition.x, cameraPosition.y, cameraPosition.z,
 				look.x(), look.y(), look.z(),
-				lastFrameNanos
+				lastFrameNanos, averageFrameNanos
 			);
 		} catch (Throwable t) {
 			BerylliumLog.debug("[BERYLLIUM] Per-frame hook failed: " + t);
