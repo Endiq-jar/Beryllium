@@ -157,7 +157,22 @@ public class VoxelShapeAlignedCuboid extends VoxelShapeSimpleCube {
             case Y -> this.getYSegments();
             case Z -> this.getZSegments();
         };
-        return Mth.clamp(Mth.floor(coord * (double) i), -1, i);
+        return clampIndex(Mth.floor(coord * (double) i), -1, i);
+    }
+
+    /**
+     * `Mth.clamp(int, int, int)` was removed in the 26.4 development line, so the index clamp is
+     * spelled out here instead of borrowed from the game. It is plain integer arithmetic with no
+     * Minecraft and no Java-version dependency (`Math.clamp` would need Java 21 and this tree
+     * compiles at `release = 17`), which is what keeps one source tree building from 1.19.4
+     * through whatever ships next. Semantics are identical to the removed method: below `min`
+     * becomes `min`, above `max` becomes `max`.
+     *
+     * `Mth.floor` is deliberately kept — it still exists on 26.4 and reimplementing it would only
+     * add a second place to be wrong.
+     */
+    protected static int clampIndex(int value, int min, int max) {
+        return value < min ? min : (value > max ? max : value);
     }
 
     protected int getXSegments() {
