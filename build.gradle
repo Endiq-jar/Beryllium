@@ -95,6 +95,9 @@ def hasMovedChatTypes = unobfuscatedGame || versionParts[0] >= 22
 def eraExcludedMixins = [] as Set
 if (!textUsesDrawInBatch) {
 	eraExcludedMixins << 'text.FontSignTextMixin'
+	// The pre-display-mode overload variant names MultiBufferSource, which 26.2's
+	// renderer split removed along with drawInBatch; same removal, same exclusion.
+	eraExcludedMixins << 'text.FontSignTextLegacyMixin'
 }
 if (!hasViewArea) {
 	eraExcludedMixins << 'chunk.ViewAreaMixin'
@@ -164,6 +167,7 @@ sourceSets {
 				// 26.2+ prepares text once and submits it later; the per-draw hooks that make
 				// sign text cheap no longer exist, so these files are only built below it.
 				exclude 'com/endiq/beryllium/mixin/text/FontSignTextMixin.java'
+				exclude 'com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java'
 			}
 			if (!hasViewArea) {
 				// ViewArea does not exist before 1.21.2; the LevelRenderer-level hook and
