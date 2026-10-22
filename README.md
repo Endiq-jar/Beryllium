@@ -93,7 +93,7 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
   default, so players and their name tags could disappear tens or hundreds of blocks
   before the terrain itself would. The configured values become a floor rather than a
   cap — turn this off to go back to the flat, unsynced defaults.
-- **Frame profiler & debug overlay** — FPS, frame time, 1% low, 0.1% low
+- **Frame profiler & debug overlay** — FPS, average and p99 frame time, 1% low, 0.1% low
   (`debugMode: true`).
 - **Entity render distance** — a hard ceiling (`entityRenderCullDistance`, default 64
   blocks) on how far away an entity may be and still be rendered. Vanilla has no entity

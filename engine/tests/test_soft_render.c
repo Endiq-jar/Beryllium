@@ -460,7 +460,12 @@ static void test_live_edit(void) {
 	/* Now an edit that really changes the surface, and must show up. */
 	uint8_t *base = render_copy(&sc, &w, &h);
 	int placed = beryl_engine_set_block(sc.e, px, py, pz, BERYL_BLOCK_GLOWSTONE);
-	beryl_engine_update(sc.e, &sc.cam, 0.0);
+	/* Edits ride the frame-budgeted worker pool, so a bare update() only shows the
+	 * block when a free worker happens to finish mid-call -- fine for gameplay (the
+	 * mesh lands a frame later, like vanilla's rebuild queue), racy for a pixel
+	 * diff. prepare_capture exists for exactly this: drain everything blocking,
+	 * then compare deterministic images. */
+	beryl_engine_prepare_capture(sc.e, &sc.cam);
 	uint8_t *lit = render_copy(&sc, &w, &h);
 	CHECK(placed >= 1, "placing a block inside the loaded area must change voxels (%d)", placed);
 	if (base && lit) {
