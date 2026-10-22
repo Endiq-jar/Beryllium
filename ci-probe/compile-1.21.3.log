@@ -1,5 +1,5 @@
 ## minecraft 1.21.3
-## commit: 8ed75db
+## commit: f894092
 ## gradle exit: 0, validate exit: 0
 ## compile errors: 0
 ## access widener: accessWidener v1 named
@@ -44,9 +44,9 @@ Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/net
 Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;ILnet/minecraft/client/GuiMessageTag;Z)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
 Cannot remap addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;Lnet/minecraft/client/multiplayer/chat/GuiMessageSource;Lnet/minecraft/client/multiplayer/chat/GuiMessageTag;)V because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
 Cannot remap refreshTrimmedMessage because it does not exist in any of the targets [net/minecraft/client/gui/components/ChatComponent]
+Cannot remap tick because it does not exist in any of the targets [net/minecraft/server/MinecraftServer]
+Cannot remap tick because it does not exist in any of the targets [net/minecraft/server/MinecraftServer]
 Cannot remap getTooltipLines(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/TooltipFlag;)Ljava/util/List; because it does not exist in any of the targets [net/minecraft/world/item/ItemStack]
-Cannot remap tick because it does not exist in any of the targets [net/minecraft/server/MinecraftServer]
-Cannot remap tick because it does not exist in any of the targets [net/minecraft/server/MinecraftServer]
 Cannot remap renderSnowAndRain because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer]
 Cannot remap tickRain because it does not exist in any of the targets [net/minecraft/client/renderer/LevelRenderer]
 Cannot remap setLevel(Lnet/minecraft/client/multiplayer/ClientLevel;)V because it does not exist in any of the targets [net/minecraft/client/Minecraft]
@@ -84,5 +84,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 14s
+BUILD SUCCESSFUL in 17s
 10 actionable tasks: 10 executed
