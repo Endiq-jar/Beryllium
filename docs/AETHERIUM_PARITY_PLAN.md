@@ -9,10 +9,10 @@
 > none of the code added under this plan is a translation of theirs. Beryllium is MIT;
 > importing their LGPL-3.0 code would put those parts under LGPL-3.0 and change the
 > obligations of this project permanently. What is taken is the *feature ideas* —
-> zoom with scroll-adjust, fullbright with adjustable strength, a p99 frame-time
-> metric — the same way Aetherium credits Zume for the zoom idea while reimplementing
-> it independently. Everything below is implemented from Minecraft's own public API
-> and from techniques common across the optimization-mod ecosystem.
+> zoom with scroll-adjust and a p99 frame-time metric — the same way Aetherium
+> credits Zume for the zoom idea while reimplementing it independently. Everything
+> below is implemented from Minecraft's own public API and from techniques common
+> across the optimization-mod ecosystem.
 
 ## What Aetherium actually is (verified against its repository)
 
@@ -24,7 +24,7 @@ per-version "delta" patches for 32 more versions. Its honest-status table says:
   it on real hardware. The CurseForge page's "Aetherium renderer (on by default,
   every version)" claim applies to the shipped SHADOW path.
 - The shipping feature set is: tabbed/animated video-settings screen, backend probe,
-  dynamic lights (updates only where changed), gamma/fullbright suite, zoom,
+  dynamic lights (updates only where changed), gamma suite, zoom,
   entity/terrain culling, HUD overlay, conflict scanner with auto-delegation,
   Android launcher routing, chat price of 58 config options.
 
@@ -35,7 +35,6 @@ per-version "delta" patches for 32 more versions. Its honest-status table says:
 | Own renderer (HZB occlusion, multi-draw-indirect, persistent-mapped buffers) | not present | **Long horizon.** Aetherium itself doesn't ship it; do not start. |
 | Animated 6-tab video settings screen + presets | Gson config, no custom screen | Batch 4. |
 | Zoom (hold/toggle, smooth, scroll-adjust, rebindable) | none | Implemented, then **removed at maintainer request** (2026-10-22) to keep this branch focused on the engine work. Useful reference for batch 3+. |
-| Fullbright / gamma strength | none | Batch 2. |
 | Dynamic lights ("where changed" light-updates) | none | Batch 3. |
 | Freelook | none | Batch 3. |
 | p99 frame-time in HUD | 1% low / 0.1% low only | **Batch 1 — this pass.** |
@@ -53,19 +52,7 @@ off-thread ticking. Parity here is one-directional; nothing is removed.
 
 ## Batch 1 (this pass)
 
-1. **Zoom** — rebindable key (default `C`), hold or toggle mode, eased FOV
-   animation, scroll-to-adjust strength while zooming. Implemented as:
-   - `client/zoom/ZoomHandler.java` — version-neutral state + smoothing, key
-     created and registered reflectively (three KeyMapping constructor shapes
-     across 1.19.4 → 26.x), degrades to vanilla on any mismatch.
-   - `mixin/zoom/ZoomFovMixin.java` — scales `GameRenderer#getFov` when the
-     projection FOV is being computed (`changingFov`).
-   - `mixin/zoom/ZoomKeybindInitMixin.java` — registers the key after the options
-     list exists (end of the client constructor).
-   - `mixin/zoom/ZoomScrollMixin.java` — consumes wheel scroll while zooming to
-     adjust strength instead of swapping the hotbar slot.
-   - Config: `zoomEnabled`, `zoomToggleMode`, `zoomSmooth`, `zoomSmoothMillis`,
-     `zoomDivisor`, `zoomScrollAdjust` (see `BerylliumConfig`).
+1. **Zoom** — *removed at maintainer request after landing; see the gap table.*
 2. **P99 metric** — `FrameTimeRingBuffer.Snapshot` gains `p99FrameNanos` with
    `p99FrameMillis()`/`p99Fps()` accessors; the debug overlay prints it beside the
    1%/0.1% lows. Same meaning Aetherium documents: the slowest 1% of frames.
@@ -78,8 +65,6 @@ variants like the existing Legacy/Modern pairs.
 
 ## Batch 2 (next)
 
-- **Fullbright / gamma strength** — one hook in the light-texture update path,
-  strength-ramped rather than boolean, config `fullbrightStrength` default off.
 - **Even frame pacing** — smooth the sleep quantum of vanilla's max-framerate cap
   so frames land evenly instead of drifting (Windows timer-resolution aware).
 - **Smart chunk-in-fog culling** — extension of the existing `VisibilityCulling`.
