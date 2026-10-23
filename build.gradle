@@ -106,6 +106,8 @@ if (!textUsesDrawInBatch) {
 	// the immediate-mode renderer, so neither file can compile there -- excluding only the
 	// display-mode one left the legacy file in the build and broke the 26.2/26.3 compile.
 	eraExcludedMixins << 'text.FontSignTextMixin'
+	// The pre-display-mode overload variant names MultiBufferSource, which 26.2's
+	// renderer split removed along with drawInBatch; same removal, same exclusion.
 	eraExcludedMixins << 'text.FontSignTextLegacyMixin'
 }
 if (!hasViewArea) {

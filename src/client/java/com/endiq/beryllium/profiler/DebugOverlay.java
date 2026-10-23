@@ -15,10 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Produces the "BERYLLIUM / FPS / 1% Low / 0.1% Low" block from spec section 8 (top-left
- * corner), plus the live server-tick summary when one is available, and — while a world is
- * loaded — one line each for the chunk rebuild queue, the upload pacer and the visibility
- * memo. Only produces lines when {@code debugMode} is on in beryllium.json.
+ * Produces the "BERYLLIUM / FPS / P99 / 1% Low / 0.1% Low" block from spec section 8
+ * (top-left corner), plus the live server-tick summary when one is available, and — while a
+ * world is loaded — one line each for the chunk rebuild queue, the upload pacer and the
+ * visibility memo. Only produces lines when {@code debugMode} is on in beryllium.json.
  *
  * <p>The drawing itself lives in {@code HudOverlayBridge} (Fabric API's HUD callback, when
  * it is present) or in the per-version GUI mixin. That split is deliberate: the text is
@@ -46,6 +46,7 @@ public final class DebugOverlay {
 		FrameTimeRingBuffer.Snapshot snapshot = profiler.snapshot();
 		lines.add("BERYLLIUM");
 		lines.add(String.format("FPS: %.0f (%.1f ms)", snapshot.avgFps(), snapshot.avgFrameMillis()));
+		lines.add(String.format("P99: %.1f ms (~%.0f FPS)", snapshot.p99FrameMillis(), snapshot.p99Fps()));
 		lines.add(String.format("1%% Low: %.0f", snapshot.onePercentLowFps()));
 		lines.add(String.format("0.1%% Low: %.0f", snapshot.zeroPointOnePercentLowFps()));
 

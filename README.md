@@ -132,7 +132,7 @@ where it cannot (OpenGL ES environments, older devices, mod-conflict situations)
   Everything is fail-open: no level, no config, or any unexpected state means "do not
   throttle", and the whole thing stands down when the feature is off or when the mod is
   already deferring culling to EntityCulling.
-- **Frame profiler & debug overlay** — FPS, frame time, 1% low, 0.1% low
+- **Frame profiler & debug overlay** — FPS, average and p99 frame time, 1% low, 0.1% low
   (`debugMode: true`), plus live counters for the render-thread governors: the chunk rebuild
   queue (queued / drained / re-queued), the upload pacer (used vs. allowance this frame,
   deferrals, last upload cost), the visibility memo (hit rate and peak size), the

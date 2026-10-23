@@ -1,5 +1,5 @@
 ## minecraft 26.1.1
-## commit: 34786a5
+## commit: f894092
 ## gradle exit: 0, validate exit: 0
 ## compile errors: 0
 ## access widener: accessWidener v2 official
@@ -24,10 +24,10 @@ Failed to parse fabric.mod.json: /home/runner/work/Beryllium/Beryllium/src/main/
 > Task :compileTestJava NO-SOURCE
 > Task :processTestResources NO-SOURCE
 > Task :testClasses UP-TO-DATE
-> Task :jar
 > Task :test NO-SOURCE
-> Task :assemble
+> Task :jar
 > Task :validateAccessWidener
+> Task :assemble
 > Task :check
 
 > Task :printBuildTarget

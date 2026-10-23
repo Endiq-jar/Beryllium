@@ -482,6 +482,7 @@ static void test_live_edit(void) {
 	 * this check race the builder pool and fail intermittently. */
 	uint8_t *base = render_copy(&sc, &w, &h);
 	int placed = beryl_engine_set_block(sc.e, px, py, pz, BERYL_BLOCK_GLOWSTONE);
+
 	CHECK(placed >= 1, "placing a block inside the loaded area must change voxels (%d)", placed);
 
 	const int settle_frames = 96, settle_budget = 48;

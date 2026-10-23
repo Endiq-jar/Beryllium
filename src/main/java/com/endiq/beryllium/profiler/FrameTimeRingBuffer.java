@@ -52,10 +52,19 @@ public final class FrameTimeRingBuffer {
 
 		return new Snapshot(
 			avgNanos,
+			percentile(sorted, 0.99),
 			worstAverage(sorted, 0.01),
 			worstAverage(sorted, 0.001),
 			sorted[sorted.length - 1]
 		);
+	}
+
+	/** The frame time below which {@code fraction} of samples fall. p99 is "the slowest
+	 *  1% of frames": the stutter a plain average hides, reported beside the lows. */
+	private static double percentile(long[] sortedAscending, double fraction) {
+		int rank = (int) Math.ceil(sortedAscending.length * fraction);
+		rank = Math.max(1, Math.min(sortedAscending.length, rank));
+		return sortedAscending[rank - 1];
 	}
 
 	/** Average frame time of the worst (slowest) {@code worstFraction} of samples. */
@@ -70,14 +79,19 @@ public final class FrameTimeRingBuffer {
 
 	public record Snapshot(
 		double avgFrameNanos,
+		double p99FrameNanos,
 		double onePercentLowFrameNanos,
 		double zeroPointOnePercentLowFrameNanos,
 		long worstFrameNanos
 	) {
-		public static final Snapshot EMPTY = new Snapshot(0, 0, 0, 0);
+		public static final Snapshot EMPTY = new Snapshot(0, 0, 0, 0, 0);
 
 		public double avgFps() {
 			return avgFrameNanos <= 0 ? 0 : 1_000_000_000.0 / avgFrameNanos;
+		}
+
+		public double p99Fps() {
+			return p99FrameNanos <= 0 ? 0 : 1_000_000_000.0 / p99FrameNanos;
 		}
 
 		public double onePercentLowFps() {
@@ -90,6 +104,10 @@ public final class FrameTimeRingBuffer {
 
 		public double avgFrameMillis() {
 			return avgFrameNanos / 1_000_000.0;
+		}
+
+		public double p99FrameMillis() {
+			return p99FrameNanos / 1_000_000.0;
 		}
 	}
 }
