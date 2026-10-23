@@ -1,6 +1,6 @@
 ## minecraft 1.20.1
-## commit: f894092
-## source files: 149
+## commit: 0b79a1d
+## source files: 170
 
 === net.minecraft.client.gui.Font
 Compiled from "Font.java"
@@ -343,8 +343,55 @@ public class net.minecraft.client.renderer.LevelRenderer implements net.minecraf
   public void renderLevel(com.mojang.blaze3d.vertex.PoseStack, float, long, boolean, net.minecraft.client.Camera, net.minecraft.client.renderer.GameRenderer, net.minecraft.client.renderer.LightTexture, org.joml.Matrix4f);
   private void checkPoseStack(com.mojang.blaze3d.vertex.PoseStack);
 
-=== net.minecraft.client.renderer.SectionRenderDispatcher
-Error: class not found: net.minecraft.client.renderer.SectionRenderDispatcher
+=== net.minecraft.client.renderer.chunk.ChunkRenderDispatcher
+Compiled from "ChunkRenderDispatcher.java"
+public class net.minecraft.client.renderer.chunk.ChunkRenderDispatcher {
+  private static final org.slf4j.Logger LOGGER;
+  private static final int MAX_WORKERS_32_BIT;
+  private static final com.mojang.blaze3d.vertex.VertexFormat VERTEX_FORMAT;
+  private static final int MAX_HIGH_PRIORITY_QUOTA;
+  private final java.util.concurrent.PriorityBlockingQueue<net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask> toBatchHighPriority;
+  private final java.util.Queue<net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask> toBatchLowPriority;
+  private int highPriorityQuota;
+  private final java.util.Queue<net.minecraft.client.renderer.ChunkBufferBuilderPack> freeBuffers;
+  private final java.util.Queue<java.lang.Runnable> toUpload;
+  private volatile int toBatchCount;
+  private volatile int freeBufferCount;
+  final net.minecraft.client.renderer.ChunkBufferBuilderPack fixedBuffers;
+  private final net.minecraft.util.thread.ProcessorMailbox<java.lang.Runnable> mailbox;
+  private final java.util.concurrent.Executor executor;
+  net.minecraft.client.multiplayer.ClientLevel level;
+  final net.minecraft.client.renderer.LevelRenderer renderer;
+  private net.minecraft.world.phys.Vec3 camera;
+  public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack);
+  public void setLevel(net.minecraft.client.multiplayer.ClientLevel);
+  private void runTask();
+  private net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask pollTask();
+  public java.lang.String getStats();
+  public int getToBatchCount();
+  public int getToUpload();
+  public int getFreeBufferCount();
+  public void setCamera(net.minecraft.world.phys.Vec3);
+  public net.minecraft.world.phys.Vec3 getCameraPosition();
+  public void uploadAllPendingUploads();
+  public void rebuildChunkSync(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk, net.minecraft.client.renderer.chunk.RenderRegionCache);
+  public void blockUntilClear();
+  public void schedule(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask);
+  public java.util.concurrent.CompletableFuture<java.lang.Void> uploadChunkLayer(com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer, com.mojang.blaze3d.vertex.VertexBuffer);
+  private void clearBatchQueue();
+  public boolean isQueueEmpty();
+  public void dispose();
+  private static void method_43610(com.mojang.blaze3d.vertex.VertexBuffer, com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer);
+  private void method_23086(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask);
+  private void method_22755(net.minecraft.client.renderer.ChunkBufferBuilderPack, net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, java.lang.Throwable);
+  private void method_23618(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, net.minecraft.client.renderer.ChunkBufferBuilderPack);
+  private static java.util.concurrent.CompletionStage method_38555(java.util.concurrent.CompletableFuture);
+  private static java.util.concurrent.CompletableFuture method_22757(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask, net.minecraft.client.renderer.ChunkBufferBuilderPack);
+  static {};
+}
+
+=== net.minecraft.client.renderer.chunk.SectionRenderDispatcher
+Error: class not found: net.minecraft.client.renderer.chunk.SectionRenderDispatcher
 
 === net.minecraft.client.renderer.ViewArea
 Compiled from "ViewArea.java"

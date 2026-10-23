@@ -1,5 +1,5 @@
 ## minecraft 1.20.1
-## commit: f894092
+## commit: 0b79a1d
 ## classpath entries: 58
 
 ### class names matching the features under test
@@ -8211,4 +8211,530 @@ public void syncBlockState(net.minecraft.core.BlockPos, net.minecraft.world.leve
 public void syncBlockState(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, net.minecraft.world.phys.Vec3) ==> Method net/minecraft/world/entity/player/Player.absMoveTo:(DDD)V
 public void syncBlockState(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, net.minecraft.world.phys.Vec3) ==> Method net/minecraft/world/entity/player/Player.isColliding:(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z
 public void syncBlockState(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, net.minecraft.world.phys.Vec3) ==> Method net/minecraft/world/entity/player/Player.level:()Lnet/minecraft/world/level/Level;
+
+
+### chunk pipeline classes
+=== net.minecraft.client.renderer.ViewArea
+Compiled from "ViewArea.java"
+public class net.minecraft.client.renderer.ViewArea {
+  protected final net.minecraft.client.renderer.LevelRenderer levelRenderer;
+  protected final net.minecraft.world.level.Level level;
+  protected int chunkGridSizeY;
+  protected int chunkGridSizeX;
+  protected int chunkGridSizeZ;
+  public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk[] chunks;
+  public net.minecraft.client.renderer.ViewArea(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher, net.minecraft.world.level.Level, int, net.minecraft.client.renderer.LevelRenderer);
+  protected void createChunks(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher);
+  public void releaseAllBuffers();
+  private int getChunkIndex(int, int, int);
+  protected void setViewDistance(int);
+  public void repositionCamera(double, double);
+  public void setDirty(int, int, int, boolean);
+  protected net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk getRenderChunkAt(net.minecraft.core.BlockPos);
+}
+
+=== net.minecraft.client.renderer.SectionOcclusionGraph
+Error: class not found: net.minecraft.client.renderer.SectionOcclusionGraph
+
+=== net.minecraft.client.renderer.chunk.ChunkRenderDispatcher
+Compiled from "ChunkRenderDispatcher.java"
+public class net.minecraft.client.renderer.chunk.ChunkRenderDispatcher {
+  private static final org.slf4j.Logger LOGGER;
+  private static final int MAX_WORKERS_32_BIT;
+  private static final com.mojang.blaze3d.vertex.VertexFormat VERTEX_FORMAT;
+  private static final int MAX_HIGH_PRIORITY_QUOTA;
+  private final java.util.concurrent.PriorityBlockingQueue<net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask> toBatchHighPriority;
+  private final java.util.Queue<net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask> toBatchLowPriority;
+  private int highPriorityQuota;
+  private final java.util.Queue<net.minecraft.client.renderer.ChunkBufferBuilderPack> freeBuffers;
+  private final java.util.Queue<java.lang.Runnable> toUpload;
+  private volatile int toBatchCount;
+  private volatile int freeBufferCount;
+  final net.minecraft.client.renderer.ChunkBufferBuilderPack fixedBuffers;
+  private final net.minecraft.util.thread.ProcessorMailbox<java.lang.Runnable> mailbox;
+  private final java.util.concurrent.Executor executor;
+  net.minecraft.client.multiplayer.ClientLevel level;
+  final net.minecraft.client.renderer.LevelRenderer renderer;
+  private net.minecraft.world.phys.Vec3 camera;
+  public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack);
+  public void setLevel(net.minecraft.client.multiplayer.ClientLevel);
+  private void runTask();
+  private net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask pollTask();
+  public java.lang.String getStats();
+  public int getToBatchCount();
+  public int getToUpload();
+  public int getFreeBufferCount();
+  public void setCamera(net.minecraft.world.phys.Vec3);
+  public net.minecraft.world.phys.Vec3 getCameraPosition();
+  public void uploadAllPendingUploads();
+  public void rebuildChunkSync(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk, net.minecraft.client.renderer.chunk.RenderRegionCache);
+  public void blockUntilClear();
+  public void schedule(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask);
+  public java.util.concurrent.CompletableFuture<java.lang.Void> uploadChunkLayer(com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer, com.mojang.blaze3d.vertex.VertexBuffer);
+  private void clearBatchQueue();
+  public boolean isQueueEmpty();
+  public void dispose();
+  private static void method_43610(com.mojang.blaze3d.vertex.VertexBuffer, com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer);
+  private void method_23086(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask);
+  private void method_22755(net.minecraft.client.renderer.ChunkBufferBuilderPack, net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, java.lang.Throwable);
+  private void method_23618(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, net.minecraft.client.renderer.ChunkBufferBuilderPack);
+  private static java.util.concurrent.CompletionStage method_38555(java.util.concurrent.CompletableFuture);
+  private static java.util.concurrent.CompletableFuture method_22757(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask, net.minecraft.client.renderer.ChunkBufferBuilderPack);
+  static {};
+}
+
+=== net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult
+Compiled from "ChunkRenderDispatcher.java"
+final class net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult extends java.lang.Enum<net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult> {
+  public static final net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult SUCCESSFUL;
+  public static final net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult CANCELLED;
+  private static final net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult[] $VALUES;
+  public static net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult[] values();
+  public static net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult valueOf(java.lang.String);
+  private net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult();
+  private static net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult[] $values();
+  static {};
+}
+
+=== net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk
+Compiled from "ChunkRenderDispatcher.java"
+public class net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk {
+  public static final net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk UNCOMPILED;
+  final java.util.Set<net.minecraft.client.renderer.RenderType> hasBlocks;
+  final java.util.List<net.minecraft.world.level.block.entity.BlockEntity> renderableBlockEntities;
+  net.minecraft.client.renderer.chunk.VisibilitySet visibilitySet;
+  com.mojang.blaze3d.vertex.BufferBuilder$SortState transparencyState;
+  public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk();
+  public boolean hasNoRenderableLayers();
+  public boolean isEmpty(net.minecraft.client.renderer.RenderType);
+  public java.util.List<net.minecraft.world.level.block.entity.BlockEntity> getRenderableBlockEntities();
+  public boolean facesCanSeeEachother(net.minecraft.core.Direction, net.minecraft.core.Direction);
+  static {};
+}
+
+=== net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk$1
+Compiled from "ChunkRenderDispatcher.java"
+class net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk$1 extends net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk {
+  net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk$1();
+  public boolean facesCanSeeEachother(net.minecraft.core.Direction, net.minecraft.core.Direction);
+}
+
+=== net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk
+Compiled from "ChunkRenderDispatcher.java"
+public class net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk {
+  public static final int SIZE;
+  public final int index;
+  public final java.util.concurrent.atomic.AtomicReference<net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk> compiled;
+  final java.util.concurrent.atomic.AtomicInteger initialCompilationCancelCount;
+  private net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask lastRebuildTask;
+  private net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ResortTransparencyTask lastResortTransparencyTask;
+  private final java.util.Set<net.minecraft.world.level.block.entity.BlockEntity> globalBlockEntities;
+  private final java.util.Map<net.minecraft.client.renderer.RenderType, com.mojang.blaze3d.vertex.VertexBuffer> buffers;
+  private net.minecraft.world.phys.AABB bb;
+  private boolean dirty;
+  final net.minecraft.core.BlockPos$MutableBlockPos origin;
+  private final net.minecraft.core.BlockPos$MutableBlockPos[] relativeOrigins;
+  private boolean playerChanged;
+  final net.minecraft.client.renderer.chunk.ChunkRenderDispatcher field_20833;
+  public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher, int, int, int, int);
+  private boolean doesChunkExistAt(net.minecraft.core.BlockPos);
+  public boolean hasAllNeighbors();
+  public net.minecraft.world.phys.AABB getBoundingBox();
+  public com.mojang.blaze3d.vertex.VertexBuffer getBuffer(net.minecraft.client.renderer.RenderType);
+  public void setOrigin(int, int, int);
+  protected double getDistToPlayerSqr();
+  void beginLayer(com.mojang.blaze3d.vertex.BufferBuilder);
+  public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk getCompiledChunk();
+  private void reset();
+  public void releaseBuffers();
+  public net.minecraft.core.BlockPos getOrigin();
+  public void setDirty(boolean);
+  public void setNotDirty();
+  public boolean isDirty();
+  public boolean isDirtyFromPlayer();
+  public net.minecraft.core.BlockPos getRelativeOrigin(net.minecraft.core.Direction);
+  public boolean resortTransparency(net.minecraft.client.renderer.RenderType, net.minecraft.client.renderer.chunk.ChunkRenderDispatcher);
+  protected boolean cancelTasks();
+  public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask createCompileTask(net.minecraft.client.renderer.chunk.RenderRegionCache);
+  public void rebuildChunkAsync(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher, net.minecraft.client.renderer.chunk.RenderRegionCache);
+  void updateGlobalBlockEntities(java.util.Collection<net.minecraft.world.level.block.entity.BlockEntity>);
+  public void compileSync(net.minecraft.client.renderer.chunk.RenderRegionCache);
+  private static void method_3660(net.minecraft.core.BlockPos$MutableBlockPos[]);
+  private static com.mojang.blaze3d.vertex.VertexBuffer method_22779(net.minecraft.client.renderer.RenderType);
+  private static net.minecraft.client.renderer.RenderType method_22780(net.minecraft.client.renderer.RenderType);
+}
+
+=== net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask
+Compiled from "ChunkRenderDispatcher.java"
+abstract class net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask implements java.lang.Comparable<net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask> {
+  protected final double distAtCreation;
+  protected final java.util.concurrent.atomic.AtomicBoolean isCancelled;
+  protected final boolean isHighPriority;
+  final net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk field_20837;
+  public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk, double, boolean);
+  public abstract java.util.concurrent.CompletableFuture<net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult> doTask(net.minecraft.client.renderer.ChunkBufferBuilderPack);
+  public abstract void cancel();
+  protected abstract java.lang.String name();
+  public int compareTo(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask);
+  public int compareTo(java.lang.Object);
+}
+
+=== net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask
+Compiled from "ChunkRenderDispatcher.java"
+class net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask extends net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask {
+  protected net.minecraft.client.renderer.chunk.RenderChunkRegion region;
+  final net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk field_20839;
+  public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk, double, net.minecraft.client.renderer.chunk.RenderChunkRegion, boolean);
+  protected java.lang.String name();
+  public java.util.concurrent.CompletableFuture<net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult> doTask(net.minecraft.client.renderer.ChunkBufferBuilderPack);
+  private net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask$CompileResults compile(float, float, float, net.minecraft.client.renderer.ChunkBufferBuilderPack);
+  private <E extends net.minecraft.world.level.block.entity.BlockEntity> void handleBlockEntity(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask$CompileResults, E);
+  public void cancel();
+  private net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult method_23619(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk, java.util.List, java.lang.Throwable);
+  private void method_22788(java.util.List, net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk, net.minecraft.client.renderer.RenderType, com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer);
+}
+
+=== net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask$CompileResults
+Compiled from "ChunkRenderDispatcher.java"
+final class net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask$CompileResults {
+  public final java.util.List<net.minecraft.world.level.block.entity.BlockEntity> globalBlockEntities;
+  public final java.util.List<net.minecraft.world.level.block.entity.BlockEntity> blockEntities;
+  public final java.util.Map<net.minecraft.client.renderer.RenderType, com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer> renderedLayers;
+  public net.minecraft.client.renderer.chunk.VisibilitySet visibilitySet;
+  public com.mojang.blaze3d.vertex.BufferBuilder$SortState transparencyState;
+  net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask$CompileResults();
+}
+
+=== net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ResortTransparencyTask
+Compiled from "ChunkRenderDispatcher.java"
+class net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ResortTransparencyTask extends net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask {
+  private final net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk compiledChunk;
+  final net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk field_20840;
+  public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ResortTransparencyTask(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk, double, net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk);
+  protected java.lang.String name();
+  public java.util.concurrent.CompletableFuture<net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult> doTask(net.minecraft.client.renderer.ChunkBufferBuilderPack);
+  public void cancel();
+  private net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult method_22789(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, java.lang.Throwable);
+  private static net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult method_22790(java.lang.Void);
+}
+
+=== net.minecraft.client.renderer.chunk.RenderChunk
+Compiled from "RenderChunk.java"
+class net.minecraft.client.renderer.chunk.RenderChunk {
+  private final java.util.Map<net.minecraft.core.BlockPos, net.minecraft.world.level.block.entity.BlockEntity> blockEntities;
+  private final java.util.List<net.minecraft.world.level.chunk.PalettedContainer<net.minecraft.world.level.block.state.BlockState>> sections;
+  private final boolean debug;
+  private final net.minecraft.world.level.chunk.LevelChunk wrapped;
+  net.minecraft.client.renderer.chunk.RenderChunk(net.minecraft.world.level.chunk.LevelChunk);
+  public net.minecraft.world.level.block.entity.BlockEntity getBlockEntity(net.minecraft.core.BlockPos);
+  public net.minecraft.world.level.block.state.BlockState getBlockState(net.minecraft.core.BlockPos);
+  private java.lang.String method_39961(int, int, int) throws java.lang.Exception;
+}
+
+=== net.minecraft.client.renderer.chunk.RenderChunkRegion
+Compiled from "RenderChunkRegion.java"
+public class net.minecraft.client.renderer.chunk.RenderChunkRegion implements net.minecraft.world.level.BlockAndTintGetter {
+  private final int centerX;
+  private final int centerZ;
+  protected final net.minecraft.client.renderer.chunk.RenderChunk[][] chunks;
+  protected final net.minecraft.world.level.Level level;
+  net.minecraft.client.renderer.chunk.RenderChunkRegion(net.minecraft.world.level.Level, int, int, net.minecraft.client.renderer.chunk.RenderChunk[][]);
+  public net.minecraft.world.level.block.state.BlockState getBlockState(net.minecraft.core.BlockPos);
+  public net.minecraft.world.level.material.FluidState getFluidState(net.minecraft.core.BlockPos);
+  public float getShade(net.minecraft.core.Direction, boolean);
+  public net.minecraft.world.level.lighting.LevelLightEngine getLightEngine();
+  public net.minecraft.world.level.block.entity.BlockEntity getBlockEntity(net.minecraft.core.BlockPos);
+  public int getBlockTint(net.minecraft.core.BlockPos, net.minecraft.world.level.ColorResolver);
+  public int getMinBuildHeight();
+  public int getHeight();
+}
+
+=== net.minecraft.client.renderer.chunk.RenderRegionCache
+Compiled from "RenderRegionCache.java"
+public class net.minecraft.client.renderer.chunk.RenderRegionCache {
+  private final it.unimi.dsi.fastutil.longs.Long2ObjectMap<net.minecraft.client.renderer.chunk.RenderRegionCache$ChunkInfo> chunkInfoCache;
+  public net.minecraft.client.renderer.chunk.RenderRegionCache();
+  public net.minecraft.client.renderer.chunk.RenderChunkRegion createRegion(net.minecraft.world.level.Level, net.minecraft.core.BlockPos, net.minecraft.core.BlockPos, int);
+  private static boolean isAllEmpty(net.minecraft.core.BlockPos, net.minecraft.core.BlockPos, int, int, net.minecraft.client.renderer.chunk.RenderRegionCache$ChunkInfo[][]);
+  private static net.minecraft.client.renderer.chunk.RenderRegionCache$ChunkInfo method_39968(net.minecraft.world.level.Level, long);
+}
+
+=== net.minecraft.client.renderer.chunk.RenderRegionCache$ChunkInfo
+Compiled from "RenderRegionCache.java"
+final class net.minecraft.client.renderer.chunk.RenderRegionCache$ChunkInfo {
+  private final net.minecraft.world.level.chunk.LevelChunk chunk;
+  private net.minecraft.client.renderer.chunk.RenderChunk renderChunk;
+  net.minecraft.client.renderer.chunk.RenderRegionCache$ChunkInfo(net.minecraft.world.level.chunk.LevelChunk);
+  public net.minecraft.world.level.chunk.LevelChunk chunk();
+  public net.minecraft.client.renderer.chunk.RenderChunk renderChunk();
+}
+
+=== net.minecraft.client.renderer.chunk.VisGraph
+Compiled from "VisGraph.java"
+public class net.minecraft.client.renderer.chunk.VisGraph {
+  private static final int SIZE_IN_BITS;
+  private static final int LEN;
+  private static final int MASK;
+  private static final int SIZE;
+  private static final int X_SHIFT;
+  private static final int Z_SHIFT;
+  private static final int Y_SHIFT;
+  private static final int DX;
+  private static final int DZ;
+  private static final int DY;
+  private static final int INVALID_INDEX;
+  private static final net.minecraft.core.Direction[] DIRECTIONS;
+  private final java.util.BitSet bitSet;
+  private static final int[] INDEX_OF_EDGES;
+  private int empty;
+  public net.minecraft.client.renderer.chunk.VisGraph();
+  public void setOpaque(net.minecraft.core.BlockPos);
+  private static int getIndex(net.minecraft.core.BlockPos);
+  private static int getIndex(int, int, int);
+  public net.minecraft.client.renderer.chunk.VisibilitySet resolve();
+  private java.util.Set<net.minecraft.core.Direction> floodFill(int);
+  private void addEdges(int, java.util.Set<net.minecraft.core.Direction>);
+  private int getNeighborIndexAtFace(int, net.minecraft.core.Direction);
+  private static void method_3680(int[]);
+  static {};
+}
+
+=== net.minecraft.client.renderer.chunk.VisGraph$1
+Compiled from "VisGraph.java"
+class net.minecraft.client.renderer.chunk.VisGraph$1 {
+  static final int[] $SwitchMap$net$minecraft$core$Direction;
+  static {};
+}
+
+=== net.minecraft.client.renderer.chunk.VisibilitySet
+Compiled from "VisibilitySet.java"
+public class net.minecraft.client.renderer.chunk.VisibilitySet {
+  private static final int FACINGS;
+  private final java.util.BitSet data;
+  public net.minecraft.client.renderer.chunk.VisibilitySet();
+  public void add(java.util.Set<net.minecraft.core.Direction>);
+  public void set(net.minecraft.core.Direction, net.minecraft.core.Direction, boolean);
+  public void setAll(boolean);
+  public boolean visibilityBetween(net.minecraft.core.Direction, net.minecraft.core.Direction);
+  public java.lang.String toString();
+  static {};
+}
+
+
+### chunk pipeline call map (enclosing method ==> callee)
+=== net.minecraft.client.renderer.chunk.ChunkRenderDispatcher
+private net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask pollTask() ==> Field highPriorityQuota:I
+private net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask pollTask() ==> Field toBatchHighPriority:Ljava/util/concurrent/PriorityBlockingQueue;
+private net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask pollTask() ==> Field toBatchLowPriority:Ljava/util/Queue;
+private net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask pollTask() ==> InterfaceMethod java/util/Queue.poll:()Ljava/lang/Object;
+private net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask pollTask() ==> Method java/util/concurrent/PriorityBlockingQueue.poll:()Ljava/lang/Object;
+private static java.util.concurrent.CompletableFuture method_22757(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field LOGGER:Lorg/slf4j/Logger;
+private static java.util.concurrent.CompletableFuture method_22757(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field VERTEX_FORMAT:Lcom/mojang/blaze3d/vertex/VertexFormat;
+private static java.util.concurrent.CompletableFuture method_22757(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field com/mojang/blaze3d/vertex/DefaultVertexFormat.BLOCK:Lcom/mojang/blaze3d/vertex/VertexFormat;
+private static java.util.concurrent.CompletableFuture method_22757(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method com/mojang/logging/LogUtils.getLogger:()Lorg/slf4j/Logger;
+private static java.util.concurrent.CompletableFuture method_22757(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk$ChunkCompileTask.doTask:(Lnet/minecraft/client/renderer/ChunkBufferBuilderPack;)Ljava/util/concurrent/CompletableFuture;
+private static void method_43610(com.mojang.blaze3d.vertex.VertexBuffer, com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer) ==> Method com/mojang/blaze3d/vertex/VertexBuffer.bind:()V
+private static void method_43610(com.mojang.blaze3d.vertex.VertexBuffer, com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer) ==> Method com/mojang/blaze3d/vertex/VertexBuffer.isInvalid:()Z
+private static void method_43610(com.mojang.blaze3d.vertex.VertexBuffer, com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer) ==> Method com/mojang/blaze3d/vertex/VertexBuffer.unbind:()V
+private static void method_43610(com.mojang.blaze3d.vertex.VertexBuffer, com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer) ==> Method com/mojang/blaze3d/vertex/VertexBuffer.upload:(Lcom/mojang/blaze3d/vertex/BufferBuilder$RenderedBuffer;)V
+private void clearBatchQueue() ==> Field toBatchCount:I
+private void clearBatchQueue() ==> Field toBatchHighPriority:Ljava/util/concurrent/PriorityBlockingQueue;
+private void clearBatchQueue() ==> Field toBatchLowPriority:Ljava/util/Queue;
+private void clearBatchQueue() ==> InterfaceMethod java/util/Queue.isEmpty:()Z
+private void clearBatchQueue() ==> InterfaceMethod java/util/Queue.poll:()Ljava/lang/Object;
+private void clearBatchQueue() ==> Method java/util/concurrent/PriorityBlockingQueue.isEmpty:()Z
+private void clearBatchQueue() ==> Method java/util/concurrent/PriorityBlockingQueue.poll:()Ljava/lang/Object;
+private void clearBatchQueue() ==> Method net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk$ChunkCompileTask.cancel:()V
+private void method_22755(net.minecraft.client.renderer.ChunkBufferBuilderPack, net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, java.lang.Throwable) ==> Field mailbox:Lnet/minecraft/util/thread/ProcessorMailbox;
+private void method_22755(net.minecraft.client.renderer.ChunkBufferBuilderPack, net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, java.lang.Throwable) ==> Method net/minecraft/CrashReport.forThrowable:(Ljava/lang/Throwable;Ljava/lang/String;)Lnet/minecraft/CrashReport;
+private void method_22755(net.minecraft.client.renderer.ChunkBufferBuilderPack, net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, java.lang.Throwable) ==> Method net/minecraft/client/Minecraft.delayCrash:(Lnet/minecraft/CrashReport;)V
+private void method_22755(net.minecraft.client.renderer.ChunkBufferBuilderPack, net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, java.lang.Throwable) ==> Method net/minecraft/client/Minecraft.getInstance:()Lnet/minecraft/client/Minecraft;
+private void method_22755(net.minecraft.client.renderer.ChunkBufferBuilderPack, net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, java.lang.Throwable) ==> Method net/minecraft/util/thread/ProcessorMailbox.tell:(Ljava/lang/Object;)V
+private void method_23086(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask) ==> Field net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk$ChunkCompileTask.isHighPriority:Z
+private void method_23086(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask) ==> Field toBatchCount:I
+private void method_23086(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask) ==> Field toBatchHighPriority:Ljava/util/concurrent/PriorityBlockingQueue;
+private void method_23086(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask) ==> Field toBatchLowPriority:Ljava/util/Queue;
+private void method_23086(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask) ==> InterfaceMethod java/util/Queue.offer:(Ljava/lang/Object;)Z
+private void method_23086(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask) ==> InterfaceMethod java/util/Queue.size:()I
+private void method_23086(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask) ==> Method java/util/concurrent/PriorityBlockingQueue.offer:(Ljava/lang/Object;)Z
+private void method_23086(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask) ==> Method java/util/concurrent/PriorityBlockingQueue.size:()I
+private void method_23086(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask) ==> Method runTask:()V
+private void method_23618(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field freeBufferCount:I
+private void method_23618(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field freeBuffers:Ljava/util/Queue;
+private void method_23618(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$ChunkTaskResult.SUCCESSFUL:Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$ChunkTaskResult;
+private void method_23618(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> InterfaceMethod java/util/Queue.add:(Ljava/lang/Object;)Z
+private void method_23618(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> InterfaceMethod java/util/Queue.size:()I
+private void method_23618(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method net/minecraft/client/renderer/ChunkBufferBuilderPack.clearAll:()V
+private void method_23618(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method net/minecraft/client/renderer/ChunkBufferBuilderPack.discardAll:()V
+private void method_23618(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method runTask:()V
+private void runTask() ==> Field executor:Ljava/util/concurrent/Executor;
+private void runTask() ==> Field freeBufferCount:I
+private void runTask() ==> Field freeBuffers:Ljava/util/Queue;
+private void runTask() ==> Field toBatchCount:I
+private void runTask() ==> Field toBatchHighPriority:Ljava/util/concurrent/PriorityBlockingQueue;
+private void runTask() ==> Field toBatchLowPriority:Ljava/util/Queue;
+private void runTask() ==> InterfaceMethod java/util/Queue.isEmpty:()Z
+private void runTask() ==> InterfaceMethod java/util/Queue.poll:()Ljava/lang/Object;
+private void runTask() ==> InterfaceMethod java/util/Queue.size:()I
+private void runTask() ==> Method java/util/concurrent/CompletableFuture.supplyAsync:(Ljava/util/function/Supplier;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;
+private void runTask() ==> Method java/util/concurrent/CompletableFuture.thenCompose:(Ljava/util/function/Function;)Ljava/util/concurrent/CompletableFuture;
+private void runTask() ==> Method java/util/concurrent/CompletableFuture.whenComplete:(Ljava/util/function/BiConsumer;)Ljava/util/concurrent/CompletableFuture;
+private void runTask() ==> Method java/util/concurrent/PriorityBlockingQueue.size:()I
+private void runTask() ==> Method net/minecraft/Util.wrapThreadWithTaskName:(Ljava/lang/String;Ljava/util/function/Supplier;)Ljava/util/function/Supplier;
+private void runTask() ==> Method net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk$ChunkCompileTask.name:()Ljava/lang/String;
+private void runTask() ==> Method pollTask:()Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk$ChunkCompileTask;
+public boolean isQueueEmpty() ==> Field toBatchCount:I
+public boolean isQueueEmpty() ==> Field toUpload:Ljava/util/Queue;
+public boolean isQueueEmpty() ==> InterfaceMethod java/util/Queue.isEmpty:()Z
+public int getFreeBufferCount() ==> Field freeBufferCount:I
+public int getToBatchCount() ==> Field toBatchCount:I
+public int getToUpload() ==> Field toUpload:Ljava/util/Queue;
+public int getToUpload() ==> InterfaceMethod java/util/Queue.size:()I
+public java.lang.String getStats() ==> Field freeBufferCount:I
+public java.lang.String getStats() ==> Field java/util/Locale.ROOT:Ljava/util/Locale;
+public java.lang.String getStats() ==> Field toBatchCount:I
+public java.lang.String getStats() ==> Field toUpload:Ljava/util/Queue;
+public java.lang.String getStats() ==> InterfaceMethod java/util/Queue.size:()I
+public java.lang.String getStats() ==> Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+public java.lang.String getStats() ==> Method java/lang/String.format:(Ljava/util/Locale;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+public java.util.concurrent.CompletableFuture<java.lang.Void> uploadChunkLayer(com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer, com.mojang.blaze3d.vertex.VertexBuffer) ==> Field toUpload:Ljava/util/Queue;
+public java.util.concurrent.CompletableFuture<java.lang.Void> uploadChunkLayer(com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer, com.mojang.blaze3d.vertex.VertexBuffer) ==> Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+public java.util.concurrent.CompletableFuture<java.lang.Void> uploadChunkLayer(com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer, com.mojang.blaze3d.vertex.VertexBuffer) ==> Method java/util/concurrent/CompletableFuture.runAsync:(Ljava/lang/Runnable;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field LOGGER:Lorg/slf4j/Logger;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field camera:Lnet/minecraft/world/phys/Vec3;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field executor:Ljava/util/concurrent/Executor;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field fixedBuffers:Lnet/minecraft/client/renderer/ChunkBufferBuilderPack;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field freeBufferCount:I
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field freeBuffers:Ljava/util/Queue;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field highPriorityQuota:I
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field level:Lnet/minecraft/client/multiplayer/ClientLevel;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field mailbox:Lnet/minecraft/util/thread/ProcessorMailbox;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field net/minecraft/world/phys/Vec3.ZERO:Lnet/minecraft/world/phys/Vec3;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field renderer:Lnet/minecraft/client/renderer/LevelRenderer;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field toBatchHighPriority:Ljava/util/concurrent/PriorityBlockingQueue;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field toBatchLowPriority:Ljava/util/Queue;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Field toUpload:Ljava/util/Queue;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> InterfaceMethod java/util/List.remove:(I)Ljava/lang/Object;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> InterfaceMethod java/util/List.size:()I
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> InterfaceMethod java/util/List.stream:()Ljava/util/stream/Stream;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> InterfaceMethod java/util/Queue.size:()I
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> InterfaceMethod java/util/stream/IntStream.sum:()I
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> InterfaceMethod java/util/stream/Stream.mapToInt:(Ljava/util/function/ToIntFunction;)Ljava/util/stream/IntStream;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> InterfaceMethod org/slf4j/Logger.warn:(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method com/google/common/collect/Lists.newArrayListWithExpectedSize:(I)Ljava/util/ArrayList;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method com/google/common/collect/Queues.newArrayDeque:(Ljava/lang/Iterable;)Ljava/util/ArrayDeque;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method com/google/common/collect/Queues.newConcurrentLinkedQueue:()Ljava/util/concurrent/ConcurrentLinkedQueue;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method com/google/common/collect/Queues.newLinkedBlockingDeque:()Ljava/util/concurrent/LinkedBlockingDeque;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method com/google/common/collect/Queues.newPriorityBlockingQueue:()Ljava/util/concurrent/PriorityBlockingQueue;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method java/lang/Math.max:(II)I
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method java/lang/Math.min:(II)I
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method java/lang/Object."<init>":()V
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method java/lang/Runtime.availableProcessors:()I
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method java/lang/Runtime.getRuntime:()Ljava/lang/Runtime;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method java/lang/Runtime.maxMemory:()J
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method java/lang/System.gc:()V
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method net/minecraft/client/renderer/ChunkBufferBuilderPack."<init>":()V
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method net/minecraft/client/renderer/RenderType.chunkBufferLayers:()Ljava/util/List;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method net/minecraft/util/thread/ProcessorMailbox.create:(Ljava/util/concurrent/Executor;Ljava/lang/String;)Lnet/minecraft/util/thread/ProcessorMailbox;
+public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack) ==> Method net/minecraft/util/thread/ProcessorMailbox.tell:(Ljava/lang/Object;)V
+public net.minecraft.world.phys.Vec3 getCameraPosition() ==> Field camera:Lnet/minecraft/world/phys/Vec3;
+public void blockUntilClear() ==> Method clearBatchQueue:()V
+public void dispose() ==> Field freeBuffers:Ljava/util/Queue;
+public void dispose() ==> Field mailbox:Lnet/minecraft/util/thread/ProcessorMailbox;
+public void dispose() ==> InterfaceMethod java/util/Queue.clear:()V
+public void dispose() ==> Method clearBatchQueue:()V
+public void dispose() ==> Method net/minecraft/util/thread/ProcessorMailbox.close:()V
+public void rebuildChunkSync(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk, net.minecraft.client.renderer.chunk.RenderRegionCache) ==> Method net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk.compileSync:(Lnet/minecraft/client/renderer/chunk/RenderRegionCache;)V
+public void schedule(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask) ==> Field mailbox:Lnet/minecraft/util/thread/ProcessorMailbox;
+public void schedule(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask) ==> Method net/minecraft/util/thread/ProcessorMailbox.tell:(Ljava/lang/Object;)V
+public void setCamera(net.minecraft.world.phys.Vec3) ==> Field camera:Lnet/minecraft/world/phys/Vec3;
+public void setLevel(net.minecraft.client.multiplayer.ClientLevel) ==> Field level:Lnet/minecraft/client/multiplayer/ClientLevel;
+public void uploadAllPendingUploads() ==> Field toUpload:Ljava/util/Queue;
+public void uploadAllPendingUploads() ==> InterfaceMethod java/lang/Runnable.run:()V
+public void uploadAllPendingUploads() ==> InterfaceMethod java/util/Queue.poll:()Ljava/lang/Object;
+
+=== net.minecraft.client.renderer.chunk.SectionRenderDispatcher
+
+=== net.minecraft.client.renderer.ViewArea
+private int getChunkIndex(int, int, int) ==> Field chunkGridSizeX:I
+private int getChunkIndex(int, int, int) ==> Field chunkGridSizeY:I
+protected net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk getRenderChunkAt(net.minecraft.core.BlockPos) ==> Field chunkGridSizeX:I
+protected net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk getRenderChunkAt(net.minecraft.core.BlockPos) ==> Field chunkGridSizeY:I
+protected net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk getRenderChunkAt(net.minecraft.core.BlockPos) ==> Field chunkGridSizeZ:I
+protected net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk getRenderChunkAt(net.minecraft.core.BlockPos) ==> Field chunks:[Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;
+protected net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk getRenderChunkAt(net.minecraft.core.BlockPos) ==> Field level:Lnet/minecraft/world/level/Level;
+protected net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk getRenderChunkAt(net.minecraft.core.BlockPos) ==> Method getChunkIndex:(III)I
+protected net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk getRenderChunkAt(net.minecraft.core.BlockPos) ==> Method net/minecraft/core/BlockPos.getX:()I
+protected net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk getRenderChunkAt(net.minecraft.core.BlockPos) ==> Method net/minecraft/core/BlockPos.getY:()I
+protected net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk getRenderChunkAt(net.minecraft.core.BlockPos) ==> Method net/minecraft/core/BlockPos.getZ:()I
+protected net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk getRenderChunkAt(net.minecraft.core.BlockPos) ==> Method net/minecraft/util/Mth.floorDiv:(II)I
+protected net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk getRenderChunkAt(net.minecraft.core.BlockPos) ==> Method net/minecraft/util/Mth.positiveModulo:(II)I
+protected net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk getRenderChunkAt(net.minecraft.core.BlockPos) ==> Method net/minecraft/world/level/Level.getMinBuildHeight:()I
+protected void createChunks(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher) ==> Field chunkGridSizeX:I
+protected void createChunks(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher) ==> Field chunkGridSizeY:I
+protected void createChunks(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher) ==> Field chunkGridSizeZ:I
+protected void createChunks(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher) ==> Field chunks:[Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;
+protected void createChunks(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher) ==> Method getChunkIndex:(III)I
+protected void createChunks(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher) ==> Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+protected void createChunks(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher) ==> Method java/lang/Thread.currentThread:()Ljava/lang/Thread;
+protected void createChunks(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher) ==> Method java/lang/Thread.getName:()Ljava/lang/String;
+protected void createChunks(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher) ==> Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+protected void createChunks(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher) ==> Method net/minecraft/client/Minecraft.getInstance:()Lnet/minecraft/client/Minecraft;
+protected void createChunks(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher) ==> Method net/minecraft/client/Minecraft.isSameThread:()Z
+protected void createChunks(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher) ==> Method net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk."<init>":(Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;IIII)V
+protected void setViewDistance(int) ==> Field chunkGridSizeX:I
+protected void setViewDistance(int) ==> Field chunkGridSizeY:I
+protected void setViewDistance(int) ==> Field chunkGridSizeZ:I
+protected void setViewDistance(int) ==> Field level:Lnet/minecraft/world/level/Level;
+protected void setViewDistance(int) ==> Method net/minecraft/world/level/Level.getSectionsCount:()I
+public net.minecraft.client.renderer.ViewArea(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher, net.minecraft.world.level.Level, int, net.minecraft.client.renderer.LevelRenderer) ==> Field level:Lnet/minecraft/world/level/Level;
+public net.minecraft.client.renderer.ViewArea(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher, net.minecraft.world.level.Level, int, net.minecraft.client.renderer.LevelRenderer) ==> Field levelRenderer:Lnet/minecraft/client/renderer/LevelRenderer;
+public net.minecraft.client.renderer.ViewArea(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher, net.minecraft.world.level.Level, int, net.minecraft.client.renderer.LevelRenderer) ==> Method createChunks:(Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;)V
+public net.minecraft.client.renderer.ViewArea(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher, net.minecraft.world.level.Level, int, net.minecraft.client.renderer.LevelRenderer) ==> Method java/lang/Object."<init>":()V
+public net.minecraft.client.renderer.ViewArea(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher, net.minecraft.world.level.Level, int, net.minecraft.client.renderer.LevelRenderer) ==> Method setViewDistance:(I)V
+public void releaseAllBuffers() ==> Field chunks:[Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;
+public void releaseAllBuffers() ==> Method net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk.releaseBuffers:()V
+public void repositionCamera(double, double) ==> Field chunkGridSizeX:I
+public void repositionCamera(double, double) ==> Field chunkGridSizeY:I
+public void repositionCamera(double, double) ==> Field chunkGridSizeZ:I
+public void repositionCamera(double, double) ==> Field chunks:[Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;
+public void repositionCamera(double, double) ==> Field level:Lnet/minecraft/world/level/Level;
+public void repositionCamera(double, double) ==> Method getChunkIndex:(III)I
+public void repositionCamera(double, double) ==> Method java/lang/Math.floorMod:(II)I
+public void repositionCamera(double, double) ==> Method net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk.getOrigin:()Lnet/minecraft/core/BlockPos;
+public void repositionCamera(double, double) ==> Method net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk.setOrigin:(III)V
+public void repositionCamera(double, double) ==> Method net/minecraft/core/BlockPos.getX:()I
+public void repositionCamera(double, double) ==> Method net/minecraft/core/BlockPos.getY:()I
+public void repositionCamera(double, double) ==> Method net/minecraft/core/BlockPos.getZ:()I
+public void repositionCamera(double, double) ==> Method net/minecraft/util/Mth.ceil:(D)I
+public void repositionCamera(double, double) ==> Method net/minecraft/world/level/Level.getMinBuildHeight:()I
+public void setDirty(int, int, int, boolean) ==> Field chunkGridSizeX:I
+public void setDirty(int, int, int, boolean) ==> Field chunkGridSizeY:I
+public void setDirty(int, int, int, boolean) ==> Field chunkGridSizeZ:I
+public void setDirty(int, int, int, boolean) ==> Field chunks:[Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;
+public void setDirty(int, int, int, boolean) ==> Field level:Lnet/minecraft/world/level/Level;
+public void setDirty(int, int, int, boolean) ==> Method getChunkIndex:(III)I
+public void setDirty(int, int, int, boolean) ==> Method java/lang/Math.floorMod:(II)I
+public void setDirty(int, int, int, boolean) ==> Method net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk.setDirty:(Z)V
+public void setDirty(int, int, int, boolean) ==> Method net/minecraft/world/level/Level.getMinSection:()I
+
+
+### upload drain disassembly
+=== net.minecraft.client.renderer.chunk.ChunkRenderDispatcher
+  public void uploadAllPendingUploads();
+    Code:
+         0: aload_0
+         1: getfield      #106                // Field toUpload:Ljava/util/Queue;
+         4: invokeinterface #296,  1          // InterfaceMethod java/util/Queue.poll:()Ljava/lang/Object;
+         9: checkcast     #392                // class java/lang/Runnable
+        12: dup
+        13: astore_1
+        14: ifnull        26
+        17: aload_1
+        18: invokeinterface #394,  1          // InterfaceMethod java/lang/Runnable.run:()V
+        23: goto          0
+        26: return
+
 

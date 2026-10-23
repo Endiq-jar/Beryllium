@@ -1,6 +1,6 @@
 ## minecraft 26.1
-## commit: f894092
-## source files: 149
+## commit: 0b79a1d
+## source files: 170
 
 === net.minecraft.client.gui.Font
 Compiled from "Font.java"
@@ -389,8 +389,41 @@ public class net.minecraft.client.renderer.LevelRenderer implements net.minecraf
   public com.mojang.blaze3d.pipeline.RenderTarget getWeatherTarget();
   public com.mojang.blaze3d.pipeline.RenderTarget getCloudsTarget();
 
-=== net.minecraft.client.renderer.SectionRenderDispatcher
-Error: class not found: net.minecraft.client.renderer.SectionRenderDispatcher
+=== net.minecraft.client.renderer.chunk.ChunkRenderDispatcher
+Error: class not found: net.minecraft.client.renderer.chunk.ChunkRenderDispatcher
+
+=== net.minecraft.client.renderer.chunk.SectionRenderDispatcher
+Compiled from "SectionRenderDispatcher.java"
+public class net.minecraft.client.renderer.chunk.SectionRenderDispatcher {
+  private final net.minecraft.client.renderer.chunk.CompileTaskDynamicQueue compileQueue;
+  private final net.minecraft.client.renderer.SectionBufferBuilderPack fixedBuffers;
+  private final net.minecraft.client.renderer.SectionBufferBuilderPool bufferPool;
+  private volatile boolean closed;
+  private final net.minecraft.TracingExecutor executor;
+  private net.minecraft.client.multiplayer.ClientLevel level;
+  private final net.minecraft.client.renderer.LevelRenderer renderer;
+  private final java.util.concurrent.atomic.AtomicReference<net.minecraft.world.phys.Vec3> cameraPosition;
+  private net.minecraft.client.renderer.chunk.SectionCompiler sectionCompiler;
+  private final java.util.Map<net.minecraft.client.renderer.chunk.ChunkSectionLayer, net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionUberBuffers> chunkUberBuffers;
+  private final java.util.concurrent.locks.ReentrantLock copyLock;
+  public net.minecraft.client.renderer.chunk.SectionRenderDispatcher(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.LevelRenderer, net.minecraft.TracingExecutor, net.minecraft.client.renderer.RenderBuffers, net.minecraft.client.renderer.chunk.SectionCompiler);
+  public void setLevel(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.renderer.chunk.SectionCompiler);
+  private void runTask();
+  public void setCameraPosition(net.minecraft.world.phys.Vec3);
+  public net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSectionBufferSlice getRenderSectionSlice(net.minecraft.client.renderer.chunk.SectionMesh, net.minecraft.client.renderer.chunk.ChunkSectionLayer);
+  public void lock();
+  public void unlock();
+  public void uploadGlobalGeomBuffersToGPU();
+  public void rebuildSectionSync(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection, net.minecraft.client.renderer.chunk.RenderRegionCache);
+  public void schedule(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$CompileTask);
+  public void clearCompileQueue();
+  public boolean isQueueEmpty();
+  public void dispose();
+  public java.lang.String getStats();
+  public int getCompileQueueSize();
+  public int getFreeBufferCount();
+  private static net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionUberBuffers lambda$new$0(com.mojang.blaze3d.systems.GpuDevice, com.mojang.blaze3d.GraphicsWorkarounds, net.minecraft.client.renderer.chunk.ChunkSectionLayer);
+}
 
 === net.minecraft.client.renderer.ViewArea
 Compiled from "ViewArea.java"
