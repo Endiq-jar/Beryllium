@@ -18,11 +18,18 @@ def berylliumVersion = providers.gradleProperty("mod_version").getOrElse("0.2.0"
  * Mojang stopped obfuscating the distributed game jar in 26.1.  Fabric Loom uses a
  * deliberately separate plugin for that format; selecting it here is what lets the
  * same command build both 1.19.4 and current releases.
+ *
+ * A development id ("26.4-snapshot-5", "26.4-pre-2", "26.4-rc-1") is accepted as well as a
+ * plain release, because `snapshot.yml` compiles the upcoming line before it ships.  Only the
+ * numeric part is returned: it is what selects the Loom pipeline and drives the era-gated
+ * mixin exclusions below, and a snapshot of 26.4 needs exactly the same decisions as 26.4
+ * will.  The suffix survives in the artifact name (`beryllium-mc26.4-snapshot-5`), so a
+ * development jar says plainly that it is one -- nothing here publishes it as a release.
  */
 def numericVersion = { String value ->
-	def match = (value =~ /^(\d+)\.(\d+)(?:\.(\d+))?$/)
+	def match = (value =~ /^(\d+)\.(\d+)(?:\.(\d+))?(?:-(?:snapshot|pre|rc)-?\d+)?$/)
 	if (!match.matches()) {
-		throw new GradleException("minecraft_version must be a released numeric version, got '${value}'")
+		throw new GradleException("minecraft_version must be a numeric release or development version, got '${value}'")
 	}
 	return [match.group(1).toInteger(), match.group(2).toInteger(),
 			match.group(3) == null ? 0 : match.group(3).toInteger()]
@@ -94,6 +101,10 @@ def hasMovedChatTypes = unobfuscatedGame || versionParts[0] >= 22
  */
 def eraExcludedMixins = [] as Set
 if (!textUsesDrawInBatch) {
+	// Both sign-text variants name net.minecraft.client.renderer.MultiBufferSource in their
+	// injector descriptors and callback signatures. 26.2 dropped that type with the rest of
+	// the immediate-mode renderer, so neither file can compile there -- excluding only the
+	// display-mode one left the legacy file in the build and broke the 26.2/26.3 compile.
 	eraExcludedMixins << 'text.FontSignTextMixin'
 	// The pre-display-mode overload variant names MultiBufferSource, which 26.2's
 	// renderer split removed along with drawInBatch; same removal, same exclusion.
@@ -166,6 +177,7 @@ sourceSets {
 			if (!textUsesDrawInBatch) {
 				// 26.2+ prepares text once and submits it later; the per-draw hooks that make
 				// sign text cheap no longer exist, so these files are only built below it.
+				// Both of them name MultiBufferSource, which 26.2 removed entirely.
 				exclude 'com/endiq/beryllium/mixin/text/FontSignTextMixin.java'
 				exclude 'com/endiq/beryllium/mixin/text/FontSignTextLegacyMixin.java'
 			}

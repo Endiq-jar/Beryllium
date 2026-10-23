@@ -5,9 +5,9 @@ import com.endiq.beryllium.chunk.ChunkRebuildManager;
 import com.endiq.beryllium.chunk.SectionDirtyBridge;
 import com.endiq.beryllium.chunk.SectionPacking;
 import com.endiq.beryllium.config.BerylliumConfig;
+import com.endiq.beryllium.render.adapter.SectionRevisionClock;
 import net.minecraft.client.renderer.ViewArea;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -27,7 +27,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * not just through LevelRenderer — is caught as well. The section is parked in
  * {@link ChunkRebuildManager}'s priority queue instead of being scheduled
  * immediately; the per-frame drain re-triggers it through vanilla's own
- * {@code setDirty}/{@code setSectionDirty} via {@link #beryllium$rescheduleDirty},
+ * {@code setDirty}/{@code setSectionDirty} via {@link SectionDirtyBridge},
  * guarded by the manager's bypass flag.
  *
  * <p>Deliberately NOT intercepting {@code SectionRenderDispatcher.RenderSection#setDirty}:
@@ -38,38 +38,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ViewArea.class)
 public abstract class ViewAreaMixin {
 
-	/**
-	 * Re-triggers a parked section through vanilla's own dirty-marking path, so the
-	 * actual (asynchronous) rebuild is always scheduled by vanilla.
-	 *
-	 * <p>Reflection-based rather than a direct call so that a signature mismatch with
-	 * the running version can never break the mod's class loading. Candidates are
-	 * tried in order, against the captured reference first and then against the live
-	 * {@code Minecraft.levelRenderer}: {@code ViewArea.setDirty(int, int, int,
-	 * boolean)}, {@code LevelRenderer.setSectionDirty(int, int, int, boolean)}
-	 * (private), then the public {@code LevelRenderer.setSectionDirty(int, int, int)}.
-	 * {@code getDeclaredMethod} + {@code setAccessible} are used so private vanilla
-	 * variants are reachable too; the class hierarchy is walked so a subclass (e.g. a
-	 * renderer replacement) still resolves the vanilla methods. If all are missing it
-	 * returns false and the caller drops the request (the same mismatch would also
-	 * have made the {@code @Inject}s silent no-ops, so this path is only ever reached
-	 * when at least one candidate genuinely exists).
-	 *
-	 * @return true if one of vanilla's dirty-marking variants was invoked.
-	 */
-	@Unique
-	public static boolean beryllium$rescheduleDirty(Object rendererRef, long sectionPos, boolean important) {
-		// The reflection lives in SectionDirtyBridge so the prioritization queue keeps
-		// working on releases where this class (ViewArea, added in 1.21.2) does not exist.
-		return SectionDirtyBridge.rescheduleDirty(rendererRef, sectionPos, important);
-	}
-
 	@Inject(method = "setDirty(IIIZ)V", at = @At("HEAD"), cancellable = true)
 	private void beryllium$queuePrioritizedSectionDirty(
 		int sectionX, int sectionY, int sectionZ, boolean important, CallbackInfo ci
 	) {
 		ChunkRebuildManager manager = ChunkRebuildManager.instance();
-		if (manager == null || manager.isBypassing()) {
+		if (manager != null && manager.isBypassing()) {
+			// Beryllium re-triggering a parked section, not a new change to it.
+			return;
+		}
+		// Above every feature gate: the section changed whether or not Beryllium is
+		// prioritizing its rebuild, and the revision clock has to reflect that.
+		SectionRevisionClock.instance().noteDirty(SectionPacking.pack(sectionX, sectionY, sectionZ));
+		if (manager == null) {
 			return;
 		}
 		BerylliumConfig config = Beryllium.config();

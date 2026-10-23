@@ -2,6 +2,7 @@ package com.endiq.beryllium.chunk;
 
 import com.endiq.beryllium.Beryllium;
 import com.endiq.beryllium.config.BerylliumConfig;
+import com.endiq.beryllium.render.adapter.RendererMode;
 import com.endiq.beryllium.util.BerylliumLog;
 
 import java.util.List;
@@ -27,6 +28,10 @@ import java.util.List;
  *       by vanilla's own machinery, never by Beryllium.</li>
  *   <li>The re-trigger call is guarded by a bypass flag so it never re-enters the queue
  *       (infinite loop protection).</li>
+ *   <li>Nothing is ever intercepted unless {@link SectionDirtyBridge} can prove the mark can
+ *       be handed back to vanilla on this release, and a drained request that still fails to
+ *       re-trigger goes back into the queue instead of being dropped. Losing an update is
+ *       worse than not reordering it.</li>
  *   <li>The queue is cleared on level unload so stale sections from a previous world are
  *       never re-triggered into the next one.</li>
  *   <li>Deferred automatically when Sodium is present (it owns the mesh pipeline and
@@ -56,7 +61,9 @@ public final class ChunkRebuildManager {
 	private boolean bypassing = false;
 
 	private boolean saturationLogged = false;
+	private boolean requeueLogged = false;
 	private long drainedTotal = 0;
+	private long requeueTotal = 0;
 	private int maxPendingSeen = 0;
 	private long lastTelemetryLogNanos = 0;
 
@@ -73,7 +80,7 @@ public final class ChunkRebuildManager {
 		double camX, double camY, double camZ,
 		double forwardX, double forwardY, double forwardZ
 	) {
-		onFrameStart(camX, camY, camZ, forwardX, forwardY, forwardZ, -1L);
+		onFrameStart(camX, camY, camZ, forwardX, forwardY, forwardZ, -1L, -1L);
 	}
 
 	/**
@@ -92,6 +99,21 @@ public final class ChunkRebuildManager {
 			return false;
 		}
 		if (Beryllium.isChunkOptimizationDeferredToOtherMod()) {
+			return false;
+		}
+		// If Beryllium's own renderer has taken over the terrain, this queue has to stand
+		// down: it schedules work inside vanilla's dispatcher, and two systems scheduling the
+		// same section is how it gets rebuilt twice or not at all. Read from the single atomic
+		// mode switch rather than from a second flag, so the two renderers cannot disagree
+		// about who owns the ground.
+		if (!RendererMode.vanillaChunkSystemsActive()) {
+			return false;
+		}
+		if (!SectionDirtyBridge.canReschedule(rendererRef)) {
+			// A queue that accepts a dirty mark and then cannot hand it back has *lost* that
+			// update: the section would stay stale until something else dirtied it again.
+			// Refusing to intercept is the only safe answer, and vanilla then schedules the
+			// rebuild itself. SectionDirtyBridge logs the reason once.
 			return false;
 		}
 
@@ -143,12 +165,15 @@ public final class ChunkRebuildManager {
 	 * frame was already expensive — the queue keeps making progress, it just refuses to
 	 * make a slow frame worse.
 	 *
-	 * @param lastFrameNanos previous frame duration, or a negative value when unknown
+	 * @param lastFrameNanos    duration of the frame that just finished, or a non-positive
+	 *                          value when it has not been measured
+	 * @param averageFrameNanos this device's rolling average frame time, or a non-positive
+	 *                          value when it has not been measured yet
 	 */
 	public void onFrameStart(
 		double camX, double camY, double camZ,
 		double forwardX, double forwardY, double forwardZ,
-		long lastFrameNanos
+		long lastFrameNanos, long averageFrameNanos
 	) {
 		BerylliumConfig config = Beryllium.config();
 		if (config == null || !config.enabled || !config.chunkRebuildPrioritization) {
@@ -158,7 +183,8 @@ public final class ChunkRebuildManager {
 			return;
 		}
 
-		int budget = ChunkCompilationScheduler.rebuildsThisFrame(config.chunkRebuildsPerFrame, lastFrameNanos);
+		int budget = ChunkCompilationScheduler.rebuildsThisFrame(
+			config.chunkRebuildsPerFrame, lastFrameNanos, averageFrameNanos);
 		List<ChunkRebuildRequest> next = queue.drain(budget, camX, camY, camZ, forwardX, forwardY, forwardZ);
 		for (ChunkRebuildRequest request : next) {
 			bypassing = true;
@@ -166,11 +192,19 @@ public final class ChunkRebuildManager {
 				if (SectionDirtyBridge.rescheduleDirty(rendererRef, request.key(), request.urgent())) {
 					drainedTotal++;
 				} else {
-					// Re-trigger failed (vanilla method not reachable) — the request is
-					// already out of the queue. The section will be re-dirtied by vanilla
-					// on the next relevant event; log once so it is diagnosable.
-					BerylliumLog.warn("[BERYLLIUM-CHUNK] Re-trigger failed for section key "
-						+ request.key() + "; dropping (vanilla will re-mark it on its next pass).");
+					// The re-trigger could not be performed. Putting the request back is what
+					// keeps this feature from ever *losing* an update: a dropped request is a
+					// section that stays stale until vanilla happens to dirty it again. The
+					// queue's own cap still bounds this — if the bridge is permanently broken,
+					// the queue fills, interception suspends and vanilla takes over.
+					queue.submitOrUpdate(request);
+					requeueTotal++;
+					if (!requeueLogged) {
+						requeueLogged = true;
+						BerylliumLog.warn("[BERYLLIUM-CHUNK] Re-trigger failed for section key "
+							+ request.key() + "; re-queued rather than dropped. Prioritization "
+							+ "suspends itself if this keeps happening.");
+					}
 				}
 			} finally {
 				bypassing = false;
@@ -193,6 +227,11 @@ public final class ChunkRebuildManager {
 		return drainedTotal;
 	}
 
+	/** How many drained requests had to be put back because the re-trigger did not go through. */
+	public long requeueTotal() {
+		return requeueTotal;
+	}
+
 	public int maxPendingSeen() {
 		return maxPendingSeen;
 	}
@@ -209,6 +248,6 @@ public final class ChunkRebuildManager {
 		}
 		lastTelemetryLogNanos = now;
 		BerylliumLog.debug("[BERYLLIUM-CHUNK] queue=" + queue.size() + " pending, max=" + maxPendingSeen
-			+ ", drained=" + drainedTotal + ", bypassing=" + bypassing);
+			+ ", drained=" + drainedTotal + ", requeued=" + requeueTotal + ", bypassing=" + bypassing);
 	}
 }

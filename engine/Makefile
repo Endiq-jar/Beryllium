@@ -63,7 +63,7 @@ endif
 CORE_SRCS := \
 	src/bcore.c src/bmath.c src/blocks.c src/chunk.c src/world.c src/worldgen.c \
 	src/light.c src/mesh_format.c src/mesher.c src/pool.c src/camera.c src/occlusion.c \
-	src/rhi.c src/rhi_soft.c src/png.c src/perf.c src/engine.c
+	src/rhi.c src/rhi_soft.c src/png.c src/perf.c src/engine.c src/snapshot.c
 SRCS := $(CORE_SRCS) $(BACKEND_SRCS)
 MAIN_SRC := src/main.c
 TEST_SRCS := $(wildcard tests/*.c)

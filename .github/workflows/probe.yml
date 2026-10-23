@@ -94,7 +94,8 @@ jobs:
                 net.minecraft.client.Camera \
                 net.minecraft.client.Minecraft \
                 net.minecraft.client.renderer.LevelRenderer \
-                net.minecraft.client.renderer.SectionRenderDispatcher \
+                net.minecraft.client.renderer.chunk.ChunkRenderDispatcher \
+                net.minecraft.client.renderer.chunk.SectionRenderDispatcher \
                 net.minecraft.client.renderer.ViewArea \
                 net.minecraft.client.renderer.blockentity.AbstractSignRenderer \
                 net.minecraft.client.renderer.blockentity.SignRenderer \
@@ -236,6 +237,61 @@ jobs:
                       /^  [a-zA-Z][A-Za-z0-9_$.<>,\[\] ]*\(.*\)/ { m=$0; sub(/^ +/, "", m); sub(/;.*/, "", m) }
                       /\/\/ (Method|Field|InterfaceMethod) / { c=$0; sub(/.*\/\/ /, "", c); print m " ==> " c }
                     ' | sort -u | head -400
+                    echo
+                  done
+
+                  # The whole chunk pipeline.  Chunk compilation scheduling and chunk upload
+                  # pacing both have to hook inside net.minecraft.client.renderer.chunk, and
+                  # that package was reshaped in every renderer era inside the supported
+                  # range (ChunkRenderDispatcher -> SectionRenderDispatcher -> the 1.21.9+
+                  # render-state extraction pipeline, with the upload drain disappearing from
+                  # LevelRenderer's call graph entirely on the newest releases).  Enumerating
+                  # the package from the real jar means the decision about where to hook is
+                  # made from evidence rather than from memory of one release.
+                  echo
+                  echo "### chunk pipeline classes"
+                  CHUNK_CLASSES=""
+                  if [ -n "$CLIENTJAR" ]; then
+                    CHUNK_CLASSES="$(unzip -l "$CLIENTJAR" 2>/dev/null | awk '{print $4}' \
+                      | grep -E '^net/minecraft/client/renderer/(chunk|state/level)/[A-Za-z0-9_$]+\.class$' \
+                      | sed 's#/#.#g; s#\.class$##' | sort -u | head -90)"
+                  fi
+                  for CLS in \
+                    net.minecraft.client.renderer.ViewArea \
+                    net.minecraft.client.renderer.SectionOcclusionGraph \
+                    $CHUNK_CLASSES ; do
+                    echo "=== $CLS"
+                    javap -p -cp "$CP" "$CLS" 2>&1 | head -80 || echo "MISSING"
+                    echo
+                  done
+
+                  echo
+                  echo "### chunk pipeline call map (enclosing method ==> callee)"
+                  for CLS in \
+                    net.minecraft.client.renderer.chunk.ChunkRenderDispatcher \
+                    net.minecraft.client.renderer.chunk.SectionRenderDispatcher \
+                    net.minecraft.client.renderer.ViewArea ; do
+                    echo "=== $CLS"
+                    javap -c -p -cp "$CP" "$CLS" 2>/dev/null | awk '
+                      /^  [a-zA-Z][A-Za-z0-9_$.<>,\[\] ]*\(.*\)/ { m=$0; sub(/^ +/, "", m); sub(/;.*/, "", m) }
+                      /\/\/ (Method|Field|InterfaceMethod) / { c=$0; sub(/.*\/\/ /, "", c); print m " ==> " c }
+                    ' | sort -u | head -400
+                    echo
+                  done
+
+                  # Raw disassembly of the upload drain, where it still exists: whether it
+                  # removes each entry as it uploads it or clears the whole queue afterwards
+                  # decides if the drain can be stopped part-way through safely.
+                  echo
+                  echo "### upload drain disassembly"
+                  for CLS in \
+                    net.minecraft.client.renderer.chunk.ChunkRenderDispatcher \
+                    net.minecraft.client.renderer.chunk.SectionRenderDispatcher ; do
+                    javap -c -p -cp "$CP" "$CLS" 2>/dev/null | awk '
+                      /^  [a-zA-Z]/ && index($0, "uploadAllPendingUploads(") > 0 { f=1; print "=== '"$CLS"'"; print; next }
+                      f && /^$/ { f=0 }
+                      f { print }
+                    ' | head -200
                     echo
                   done
                 } > "ci-probe/api-$V.txt" 2>&1 || true

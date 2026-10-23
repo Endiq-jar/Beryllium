@@ -447,12 +447,25 @@ int beryl_engine_set_block(BerylEngine *e, int x, int y, int z, beryl_bid id) {
 	beryl_world_unlock_write(e->world);
 	if (!ok) return 0;
 	int n = 1;
-	if (!e->rhi) {
-		/* No renderer: the light engine must still converge, so process inline. */
-		beryl_world_lock_write(e->world);
-		beryl_light_process_queue(e->world, 4096);
-		beryl_world_unlock_write(e->world);
-	}
+	/* Converge the light for this edit inline, whatever backend is attached.
+	 *
+	 * This used to run only when there was no renderer, on the theory that a
+	 * live frame loop would get to it anyway. It does -- but only at the
+	 * per-frame budget (256 steps), which is sized for the trickle of light
+	 * work a moving camera generates, not for the burst a placed torch
+	 * creates. The result was that an edit which changes *lighting* rather
+	 * than silhouette took many frames to show up at all, and how many
+	 * depended on where the builder pool happened to be in its queue.
+	 *
+	 * A block edit is already a synchronous gameplay event holding the write
+	 * lock, so paying for its own light here is both cheaper to reason about
+	 * and what makes the edit feel immediate. The bound keeps a pathological
+	 * edit (a light block placed in a huge open cavern) from stalling the
+	 * caller; whatever is left over drains through the frame budget as before.
+	 */
+	beryl_world_lock_write(e->world);
+	beryl_light_process_queue(e->world, 4096);
+	beryl_world_unlock_write(e->world);
 	return n;
 }
 

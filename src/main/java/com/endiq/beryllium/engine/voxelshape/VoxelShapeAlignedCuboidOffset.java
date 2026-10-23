@@ -161,6 +161,6 @@ public class VoxelShapeAlignedCuboidOffset extends VoxelShapeAlignedCuboid {
             case Y -> (coord - this.yOffset) * (numSegments = this.getYSegments());
             case Z -> (coord - this.zOffset) * (numSegments = this.getZSegments());
         };
-        return Mth.clamp(Mth.floor(coord), -1, numSegments);
+        return clampIndex(Mth.floor(coord), -1, numSegments);
     }
 }

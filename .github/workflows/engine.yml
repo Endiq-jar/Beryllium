@@ -1,0 +1,104 @@
+# Native engine CI.
+#
+# The C engine under engine/ has its own build and its own test suite, and until
+# now nothing ran it: engine/ci/engine-job.yml described the job but no workflow
+# referenced it, so a regression in the engine could land on main unnoticed. That
+# is exactly what happened -- `make test` was failing intermittently on a
+# live-edit check, and it stayed invisible because the only thing that ever ran
+# the suite was a developer's terminal.
+#
+# Every step below was run and passes locally before this file was added. The
+# sanitizer pass is the slow one; the whole job is a couple of minutes.
+
+name: engine
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: beryllium-engine-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  engine:
+    name: native engine (build, test, sanitizers)
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: engine
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+
+      - name: build (warnings are errors)
+        run: make -j"$(nproc)" EXTRA_CFLAGS="-Werror"
+
+      # The suite's output is copied into the job summary, not just left in the log.
+      # Fetching raw action logs needs a blob host that is not always reachable, whereas a
+      # check-run summary can be read back through the ordinary API -- which is the
+      # difference between diagnosing a failure and guessing at it.
+      - name: test
+        run: |
+          set +e
+          make test EXTRA_CFLAGS="-Werror" > /tmp/engine-test.log 2>&1
+          status=$?
+          {
+            echo "### engine \`make test\` (exit ${status})"
+            echo '```'
+            tail -n 300 /tmp/engine-test.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$status" -ne 0 ]; then
+            # Repeated as annotations as well. Raw action logs live on a blob host
+            # that is not always reachable and a job's step summary is not exposed
+            # through the check-run API, but annotations are -- so this is what makes
+            # a failure here diagnosable instead of guessable.
+            echo "::error::engine make test exited ${status}"
+            grep -nE "FAIL|RESULT|error:|runtime error" /tmp/engine-test.log \
+              | head -40 | while IFS= read -r line; do echo "::error::${line}"; done
+            tail -n 40 /tmp/engine-test.log | while IFS= read -r line; do
+              echo "::error::tail| ${line}"
+            done
+          fi
+          exit $status
+
+      # The suite branches on whether a real libGL can be dlopened, and a CI runner
+      # has Mesa's libGL where a minimal container does not -- so which branch runs
+      # was previously an accident of whichever image the job landed on, and the
+      # branch that only runs on a runner is the one nobody tests locally. Exercise
+      # it explicitly: a library that dlopens cleanly and resolves none of the entry
+      # points the engine needs, which is what libGL looks like with no GL context.
+      - name: test against a libGL that resolves nothing
+        run: |
+          set -e
+          mkdir -p /tmp/no-context-gl
+          printf 'int beryllium_gl_stub(void) { return 1; }\n' > /tmp/no-context-gl/stub.c
+          cc -shared -fPIC -o /tmp/no-context-gl/libGL.so.1 /tmp/no-context-gl/stub.c
+          LD_LIBRARY_PATH=/tmp/no-context-gl ./build/beryl_tests
+
+      - name: render a frame and verify it is not blank
+        run: |
+          ./build/beryl --quiet --frames 1 --view-distance 12 --screenshot ci-frame.png
+          python3 tools/pngstat.py --strict ci-frame.png
+
+      - name: phone profile builds and passes the same suite
+        run: make clean && make ANDROID=1 -j"$(nproc)" test
+
+      - name: test under address/undefined sanitizers
+        run: |
+          make clean
+          make test -j"$(nproc)" \
+            EXTRA_CFLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g" \
+            EXTRA_LDFLAGS="-fsanitize=address,undefined"
+
+      - name: upload the rendered frame
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: beryllium-engine-frame
+          path: engine/ci-frame.png

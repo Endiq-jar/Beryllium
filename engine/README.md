@@ -62,6 +62,7 @@ flag; the frame-budget ones are `--preset desktop|mobile|low-end`,
 | `src/engine.*` | the store, per-frame budget, uniform assembly, draw submission, OBJ export |
 | `src/perf.*` | the frame governor: how much a frame may spend, and the presets a launcher exposes |
 | `src/rhi.*`, `rhi_soft.*`, `rhi_gl.*` | the backend interface, the reference rasterizer, the GL backend |
+| `src/snapshot.*` | the Minecraft boundary: parse, validate, resolve and apply immutable section snapshots |
 | `src/png.*` | the deflate/stored-block PNG writer used for screenshots |
 | `shaders/terrain.*.glsl` | the GPU source of truth, embedded into the binary by `tools/embed.c` |
 
@@ -92,7 +93,7 @@ flag; the frame-budget ones are `--preset desktop|mobile|low-end`,
 
 ## Test suite (`make test`)
 
-2502 checks in six suites, all of them running against the real generator and the
+6709 checks in seven suites, all of them running against the real generator and the
 real mesh data:
 
 - `test_basics` — math, block table, format packing/unpacking, the light
@@ -119,7 +120,21 @@ real mesh data:
   PNG file structure, and that occlusion culling changes **no visible pixel**
   while submitting fewer draws.
 - `test_gl_backend` — the OpenGL backend driven through a recording loader (see
-  below).
+  below), plus the real-libGL probe. That probe branches on whether `libGL` can be
+  dlopened *and* whether every required entry point resolves out of it, which are
+  two different questions: a headless CI runner has Mesa's `libGL` present and no
+  context to resolve against, so the branch that runs there is not the branch that
+  runs in a minimal container. CI builds a `libGL.so.1` that dlopens cleanly and
+  exports nothing, and runs the suite against it, so both are covered deliberately
+  rather than one being covered by luck.
+- `test_snapshot` — the Minecraft section-snapshot contract, tested the way a
+  network protocol would be: valid buffers round-trip, and every truncation of one
+  (all 5900 of them), bad magic, an unsupported version, nine bit widths that
+  cannot pack a palette, an out-of-range voxel index and a repeated palette index
+  are refused rather than partially believed. Two properties are asserted by name
+  because they are the ones that would be catastrophic rather than merely wrong:
+  an unknown block must never resolve to air, and a snapshot whose world, section
+  revision or resource-pack generation has moved must be rejected.
 
 The suite is deliberately free of thresholds that a correct engine could wander
 across: `light == 15` where nothing can shadow it, `AO == 3` where nothing is
@@ -250,8 +265,32 @@ of what a third one has to do.
   into `out[0..max)` — one row per result — and `test_pool` is what keeps it that
   way. The general lesson for an async engine: an ownership handoff with no test on
   it is not a clean design, it is a leak with good manners.
+- **The engine still cannot draw a real Minecraft world, and the gap is documented
+  rather than papered over.** `src/snapshot.*` is the boundary: it parses and
+  validates an immutable section snapshot, resolves each palette entry onto an
+  engine block, and writes the result into the world. What is missing is everything
+  downstream of that. The block registry is a frozen `uint8` enum of about thirty
+  entries, so a snapshot of a real section resolves almost entirely through the
+  material-flag fallback — correct in behaviour (solid, translucent, cutout,
+  emitting) and wrong in appearance, since every unknown block is drawn as the
+  nearest built-in stand-in. Real baked-model translation, the JNI layer, and an
+  Android GLES backend that uses the launcher's existing context are all still to
+  come. Nothing on the Java side calls into this yet.
 - `beryl_engine_stats().total_quads` and `merge_ratio` are cumulative for the
   process, not per frame — never compare them against one export.
+- **Two test failures that only appeared on a machine unlike the one they were
+  written on**, both now fixed and both worth recording because they are the same
+  mistake twice. `test_live_edit` sized its builder pool from the core count
+  (`builder_threads = 0` means auto, i.e. `min(cores-1, 4)`), so it ran one thread
+  deep on a laptop and three deep on a CI runner, and with several builders in
+  flight *which* sections had finished by the time a frame installed its budget of
+  them is a scheduling outcome — fatal for a test that asserts on pixels. It now
+  pins one builder thread, which removes the dependence on core count while still
+  exercising the whole asynchronous path. `test_gl_backend` probed the real
+  `libGL` and treated "the loader failed" as "there is no libGL", which is true in
+  a container and false on a runner that has Mesa installed and no context. Both
+  passed locally and failed in CI, which is the signature of a test that has
+  quietly come to depend on its environment.
 - Occlusion culling does not yet shrink the *draw* set as much as it could:
   sections recorded as empty while the walk expands through air are counted in
   `visible_sections` (they are skipped when drawing).
